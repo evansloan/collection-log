@@ -22,7 +22,10 @@ import net.runelite.client.plugins.PluginDescriptor;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Collection Log"
+	name = "Collection Log",
+	description = "Add items obtained/total items to the top of the collection log",
+	tags = {"collection", "log"},
+	enabledByDefault = false
 )
 public class CollectionLogPlugin extends Plugin
 {
