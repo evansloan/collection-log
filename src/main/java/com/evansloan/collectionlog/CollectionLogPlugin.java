@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
@@ -74,6 +75,7 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
+			loadItemCounts();
 			setCollectionLogTitle();
 		}
 	}
@@ -84,6 +86,15 @@ public class CollectionLogPlugin extends Plugin
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
 			setCollectionLogTitle(COLLECTION_LOG_TITLE);
+		}
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged gameStateChanged)
+	{
+		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
+		{
+			loadItemCounts();
 		}
 	}
 
@@ -136,7 +147,6 @@ public class CollectionLogPlugin extends Plugin
 
 	private String buildTitle()
 	{
-		loadItemCounts();
 		int totalObtained = getCategoryItemCount("total");
 		String title = String.format("%s - %d/%d", COLLECTION_LOG_TITLE, totalObtained, TOTAL_ITEMS);
 
