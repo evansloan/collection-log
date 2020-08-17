@@ -25,8 +25,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 @PluginDescriptor(
 	name = "Collection Log",
 	description = "Add items obtained/total items to the top of the collection log",
-	tags = {"collection", "log"},
-	enabledByDefault = false
+	tags = {"collection", "log"}
 )
 public class CollectionLogPlugin extends Plugin
 {
