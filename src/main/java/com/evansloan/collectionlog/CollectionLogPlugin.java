@@ -157,7 +157,7 @@ public class CollectionLogPlugin extends Plugin
 
 
 	@Subscribe
-	public void onMenuOptionClicked(MenuOptionClicked event) throws IOException
+	public void onMenuOptionClicked(MenuOptionClicked event)
 	{
 		if (event.getMenuAction().getId() == MenuAction.RUNELITE.getId() ||
 			(event.getMenuOption().equals(COLLECTION_LOG_EXPORT)))
