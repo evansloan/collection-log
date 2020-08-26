@@ -8,9 +8,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +46,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final String CONFIG_GROUP = "collectionlog";
 	private static final String OBTAINED_COUNTS = "obtained_counts";
 	private static final String OBTAINED_ITEMS = "obtained_items";
+	private static final String COMPLETED_CATEGORIES = "completed_categories";
 	private static final String TOTAL_ITEMS = "total_items";
 
 	private static final int COLLECTION_LOG_GROUP_ID = 621;
@@ -61,6 +64,7 @@ public class CollectionLogPlugin extends Plugin
 	private final Gson GSON = new Gson();
 	private Map<String, Integer> obtainedCounts = new HashMap<>();
 	private Map<String, CollectionLogItem[]> obtainedItems = new HashMap<>();
+	private List<String> completedCategories = new ArrayList<>();
 
 	@Inject
 	private Client client;
@@ -86,10 +90,23 @@ public class CollectionLogPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		if (event.getGroup().equals(CONFIG_GROUP))
+		if (client.getGameState() != GameState.LOGGED_IN)
 		{
-			setCollectionLogTitle();
+			return;
 		}
+
+		String configKey = event.getKey();
+		String username = client.getUsername();
+
+		if (configKey.equals(username + "." + OBTAINED_COUNTS) ||
+			 configKey.equals(username + "." + OBTAINED_ITEMS) ||
+			 configKey.equals(username + "." + COMPLETED_CATEGORIES) ||
+			 !event.getGroup().equals(CONFIG_GROUP))
+		{
+			return;
+		}
+
+		update();
 	}
 
 	@Override
@@ -98,7 +115,7 @@ public class CollectionLogPlugin extends Plugin
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
 			loadItems();
-			setCollectionLogTitle();
+			update();
 		}
 	}
 
@@ -245,12 +262,20 @@ public class CollectionLogPlugin extends Plugin
 		getItems(categoryTitle);
 		saveItems(obtainedItems, OBTAINED_ITEMS);
 
-		int itemCount = Arrays.stream(obtainedItems.get(categoryTitle)).filter(CollectionLogItem::isObtained).toArray().length;
+		CollectionLogItem[] categoryItems = obtainedItems.get(categoryTitle);
+		int itemCount = Arrays.stream(categoryItems).filter(CollectionLogItem::isObtained).toArray().length;
 		int prevItemCount = getCategoryItemCount(categoryTitle);
+		int totalItemCount = categoryItems.length;
+
+		if (itemCount == totalItemCount)
+		{
+			completedCategories.add(categoryTitle);
+			saveItems(completedCategories, COMPLETED_CATEGORIES);
+		}
 
 		if (itemCount == prevItemCount)
 		{
-			setCollectionLogTitle();
+			update();
 			return;
 		}
 
@@ -259,7 +284,23 @@ public class CollectionLogPlugin extends Plugin
 		obtainedCounts.put(categoryTitle, itemCount);
 		saveItems(obtainedCounts, OBTAINED_COUNTS);
 
-		setCollectionLogTitle();
+		update();
+	}
+
+	private void highlightCategories()
+	{
+		for (CollectionLogList listType : CollectionLogList.values())
+		{
+			Widget categoryList = client.getWidget(COLLECTION_LOG_GROUP_ID, listType.getListIndex());
+			Widget[] names = categoryList.getDynamicChildren();
+			for (Widget name : names)
+			{
+				if (completedCategories.contains(name.getText()))
+				{
+					name.setTextColor(config.highlightColor().getRGB() & 0x00FFFFFF);
+				}
+			}
+		}
 	}
 
 	private String buildTitle()
@@ -277,10 +318,15 @@ public class CollectionLogPlugin extends Plugin
 		return title;
 	}
 
-	private void setCollectionLogTitle()
+	private void update()
 	{
 		String title = buildTitle();
 		setCollectionLogTitle(title);
+
+		if (config.highlightCompleted())
+		{
+			highlightCategories();
+		}
 	}
 
 	private void setCollectionLogTitle(String title)
@@ -309,6 +355,7 @@ public class CollectionLogPlugin extends Plugin
 	{
 		String counts = configManager.getConfiguration(group, OBTAINED_COUNTS);
 		String items = configManager.getConfiguration(group, OBTAINED_ITEMS);
+		String completed = configManager.getConfiguration(group, COMPLETED_CATEGORIES);
 
 		if (counts == null)
 		{
@@ -320,15 +367,17 @@ public class CollectionLogPlugin extends Plugin
 			items = "{}";
 		}
 
-		obtainedCounts = GSON.fromJson(counts, new TypeToken<Map<String, Integer>>()
+		if (completed == null)
 		{
-		}.getType());
-		obtainedItems = GSON.fromJson(items, new TypeToken<Map<String, CollectionLogItem[]>>()
-		{
-		}.getType());
+			completed = "[]";
+		}
+
+		obtainedCounts = GSON.fromJson(counts, new TypeToken<Map<String, Integer>>(){}.getType());
+		obtainedItems = GSON.fromJson(items, new TypeToken<Map<String, CollectionLogItem[]>>(){}.getType());
+		completedCategories = GSON.fromJson(completed, new TypeToken<List<String>>(){}.getType());
 	}
 
-	private void saveItems(Map<String, ?> items, String configKey)
+	private void saveItems(Object items, String configKey)
 	{
 		String json = GSON.toJson(items);
 		configManager.setConfiguration(group, configKey, json);
