@@ -227,23 +227,22 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		String categoryTitle = categoryHead.getDynamicChildren()[0].getText();
-		String categoryProgressText = categoryHead.getDynamicChildren()[1].getText();
-		categoryProgressText = categoryProgressText.split(">")[1].split("<")[0];
-		int categoryObtained = Integer.parseInt(categoryProgressText.split("/")[0]);
-		int prevCategoryObtained = getCategoryItemCount(categoryTitle);
 
 		getItems(categoryTitle);
 		saveItems(obtainedItems, OBTAINED_ITEMS);
 
-		if (categoryObtained == prevCategoryObtained)
+		int itemCount = Arrays.stream(obtainedItems.get(categoryTitle)).filter(CollectionLogItem::isObtained).toArray().length;
+		int prevItemCount = getCategoryItemCount(categoryTitle);
+
+		if (itemCount == prevItemCount)
 		{
 			setCollectionLogTitle();
 			return;
 		}
 
 		int prevTotalObtained = getCategoryItemCount("total");
-		obtainedCounts.put("total", prevTotalObtained + (categoryObtained - prevCategoryObtained));
-		obtainedCounts.put(categoryTitle, categoryObtained);
+		obtainedCounts.put("total", prevTotalObtained + (itemCount - prevItemCount));
+		obtainedCounts.put(categoryTitle, itemCount);
 		saveItems(obtainedCounts, OBTAINED_COUNTS);
 
 		setCollectionLogTitle();
