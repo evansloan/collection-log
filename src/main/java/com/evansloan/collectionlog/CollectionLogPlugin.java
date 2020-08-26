@@ -24,6 +24,7 @@ import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
+import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -66,6 +67,9 @@ public class CollectionLogPlugin extends Plugin
 
 	@Inject
 	private ClientThread clientThread;
+
+	@Inject
+	private Notifier notifier;
 
 	@Inject
 	private ConfigManager configManager;
@@ -171,8 +175,9 @@ public class CollectionLogPlugin extends Plugin
 		COLLECTION_LOG_EXPORT_DIR.mkdir();
 
 		String fileName = new SimpleDateFormat("'collectionlog-'yyyyMMdd'T'HHmmss'.json'").format(new Date());
+		String filePath = COLLECTION_LOG_EXPORT_DIR + File.separator  + fileName;
 
-		try (JsonWriter writer = new JsonWriter(new FileWriter(COLLECTION_LOG_EXPORT_DIR + "/" + fileName)))
+		try (JsonWriter writer = new JsonWriter(new FileWriter(filePath)))
 		{
 			writer.setIndent("  ");
 			writer.beginObject();
@@ -192,10 +197,19 @@ public class CollectionLogPlugin extends Plugin
 				writer.endArray();
 			}
 			writer.endObject();
+
+			if (config.notifyOnExport())
+			{
+				notifier.notify("Collection log exported to " + filePath);
+			}
 		}
 		catch (IOException e)
 		{
-			log.info("Unable to export Collection log items: " + e.getMessage());
+			log.error("Unable to export Collection log items: " + e.getMessage());
+			if (config.notifyOnExport())
+			{
+				notifier.notify("Unable to export collection log: " + e.getMessage());
+			}
 		}
 	}
 
