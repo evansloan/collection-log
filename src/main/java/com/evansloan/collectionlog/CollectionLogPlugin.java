@@ -144,7 +144,7 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (event.getTarget().equals(COLLECTION_LOG_TARGET))
 		{
-			if (client.getMenuEntries().length > 3)
+			if (client.getMenuEntries().length > 2)
 			{
 				return;
 			}
