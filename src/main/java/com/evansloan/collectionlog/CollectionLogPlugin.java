@@ -20,7 +20,6 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
-
 @Slf4j
 @PluginDescriptor(
 	name = "Collection Log",
@@ -30,17 +29,21 @@ import net.runelite.client.plugins.PluginDescriptor;
 public class CollectionLogPlugin extends Plugin
 {
 	private static final String CONFIG_GROUP = "collectionlog";
-	private static final String OBTAINED = "obtained_items";
+	private static final String OBTAINED_COUNTS = "obtained_counts";
+	private static final String OBTAINED_ITEMS = "obtained_items";
 	private static final int TOTAL_ITEMS = 1408;
 
 	private static final int COLLECTION_LOG_GROUP_ID = 621;
 	private static final int COLLECTION_LOG_CONTAINER = 1;
 	private static final int COLLECTION_LOG_CATEGORY_HEAD = 19;
+	private static final int COLLECTION_LOG_CATEGORY_ITEMS = 35;
 	private static final int COLLECTION_LOG_CATEGORY_VARBIT_INDEX = 2049;
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
 
+	private String group;
 	private final Gson GSON = new Gson();
-	private Map<String, Integer> obtainedItems = new HashMap<>();
+	private Map<String, Integer> obtainedCounts = new HashMap<>();
+	private Map<String, CollectionLogItem[]> obtainedItems = new HashMap<>();
 
 	@Inject
 	private Client client;
@@ -74,7 +77,7 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			loadItemCounts();
+			loadItems();
 			setCollectionLogTitle();
 		}
 	}
@@ -93,7 +96,8 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			loadItemCounts();
+			group = CONFIG_GROUP + "." + client.getUsername();
+			loadItems();
 		}
 	}
 
@@ -115,6 +119,24 @@ public class CollectionLogPlugin extends Plugin
 		}
 	}
 
+	private void getItems(String categoryTitle)
+	{
+		Widget itemsContainer = client.getWidget(COLLECTION_LOG_GROUP_ID, COLLECTION_LOG_CATEGORY_ITEMS);
+
+		if (itemsContainer == null)
+		{
+			return;
+		}
+
+		Widget[] items = itemsContainer.getDynamicChildren();
+		CollectionLogItem[] collectionLogItems = new CollectionLogItem[items.length];
+		for (Widget item : items)
+		{
+			collectionLogItems[item.getIndex()] = new CollectionLogItem(item);
+		}
+		obtainedItems.put(categoryTitle, collectionLogItems);
+	}
+
 	private void getCategory()
 	{
 		Widget categoryHead = client.getWidget(COLLECTION_LOG_GROUP_ID, COLLECTION_LOG_CATEGORY_HEAD);
@@ -130,6 +152,9 @@ public class CollectionLogPlugin extends Plugin
 		int categoryObtained = Integer.parseInt(categoryProgressText.split("/")[0]);
 		int prevCategoryObtained = getCategoryItemCount(categoryTitle);
 
+		getItems(categoryTitle);
+		saveItems(obtainedItems, OBTAINED_ITEMS);
+
 		if (categoryObtained == prevCategoryObtained)
 		{
 			setCollectionLogTitle();
@@ -137,9 +162,9 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		int prevTotalObtained = getCategoryItemCount("total");
-		obtainedItems.put("total", prevTotalObtained + (categoryObtained - prevCategoryObtained));
-		obtainedItems.put(categoryTitle, categoryObtained);
-		saveItemCounts();
+		obtainedCounts.put("total", prevTotalObtained + (categoryObtained - prevCategoryObtained));
+		obtainedCounts.put(categoryTitle, categoryObtained);
+		saveItems(obtainedCounts, OBTAINED_COUNTS);
 
 		setCollectionLogTitle();
 	}
@@ -178,30 +203,35 @@ public class CollectionLogPlugin extends Plugin
 
 	private int getCategoryItemCount(String categoryTitle)
 	{
-		if (obtainedItems.containsKey(categoryTitle))
+		if (obtainedCounts.containsKey(categoryTitle))
 		{
-			return obtainedItems.get(categoryTitle);
+			return obtainedCounts.get(categoryTitle);
 		}
 		return 0;
 	}
 
-	private void loadItemCounts()
+	private void loadItems()
 	{
-		String group = CONFIG_GROUP + "." + client.getUsername();
-		String json = configManager.getConfiguration(group, OBTAINED);
+		String counts = configManager.getConfiguration(group, OBTAINED_COUNTS);
+		String items = configManager.getConfiguration(group, OBTAINED_ITEMS);
 
-		if (json == null)
+		if (counts == null)
 		{
-			json = "{}";
+			counts = "{}";
 		}
 
-		obtainedItems = GSON.fromJson(json, new TypeToken<Map<String, Integer>>(){}.getType());
+		if (items == null)
+		{
+			items = "{}";
+		}
+
+		obtainedCounts = GSON.fromJson(counts, new TypeToken<Map<String, Integer>>(){}.getType());
+		obtainedItems = GSON.fromJson(items, new TypeToken<Map<String, CollectionLogItem[]>>(){}.getType());
 	}
 
-	private void saveItemCounts()
+	private void saveItems(Map<String, ?> items, String configKey)
 	{
-		String json = GSON.toJson(obtainedItems);
-		String group = CONFIG_GROUP + "." + client.getUsername();
-		configManager.setConfiguration(group, OBTAINED, json);
+		String json = GSON.toJson(items);
+		configManager.setConfiguration(group, configKey, json);
 	}
 }
