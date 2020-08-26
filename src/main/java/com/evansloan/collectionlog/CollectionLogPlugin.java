@@ -2,14 +2,25 @@ package com.evansloan.collectionlog;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonWriter;
 import com.google.inject.Provides;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.MenuAction;
+import net.runelite.api.MenuEntry;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.MenuEntryAdded;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
@@ -19,6 +30,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import static net.runelite.client.RuneLite.RUNELITE_DIR;
 
 @Slf4j
 @PluginDescriptor(
@@ -39,6 +51,10 @@ public class CollectionLogPlugin extends Plugin
 	private static final int COLLECTION_LOG_CATEGORY_ITEMS = 35;
 	private static final int COLLECTION_LOG_CATEGORY_VARBIT_INDEX = 2049;
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
+	private static final String COLLECTION_LOG_TARGET = "<col=ff9040>Collection log";
+	private static final String COLLECTION_LOG_EXPORT = "Export";
+
+	private static final File COLLECTION_LOG_EXPORT_DIR = new File(RUNELITE_DIR, "collectionlog");
 
 	private String group;
 	private final Gson GSON = new Gson();
@@ -116,6 +132,70 @@ public class CollectionLogPlugin extends Plugin
 		if (varbitChanged.getIndex() == COLLECTION_LOG_CATEGORY_VARBIT_INDEX)
 		{
 			clientThread.invokeLater(this::getCategory);
+		}
+	}
+
+	@Subscribe
+	public void onMenuEntryAdded(MenuEntryAdded event)
+	{
+		if (event.getTarget().equals(COLLECTION_LOG_TARGET))
+		{
+			if (client.getMenuEntries().length > 3)
+			{
+				return;
+			}
+
+			MenuEntry[] menuEntries = client.getMenuEntries();
+			menuEntries = Arrays.copyOf(menuEntries, menuEntries.length + 1);
+			MenuEntry menuEntry = menuEntries[menuEntries.length - 1] = new MenuEntry();
+			menuEntry.setOption("Export");
+			menuEntry.setTarget(event.getTarget());
+			menuEntry.setType(MenuAction.RUNELITE.getId());
+			client.setMenuEntries(menuEntries);
+		}
+	}
+
+
+	@Subscribe
+	public void onMenuOptionClicked(MenuOptionClicked event) throws IOException
+	{
+		if (event.getMenuAction().getId() == MenuAction.RUNELITE.getId() ||
+			(event.getMenuOption().equals(COLLECTION_LOG_EXPORT)))
+		{
+			exportItems();
+		}
+	}
+
+	private void exportItems()
+	{
+		COLLECTION_LOG_EXPORT_DIR.mkdir();
+
+		String fileName = new SimpleDateFormat("'collectionlog-'yyyyMMdd'T'HHmmss'.json'").format(new Date());
+
+		try (JsonWriter writer = new JsonWriter(new FileWriter(COLLECTION_LOG_EXPORT_DIR + "/" + fileName)))
+		{
+			writer.setIndent("  ");
+			writer.beginObject();
+			for (Map.Entry<String, CollectionLogItem[]> entry : obtainedItems.entrySet())
+			{
+				writer.name(entry.getKey());
+				writer.beginArray();
+				for (CollectionLogItem item : entry.getValue())
+				{
+					writer.beginObject();
+					writer.name("id").value(item.getId());
+					writer.name("name").value(item.getName());
+					writer.name("obtained").value(item.isObtained());
+					writer.name("quantity").value(item.getQuantity());
+					writer.endObject();
+				}
+				writer.endArray();
+			}
+			writer.endObject();
+		}
+		catch (IOException e)
+		{
+			log.info("Unable to export Collection log items: " + e.getMessage());
 		}
 	}
 
