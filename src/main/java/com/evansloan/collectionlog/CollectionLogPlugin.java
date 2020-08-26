@@ -31,7 +31,7 @@ public class CollectionLogPlugin extends Plugin
 {
 	private static final String CONFIG_GROUP = "collectionlog";
 	private static final String OBTAINED = "obtained_items";
-	private static final int TOTAL_ITEMS = 1408;
+	private static final int TOTAL_ITEMS = 1416;
 
 	private static final int COLLECTION_LOG_GROUP_ID = 621;
 	private static final int COLLECTION_LOG_CONTAINER = 1;
