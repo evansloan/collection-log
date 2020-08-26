@@ -16,4 +16,25 @@ public interface CollectionLogConfig extends Config
 	{
 		return false;
 	}
+
+	@ConfigItem(
+		keyName = "notify_on_export",
+		name = "Notify on export",
+		description = "Send a notification on collection log export"
+	)
+	default boolean notifyOnExport()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "total_items",
+		name = "Total items",
+		description = "Total number of items within the collection log",
+		hidden = true
+	)
+	default int totalItems()
+	{
+		return 0;
+	}
 }
