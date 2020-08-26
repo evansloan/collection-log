@@ -43,7 +43,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final String CONFIG_GROUP = "collectionlog";
 	private static final String OBTAINED_COUNTS = "obtained_counts";
 	private static final String OBTAINED_ITEMS = "obtained_items";
-	private static final int TOTAL_ITEMS = 1408;
+	private static final String TOTAL_ITEMS = "total_items";
 
 	private static final int COLLECTION_LOG_GROUP_ID = 621;
 	private static final int COLLECTION_LOG_CONTAINER = 1;
@@ -250,12 +250,14 @@ public class CollectionLogPlugin extends Plugin
 
 	private String buildTitle()
 	{
+		setTotalItems();
 		int totalObtained = getCategoryItemCount("total");
-		String title = String.format("%s - %d/%d", COLLECTION_LOG_TITLE, totalObtained, TOTAL_ITEMS);
+		int totalItems = Integer.parseInt(configManager.getConfiguration(CONFIG_GROUP, TOTAL_ITEMS));
+		String title = String.format("%s - %d/%d", COLLECTION_LOG_TITLE, totalObtained, totalItems);
 
 		if (config.displayAsPercentage())
 		{
-			title = String.format("%s - %.2f%%", COLLECTION_LOG_TITLE, ((double) totalObtained / TOTAL_ITEMS) * 100);
+			title = String.format("%s - %.2f%%", COLLECTION_LOG_TITLE, ((double) totalObtained / totalItems) * 100);
 		}
 
 		return title;
@@ -304,13 +306,37 @@ public class CollectionLogPlugin extends Plugin
 			items = "{}";
 		}
 
-		obtainedCounts = GSON.fromJson(counts, new TypeToken<Map<String, Integer>>(){}.getType());
-		obtainedItems = GSON.fromJson(items, new TypeToken<Map<String, CollectionLogItem[]>>(){}.getType());
+		obtainedCounts = GSON.fromJson(counts, new TypeToken<Map<String, Integer>>()
+		{
+		}.getType());
+		obtainedItems = GSON.fromJson(items, new TypeToken<Map<String, CollectionLogItem[]>>()
+		{
+		}.getType());
 	}
 
 	private void saveItems(Map<String, ?> items, String configKey)
 	{
 		String json = GSON.toJson(items);
 		configManager.setConfiguration(group, configKey, json);
+	}
+
+	private void setTotalItems()
+	{
+		int newTotal = 0;
+		for (Map.Entry<String, CollectionLogItem[]> entry : obtainedItems.entrySet())
+		{
+			newTotal += entry.getValue().length;
+		}
+
+		int total = 0;
+		if (configManager.getConfigurationKeys(CONFIG_GROUP).contains(TOTAL_ITEMS))
+		{
+			total = Integer.parseInt(configManager.getConfiguration(CONFIG_GROUP, TOTAL_ITEMS));
+		}
+
+		if (newTotal > total)
+		{
+			configManager.setConfiguration(CONFIG_GROUP, TOTAL_ITEMS, newTotal);
+		}
 	}
 }
