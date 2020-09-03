@@ -43,6 +43,7 @@ import org.apache.commons.lang3.ArrayUtils;
 public class CollectionLogPlugin extends Plugin
 {
 	private static final String CONFIG_GROUP = "collectionlog";
+
 	private static final String OBTAINED_COUNTS = "obtained_counts";
 	private static final String OBTAINED_ITEMS = "obtained_items";
 	private static final String TOTAL_ITEMS = "total_items";
