@@ -52,4 +52,15 @@ public interface CollectionLogConfig extends Config
 	{
 		return true;
 	}
+  
+	@ConfigItem(
+		keyName = "total_items",
+		name = "Total items",
+		description = "Total number of items within the collection log",
+		hidden = true
+	)
+	default int totalItems()
+	{
+		return 0;
+	}
 }

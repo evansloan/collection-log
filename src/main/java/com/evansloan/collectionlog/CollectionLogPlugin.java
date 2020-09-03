@@ -21,7 +21,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.MenuEntryAdded;
+import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetLoaded;
@@ -34,6 +34,7 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
+import org.apache.commons.lang3.ArrayUtils;
 
 @Slf4j
 @PluginDescriptor(
@@ -55,7 +56,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final int COLLECTION_LOG_CATEGORY_ITEMS = 35;
 	private static final int COLLECTION_LOG_CATEGORY_VARBIT_INDEX = 2049;
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
-	private static final String COLLECTION_LOG_TARGET = "<col=ff9040>Collection log";
+	private static final String COLLECTION_LOG_TARGET = "Collection log";
 	private static final String COLLECTION_LOG_EXPORT = "Export";
 
 	private static final File COLLECTION_LOG_EXPORT_DIR = new File(RUNELITE_DIR, "collectionlog");
@@ -157,31 +158,32 @@ public class CollectionLogPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onMenuEntryAdded(MenuEntryAdded event)
+	public void onMenuOpened(MenuOpened event)
 	{
-		if (event.getTarget().equals(COLLECTION_LOG_TARGET))
+		if (event.getMenuEntries().length < 2)
 		{
-			if (client.getMenuEntries().length > 2)
-			{
-				return;
-			}
-
-			MenuEntry[] menuEntries = client.getMenuEntries();
-			menuEntries = Arrays.copyOf(menuEntries, menuEntries.length + 1);
-			MenuEntry menuEntry = menuEntries[menuEntries.length - 1] = new MenuEntry();
-			menuEntry.setOption("Export");
-			menuEntry.setTarget(event.getTarget());
-			menuEntry.setType(MenuAction.RUNELITE.getId());
-			client.setMenuEntries(menuEntries);
+			return;
 		}
+
+		MenuEntry entry = event.getMenuEntries()[1];
+		if (!entry.getTarget().endsWith(COLLECTION_LOG_TARGET))
+		{
+			return;
+		}
+
+		MenuEntry menuEntry = new MenuEntry();
+		menuEntry.setOption(COLLECTION_LOG_EXPORT);
+		menuEntry.setTarget(entry.getTarget());
+		menuEntry.setType(MenuAction.RUNELITE.getId());
+		menuEntry.setIdentifier(entry.getIdentifier());
+		client.setMenuEntries(ArrayUtils.insert(event.getMenuEntries().length, client.getMenuEntries(), menuEntry));
 	}
 
 
 	@Subscribe
 	public void onMenuOptionClicked(MenuOptionClicked event)
 	{
-		if (event.getMenuAction().getId() == MenuAction.RUNELITE.getId() ||
-			(event.getMenuOption().equals(COLLECTION_LOG_EXPORT)))
+		if (event.getMenuOption().equals(COLLECTION_LOG_EXPORT) && event.getMenuTarget().endsWith(COLLECTION_LOG_TARGET))
 		{
 			exportItems();
 		}
@@ -267,7 +269,7 @@ public class CollectionLogPlugin extends Plugin
 		int prevItemCount = getCategoryItemCount(categoryTitle);
 		int totalItemCount = categoryItems.length;
 
-		if (itemCount == totalItemCount)
+		if (itemCount == totalItemCount && !completedCategories.contains(categoryTitle))
 		{
 			completedCategories.add(categoryTitle);
 			saveItems(completedCategories, COMPLETED_CATEGORIES);
