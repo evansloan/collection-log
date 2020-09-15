@@ -294,6 +294,12 @@ public class CollectionLogPlugin extends Plugin
 		for (CollectionLogList listType : CollectionLogList.values())
 		{
 			Widget categoryList = client.getWidget(COLLECTION_LOG_GROUP_ID, listType.getListIndex());
+
+			if (categoryList == null)
+			{
+				continue;
+			}
+
 			Widget[] names = categoryList.getDynamicChildren();
 			for (Widget name : names)
 			{
