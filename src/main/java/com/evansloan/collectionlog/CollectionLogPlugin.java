@@ -176,7 +176,7 @@ public class CollectionLogPlugin extends Plugin
 		menuEntry.setTarget(entry.getTarget());
 		menuEntry.setType(MenuAction.RUNELITE.getId());
 		menuEntry.setIdentifier(entry.getIdentifier());
-		client.setMenuEntries(ArrayUtils.insert(event.getMenuEntries().length, client.getMenuEntries(), menuEntry));
+		client.setMenuEntries(ArrayUtils.insert(1, client.getMenuEntries(), menuEntry));
 	}
 
 

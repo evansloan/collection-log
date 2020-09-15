@@ -11,3 +11,5 @@ Open the collection log and click through all the categories to get your total p
 ![](https://i.imgur.com/zz90og4.png)
 
 Right click the collection log and select "export" to save your collection log data into a file located at `<user directory>/.runelite/collectionlog`
+
+Upload your collection log data to [OSRS Collection Log](https://osrscollectionlog.com/) to share your progress!
