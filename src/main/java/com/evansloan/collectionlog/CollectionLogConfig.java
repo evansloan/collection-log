@@ -52,6 +52,17 @@ public interface CollectionLogConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+		keyName = "export_chat_message",
+		name = "Chat message on export",
+		description = "Show exported file location in chat box on collection log export",
+		position = 5
+	)
+	default boolean sendExportChatMessage()
+	{
+		return true;
+	}
   
 	@ConfigItem(
 		keyName = "total_items",

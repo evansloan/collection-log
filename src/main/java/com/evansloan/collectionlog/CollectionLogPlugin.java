@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.MenuAction;
@@ -217,9 +218,16 @@ public class CollectionLogPlugin extends Plugin
 			}
 			writer.endObject();
 
+			String message = "Collection log exported to " + filePath;
+
 			if (config.notifyOnExport())
 			{
-				notifier.notify("Collection log exported to " + filePath);
+				notifier.notify(message);
+			}
+
+			if (config.sendExportChatMessage())
+			{
+				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", message, "");
 			}
 		}
 		catch (IOException e)
@@ -273,6 +281,10 @@ public class CollectionLogPlugin extends Plugin
 		{
 			completedCategories.add(categoryTitle);
 			saveItems(completedCategories, COMPLETED_CATEGORIES);
+		}
+		else if (itemCount < totalItemCount && completedCategories.contains(categoryTitle))
+		{
+			completedCategories.remove(categoryTitle);
 		}
 
 		if (itemCount == prevItemCount)
@@ -399,13 +411,7 @@ public class CollectionLogPlugin extends Plugin
 			newTotal += entry.getValue().length;
 		}
 
-		int total = 0;
-		if (configManager.getConfigurationKeys(CONFIG_GROUP).contains(TOTAL_ITEMS))
-		{
-			total = Integer.parseInt(configManager.getConfiguration(CONFIG_GROUP, TOTAL_ITEMS));
-		}
-
-		if (newTotal > total)
+		if (newTotal > config.totalItems())
 		{
 			configManager.setConfiguration(CONFIG_GROUP, TOTAL_ITEMS, newTotal);
 		}
