@@ -266,15 +266,16 @@ public class CollectionLogPlugin extends Plugin
 	{
 		Widget[] children = categoryHead.getDynamicChildren();
 		if (children.length < 3) {
-			killCounts.put(categoryTitle, null);
-			saveConfig(killCounts, KILL_COUNTS);
 			return;
 		}
 
 		String killCount = categoryHead.getDynamicChildren()[2].getText();
-		killCount = killCount.split(": ")[1].split(">")[1].split("<")[0];
+		killCount = killCount.split(": ")[1]
+			.split(">")[1]
+			.split("<")[0]
+			.replace(",", "");
 		killCounts.put(categoryTitle, Integer.parseInt(killCount));
-		saveConfig(killCount, KILL_COUNTS);
+		saveConfig(killCounts, KILL_COUNTS);
 	}
 
 	private void getCategory()
