@@ -205,7 +205,21 @@ public class CollectionLogPlugin extends Plugin
 			writer.beginObject();
 			for (Map.Entry<String, CollectionLogItem[]> entry : obtainedItems.entrySet())
 			{
-				writer.name(entry.getKey());
+				String categoryName = entry.getKey();
+
+				writer.name(categoryName);
+				writer.beginObject();
+
+				if (killCounts.containsKey(categoryName))
+				{
+					writer.name("kill_count").value(killCounts.get(categoryName));
+				}
+				else
+				{
+					writer.name("kill_count").nullValue();
+				}
+
+				writer.name("items");
 				writer.beginArray();
 				for (CollectionLogItem item : entry.getValue())
 				{
@@ -217,6 +231,7 @@ public class CollectionLogPlugin extends Plugin
 					writer.endObject();
 				}
 				writer.endArray();
+				writer.endObject();
 			}
 			writer.endObject();
 
