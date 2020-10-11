@@ -424,28 +424,15 @@ public class CollectionLogPlugin extends Plugin
 
 	private void loadConfig()
 	{
-		String counts = configManager.getConfiguration(group, OBTAINED_COUNTS);
-		String items = configManager.getConfiguration(group, OBTAINED_ITEMS);
-		String completed = configManager.getConfiguration(group, COMPLETED_CATEGORIES);
-
-		if (counts == null)
-		{
-			counts = "{}";
-		}
-
-		if (items == null)
-		{
-			items = "{}";
-		}
-
-		if (completed == null)
-		{
-			completed = "[]";
-		}
+		String counts = getConfigJsonString(OBTAINED_COUNTS);
+		String items = getConfigJsonString(OBTAINED_ITEMS);
+		String completed = getConfigJsonString(COMPLETED_CATEGORIES);
+		String kc = getConfigJsonString(KILL_COUNTS);
 
 		obtainedCounts = GSON.fromJson(counts, new TypeToken<Map<String, Integer>>(){}.getType());
 		obtainedItems = GSON.fromJson(items, new TypeToken<Map<String, CollectionLogItem[]>>(){}.getType());
 		completedCategories = GSON.fromJson(completed, new TypeToken<List<String>>(){}.getType());
+		killCounts = GSON.fromJson(kc, new TypeToken<Map<String, Integer>>(){}.getType());
 	}
 
 	private void saveConfig(Object items, String configKey)
@@ -466,5 +453,15 @@ public class CollectionLogPlugin extends Plugin
 		{
 			configManager.setConfiguration(CONFIG_GROUP, TOTAL_ITEMS, newTotal);
 		}
+	}
+
+	private String getConfigJsonString(String configKey)
+	{
+		String jsonString = configManager.getConfiguration(group, configKey);
+		if (jsonString == null)
+		{
+			return "{}";
+		}
+		return jsonString;
 	}
 }
