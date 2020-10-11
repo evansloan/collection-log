@@ -29,6 +29,10 @@ import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.chat.ChatColorType;
+import net.runelite.client.chat.ChatMessageBuilder;
+import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -78,6 +82,9 @@ public class CollectionLogPlugin extends Plugin
 
 	@Inject
 	private Notifier notifier;
+
+	@Inject
+	private ChatMessageManager chatMessageManager;
 
 	@Inject
 	private ConfigManager configManager;
@@ -244,7 +251,17 @@ public class CollectionLogPlugin extends Plugin
 
 			if (config.sendExportChatMessage())
 			{
-				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", message, "");
+				String chatMessage = new ChatMessageBuilder()
+					.append(ChatColorType.HIGHLIGHT)
+					.append(message)
+					.build();
+
+				chatMessageManager.queue(
+					QueuedMessage.builder()
+						.type(ChatMessageType.CONSOLE)
+						.runeLiteFormattedMessage(chatMessage)
+						.build()
+				);
 			}
 		}
 		catch (IOException e)
