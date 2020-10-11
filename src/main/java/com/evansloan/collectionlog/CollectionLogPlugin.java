@@ -50,6 +50,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final String OBTAINED_ITEMS = "obtained_items";
 	private static final String COMPLETED_CATEGORIES = "completed_categories";
 	private static final String TOTAL_ITEMS = "total_items";
+	private static final String KILL_COUNTS = "kill_counts";
 
 	private static final int COLLECTION_LOG_GROUP_ID = 621;
 	private static final int COLLECTION_LOG_CONTAINER = 1;
@@ -59,14 +60,15 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
 	private static final String COLLECTION_LOG_TARGET = "Collection log";
 	private static final String COLLECTION_LOG_EXPORT = "Export";
-
 	private static final File COLLECTION_LOG_EXPORT_DIR = new File(RUNELITE_DIR, "collectionlog");
 
 	private String group;
 	private final Gson GSON = new Gson();
+
 	private Map<String, Integer> obtainedCounts = new HashMap<>();
 	private Map<String, CollectionLogItem[]> obtainedItems = new HashMap<>();
 	private List<String> completedCategories = new ArrayList<>();
+	private Map<String, Integer> killCounts = new HashMap<>();
 
 	@Inject
 	private Client client;
@@ -116,7 +118,7 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			loadItems();
+			loadConfig();
 			update();
 		}
 	}
@@ -136,7 +138,7 @@ public class CollectionLogPlugin extends Plugin
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
 			group = CONFIG_GROUP + "." + client.getUsername();
-			loadItems();
+			loadConfig();
 		}
 	}
 
@@ -255,7 +257,24 @@ public class CollectionLogPlugin extends Plugin
 		{
 			collectionLogItems[item.getIndex()] = new CollectionLogItem(item);
 		}
+
 		obtainedItems.put(categoryTitle, collectionLogItems);
+		saveConfig(obtainedItems, OBTAINED_ITEMS);
+	}
+
+	private void getKillCount(String categoryTitle, Widget categoryHead)
+	{
+		Widget[] children = categoryHead.getDynamicChildren();
+		if (children.length < 3) {
+			killCounts.put(categoryTitle, null);
+			saveConfig(killCounts, KILL_COUNTS);
+			return;
+		}
+
+		String killCount = categoryHead.getDynamicChildren()[2].getText();
+		killCount = killCount.split(": ")[1].split(">")[1].split("<")[0];
+		killCounts.put(categoryTitle, Integer.parseInt(killCount));
+		saveConfig(killCount, KILL_COUNTS);
 	}
 
 	private void getCategory()
@@ -270,7 +289,7 @@ public class CollectionLogPlugin extends Plugin
 		String categoryTitle = categoryHead.getDynamicChildren()[0].getText();
 
 		getItems(categoryTitle);
-		saveItems(obtainedItems, OBTAINED_ITEMS);
+		getKillCount(categoryTitle, categoryHead);
 
 		CollectionLogItem[] categoryItems = obtainedItems.get(categoryTitle);
 		int itemCount = Arrays.stream(categoryItems).filter(CollectionLogItem::isObtained).toArray().length;
@@ -280,7 +299,7 @@ public class CollectionLogPlugin extends Plugin
 		if (itemCount == totalItemCount && !completedCategories.contains(categoryTitle))
 		{
 			completedCategories.add(categoryTitle);
-			saveItems(completedCategories, COMPLETED_CATEGORIES);
+			saveConfig(completedCategories, COMPLETED_CATEGORIES);
 		}
 		else if (itemCount < totalItemCount && completedCategories.contains(categoryTitle))
 		{
@@ -296,7 +315,7 @@ public class CollectionLogPlugin extends Plugin
 		int prevTotalObtained = getCategoryItemCount("total");
 		obtainedCounts.put("total", prevTotalObtained + (itemCount - prevItemCount));
 		obtainedCounts.put(categoryTitle, itemCount);
-		saveItems(obtainedCounts, OBTAINED_COUNTS);
+		saveConfig(obtainedCounts, OBTAINED_COUNTS);
 
 		update();
 	}
@@ -327,12 +346,11 @@ public class CollectionLogPlugin extends Plugin
 	{
 		setTotalItems();
 		int totalObtained = getCategoryItemCount("total");
-		int totalItems = Integer.parseInt(configManager.getConfiguration(CONFIG_GROUP, TOTAL_ITEMS));
-		String title = String.format("%s - %d/%d", COLLECTION_LOG_TITLE, totalObtained, totalItems);
+		String title = String.format("%s - %d/%d", COLLECTION_LOG_TITLE, totalObtained, config.totalItems());
 
 		if (config.displayAsPercentage())
 		{
-			title = String.format("%s - %.2f%%", COLLECTION_LOG_TITLE, ((double) totalObtained / totalItems) * 100);
+			title = String.format("%s - %.2f%%", COLLECTION_LOG_TITLE, ((double) totalObtained / config.totalItems()) * 100);
 		}
 
 		return title;
@@ -371,7 +389,7 @@ public class CollectionLogPlugin extends Plugin
 		return 0;
 	}
 
-	private void loadItems()
+	private void loadConfig()
 	{
 		String counts = configManager.getConfiguration(group, OBTAINED_COUNTS);
 		String items = configManager.getConfiguration(group, OBTAINED_ITEMS);
@@ -397,7 +415,7 @@ public class CollectionLogPlugin extends Plugin
 		completedCategories = GSON.fromJson(completed, new TypeToken<List<String>>(){}.getType());
 	}
 
-	private void saveItems(Object items, String configKey)
+	private void saveConfig(Object items, String configKey)
 	{
 		String json = GSON.toJson(items);
 		configManager.setConfiguration(group, configKey, json);
