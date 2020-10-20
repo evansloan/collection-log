@@ -24,8 +24,8 @@ import net.runelite.api.MenuEntry;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.VarbitChanged;
-import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
@@ -60,6 +60,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final int COLLECTION_LOG_CONTAINER = 1;
 	private static final int COLLECTION_LOG_CATEGORY_HEAD = 19;
 	private static final int COLLECTION_LOG_CATEGORY_ITEMS = 35;
+	private static final int COLLECTION_LOG_DRAW_LIST_SCRIPT_ID = 2730;
 	private static final int COLLECTION_LOG_CATEGORY_VARBIT_INDEX = 2049;
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
 	private static final String COLLECTION_LOG_TARGET = "Collection log";
@@ -150,9 +151,9 @@ public class CollectionLogPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onWidgetLoaded(WidgetLoaded widgetLoaded)
+	public void onScriptPostFired(ScriptPostFired scriptPostFired)
 	{
-		if (widgetLoaded.getGroupId() == COLLECTION_LOG_GROUP_ID)
+		if (scriptPostFired.getScriptId() == COLLECTION_LOG_DRAW_LIST_SCRIPT_ID)
 		{
 			clientThread.invokeLater(this::getCategory);
 		}
