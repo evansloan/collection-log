@@ -63,7 +63,40 @@ public interface CollectionLogConfig extends Config
 	{
 		return true;
 	}
-  
+
+	@ConfigItem(
+		keyName = "obtained_counts",
+		name = "Obtained counts",
+		description = "How many items have been obtained in each category",
+		hidden = true
+	)
+	default String obtainedCounts()
+	{
+		return "{}";
+	}
+
+	@ConfigItem(
+		keyName = "obtained_items",
+		name = "Obtained items",
+		description = "All items that have been marked as obtained in the collection log",
+		hidden = true
+	)
+	default String obtainedItems()
+	{
+		return "{}";
+	}
+
+	@ConfigItem(
+		keyName = "completed_categories",
+		name = "Completed categories",
+		description = "Categories in which all items have been obtained",
+		hidden = true
+	)
+	default String completedCategories()
+	{
+		return "[]";
+	}
+
 	@ConfigItem(
 		keyName = "total_items",
 		name = "Total items",
@@ -73,5 +106,17 @@ public interface CollectionLogConfig extends Config
 	default int totalItems()
 	{
 		return 0;
+	}
+
+
+	@ConfigItem(
+		keyName = "kill_counts",
+		name = "Kill counts",
+		description = "Kill counts for each category",
+		hidden = true
+	)
+	default String killCounts()
+	{
+		return "{}";
 	}
 }

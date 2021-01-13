@@ -9,7 +9,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -71,7 +70,7 @@ public class CollectionLogPlugin extends Plugin
 	private final Gson GSON = new Gson();
 
 	private Map<String, Integer> obtainedCounts = new HashMap<>();
-	private Map<String, CollectionLogItem[]> obtainedItems = new HashMap<>();
+	private Map<String, List<CollectionLogItem>> obtainedItems = new HashMap<>();
 	private List<String> completedCategories = new ArrayList<>();
 	private Map<String, Integer> killCounts = new HashMap<>();
 
@@ -211,7 +210,7 @@ public class CollectionLogPlugin extends Plugin
 		{
 			writer.setIndent("  ");
 			writer.beginObject();
-			for (Map.Entry<String, CollectionLogItem[]> entry : obtainedItems.entrySet())
+			for (Map.Entry<String, List<CollectionLogItem>> entry : obtainedItems.entrySet())
 			{
 				String categoryName = entry.getKey();
 
@@ -285,10 +284,10 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		Widget[] items = itemsContainer.getDynamicChildren();
-		CollectionLogItem[] collectionLogItems = new CollectionLogItem[items.length];
+		List<CollectionLogItem> collectionLogItems = new ArrayList<>();
 		for (Widget item : items)
 		{
-			collectionLogItems[item.getIndex()] = new CollectionLogItem(item);
+			collectionLogItems.add(new CollectionLogItem(item));
 		}
 
 		obtainedItems.put(categoryTitle, collectionLogItems);
@@ -325,10 +324,10 @@ public class CollectionLogPlugin extends Plugin
 		getItems(categoryTitle);
 		getKillCount(categoryTitle, categoryHead);
 
-		CollectionLogItem[] categoryItems = obtainedItems.get(categoryTitle);
-		int itemCount = Arrays.stream(categoryItems).filter(CollectionLogItem::isObtained).toArray().length;
+		List<CollectionLogItem> categoryItems = obtainedItems.get(categoryTitle);
+		int itemCount = categoryItems.stream().filter(CollectionLogItem::isObtained).toArray().length;
 		int prevItemCount = getCategoryItemCount(categoryTitle);
-		int totalItemCount = categoryItems.length;
+		int totalItemCount = categoryItems.size();
 
 		if (itemCount == totalItemCount && !completedCategories.contains(categoryTitle))
 		{
@@ -425,15 +424,10 @@ public class CollectionLogPlugin extends Plugin
 
 	private void loadConfig()
 	{
-		String counts = getConfigJsonString(OBTAINED_COUNTS);
-		String items = getConfigJsonString(OBTAINED_ITEMS);
-		String completed = getConfigJsonString(COMPLETED_CATEGORIES);
-		String kc = getConfigJsonString(KILL_COUNTS);
-
-		obtainedCounts = GSON.fromJson(counts, new TypeToken<Map<String, Integer>>(){}.getType());
-		obtainedItems = GSON.fromJson(items, new TypeToken<Map<String, CollectionLogItem[]>>(){}.getType());
-		completedCategories = GSON.fromJson(completed, new TypeToken<List<String>>(){}.getType());
-		killCounts = GSON.fromJson(kc, new TypeToken<Map<String, Integer>>(){}.getType());
+		obtainedCounts = GSON.fromJson(config.obtainedCounts(), new TypeToken<Map<String, Integer>>(){}.getType());
+		obtainedItems = GSON.fromJson(config.obtainedItems(), new TypeToken<Map<String, CollectionLogItem[]>>(){}.getType());
+		completedCategories = GSON.fromJson(config.completedCategories(), new TypeToken<List<String>>(){}.getType());
+		killCounts = GSON.fromJson(config.killCounts(), new TypeToken<Map<String, Integer>>(){}.getType());
 	}
 
 	private void saveConfig(Object items, String configKey)
@@ -445,24 +439,14 @@ public class CollectionLogPlugin extends Plugin
 	private void setTotalItems()
 	{
 		int newTotal = 0;
-		for (Map.Entry<String, CollectionLogItem[]> entry : obtainedItems.entrySet())
+		for (Map.Entry<String, List<CollectionLogItem>> entry : obtainedItems.entrySet())
 		{
-			newTotal += entry.getValue().length;
+			newTotal += entry.getValue().size();
 		}
 
 		if (newTotal > config.totalItems())
 		{
 			configManager.setConfiguration(CONFIG_GROUP, TOTAL_ITEMS, newTotal);
 		}
-	}
-
-	private String getConfigJsonString(String configKey)
-	{
-		String jsonString = configManager.getConfiguration(group, configKey);
-		if (jsonString == null)
-		{
-			return "{}";
-		}
-		return jsonString;
 	}
 }
