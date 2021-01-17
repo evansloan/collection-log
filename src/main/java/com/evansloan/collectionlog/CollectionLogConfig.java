@@ -65,6 +65,17 @@ public interface CollectionLogConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "new_item_chat_message",
+		name = "Chat message on new collection log item",
+		description = "Send chat message when a new collection log item is obtained",
+		position = 6
+	)
+	default boolean sendNewItemChatMessage()
+	{
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "obtained_counts",
 		name = "Obtained counts",
 		description = "How many items have been obtained in each category",
