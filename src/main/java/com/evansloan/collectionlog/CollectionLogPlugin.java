@@ -9,15 +9,21 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.InventoryID;
+import net.runelite.api.ItemComposition;
+import net.runelite.api.ItemContainer;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.events.GameStateChanged;
@@ -25,7 +31,9 @@ import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetID;
 import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
@@ -35,6 +43,9 @@ import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.events.NpcLootReceived;
+import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.ItemStack;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
@@ -91,6 +102,9 @@ public class CollectionLogPlugin extends Plugin
 
 	@Inject
 	private CollectionLogConfig config;
+
+	@Inject
+	private ItemManager itemManager;
 
 	@Provides
 	CollectionLogConfig provideConfig(ConfigManager configManager)
@@ -196,6 +210,90 @@ public class CollectionLogPlugin extends Plugin
 		if (event.getMenuOption().equals(COLLECTION_LOG_EXPORT) && event.getMenuTarget().endsWith(COLLECTION_LOG_TARGET))
 		{
 			exportItems();
+		}
+	}
+
+	@Subscribe
+	public void onNpcLootReceived(NpcLootReceived npcLootReceived)
+	{
+		Collection<ItemStack> items = npcLootReceived.getItems();
+		checkNewItems(items);
+	}
+
+	@Subscribe
+	public void onWidgetLoaded(WidgetLoaded widgetLoaded)
+	{
+
+		ItemContainer container;
+
+		switch (widgetLoaded.getGroupId())
+		{
+			case (WidgetID.BARROWS_GROUP_ID):
+			case (WidgetID.CLUE_SCROLL_REWARD_GROUP_ID):
+				container = client.getItemContainer(InventoryID.BARROWS_REWARD);
+				break;
+			default:
+				return;
+		}
+
+		Collection<ItemStack> items = Arrays.stream(container.getItems())
+			.filter(item -> item.getId() > 0)
+			.map(item -> new ItemStack(item.getId(), item.getQuantity(), client.getLocalPlayer().getLocalLocation()))
+			.collect(Collectors.toList());
+
+		if (items.isEmpty())
+		{
+			return;
+		}
+
+		checkNewItems(items);
+	}
+
+	private void checkNewItems(Collection<ItemStack> items)
+	{
+		if (!config.sendNewItemChatMessage())
+		{
+			return;
+		}
+
+		List<CollectionLogItem> loadedItems = obtainedItems.values().stream()
+			.flatMap(List::stream)
+			.collect(Collectors.toList());
+		List<String> chatMessages = new ArrayList<>();
+
+		for (ItemStack itemStack : items)
+		{
+			ItemComposition itemComp = itemManager.getItemComposition(itemStack.getId());
+
+			CollectionLogItem foundItem = loadedItems.stream()
+				.filter(collectionLogItem -> collectionLogItem.getId() == itemComp.getId() && !collectionLogItem.isObtained())
+				.findAny()
+				.orElse(null);
+
+			if (foundItem == null)
+			{
+				continue;
+			}
+
+			String message = new ChatMessageBuilder()
+				.append(ChatColorType.HIGHLIGHT)
+				.append("New collection log item: " + itemComp.getName())
+				.build();
+
+			if (!chatMessages.contains(message))
+			{
+				chatMessages.add(message);
+			}
+		}
+
+		for (String message : chatMessages)
+		{
+			chatMessageManager.queue(
+				QueuedMessage.builder()
+					.type(ChatMessageType.CONSOLE)
+					.runeLiteFormattedMessage(message)
+					.build()
+			);
 		}
 	}
 
@@ -425,7 +523,7 @@ public class CollectionLogPlugin extends Plugin
 	private void loadConfig()
 	{
 		obtainedCounts = GSON.fromJson(config.obtainedCounts(), new TypeToken<Map<String, Integer>>(){}.getType());
-		obtainedItems = GSON.fromJson(config.obtainedItems(), new TypeToken<Map<String, CollectionLogItem[]>>(){}.getType());
+		obtainedItems = GSON.fromJson(config.obtainedItems(), new TypeToken<Map<String, List<CollectionLogItem>>>(){}.getType());
 		completedCategories = GSON.fromJson(config.completedCategories(), new TypeToken<List<String>>(){}.getType());
 		killCounts = GSON.fromJson(config.killCounts(), new TypeToken<Map<String, Integer>>(){}.getType());
 	}
