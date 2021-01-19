@@ -9,6 +9,7 @@ A [Runelite](https://github.com/runelite/runelite) plugin that adds visual impro
 * Item counter
 * Highlight completed categories
 * Export collection log data
+* Chat notifications when new collection log item is obtained from a drop or clue scroll
 
 ## Usage
 Open the collection log and click through all the categories to get your total progress. In order to update your progress you must re-open the categories in which you've recently received new items.
