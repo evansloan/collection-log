@@ -435,6 +435,7 @@ public class CollectionLogPlugin extends Plugin
 		else if (itemCount < totalItemCount && completedCategories.contains(categoryTitle))
 		{
 			completedCategories.remove(categoryTitle);
+			saveConfig(completedCategories, COMPLETED_CATEGORIES);
 		}
 
 		if (itemCount == prevItemCount)
