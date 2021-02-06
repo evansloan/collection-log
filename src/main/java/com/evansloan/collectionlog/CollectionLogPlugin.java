@@ -42,7 +42,6 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStack;
@@ -77,7 +76,6 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_EXPORT = "Export";
 	private static final File COLLECTION_LOG_EXPORT_DIR = new File(RUNELITE_DIR, "collectionlog");
 
-	private String group;
 	private final Gson GSON = new Gson();
 
 	private Map<String, Integer> obtainedCounts = new HashMap<>();
@@ -112,28 +110,6 @@ public class CollectionLogPlugin extends Plugin
 		return configManager.getConfig(CollectionLogConfig.class);
 	}
 
-	@Subscribe
-	public void onConfigChanged(ConfigChanged event)
-	{
-		if (client.getGameState() != GameState.LOGGED_IN)
-		{
-			return;
-		}
-
-		String configKey = event.getKey();
-		String username = client.getUsername();
-
-		if (configKey.equals(username + "." + OBTAINED_COUNTS) ||
-			 configKey.equals(username + "." + OBTAINED_ITEMS) ||
-			 configKey.equals(username + "." + COMPLETED_CATEGORIES) ||
-			 !event.getGroup().equals(CONFIG_GROUP))
-		{
-			return;
-		}
-
-		update();
-	}
-
 	@Override
 	protected void startUp()
 	{
@@ -158,7 +134,6 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			group = CONFIG_GROUP + "." + client.getUsername();
 			loadConfig();
 		}
 	}
@@ -537,7 +512,7 @@ public class CollectionLogPlugin extends Plugin
 	private void saveConfig(Object items, String configKey)
 	{
 		String json = GSON.toJson(items);
-		configManager.setConfiguration(group, configKey, json);
+		configManager.setRSProfileConfiguration(CONFIG_GROUP, configKey, json);
 	}
 
 	private void setTotalItems()
@@ -556,7 +531,7 @@ public class CollectionLogPlugin extends Plugin
 
 	private String getConfigJsonString(String configKey)
 	{
-		String jsonString = configManager.getConfiguration(group, configKey);
+		String jsonString = configManager.getRSProfileConfiguration(CONFIG_GROUP, configKey);
 		if (jsonString == null)
 		{
 			if (configKey.equals(COMPLETED_CATEGORIES))
