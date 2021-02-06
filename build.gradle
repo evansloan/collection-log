@@ -10,7 +10,7 @@ repositories {
 	mavenCentral()
 }
 
-def runeLiteVersion = '1.6.38'
+def runeLiteVersion = '1.6.39'
 
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
@@ -26,7 +26,7 @@ dependencies {
 }
 
 group = 'com.evansloan.collectionlog'
-version = '1.2.5'
+version = '1.2.6'
 sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
