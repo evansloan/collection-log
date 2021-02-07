@@ -1,5 +1,10 @@
 package com.evansloan.collectionlog;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonWriter;
@@ -15,6 +20,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -24,9 +31,13 @@ import net.runelite.api.GameState;
 import net.runelite.api.InventoryID;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemContainer;
+import net.runelite.api.ItemID;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
+import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.ScriptPostFired;
@@ -45,6 +56,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStack;
+import net.runelite.client.game.LootManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
@@ -76,12 +88,35 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_EXPORT = "Export";
 	private static final File COLLECTION_LOG_EXPORT_DIR = new File(RUNELITE_DIR, "collectionlog");
 
+	private static final String CHEST_LOOTED_MESSAGE = "You find some treasure in the chest!";
+	private static final Pattern LARRANS_CHEST_REGEX = Pattern.compile("You have opened Larran's big chest .*");
+	private static final List<Integer> CHEST_REGIONS = ImmutableList.of(
+		5179,  // Brimstone chest
+		12093, // Larran's big chest
+		12127, // Gauntlet chest
+		13151  // Elven crystal chest
+	);
+
+	private static final String COFFIN_LOOTED_MESSAGE = "You push the coffin lid aside.";
+	private static final Set<Integer> HALLOWED_SEPULCHRE_MAP_REGIONS = ImmutableSet.of(8797, 10077, 9308, 10074, 9050);
+
+	private static final String HESPORI_LOOTED_MESSAGE = "You have successfully cleared this patch for new crops.";
+	private static final int HESPORI_REGION = 5021;
+
+	private static final Pattern PICKPOCKET_REGEX = Pattern.compile("You pick (the )?(?<target>.+)'s? pocket.*");
+	private static final Pattern SHOP_PURCHASE_REGEX = Pattern.compile("Accept|Buy ?.*|Confirm");
+
+	private static final int THEATRE_OF_BLOOD_REGION = 12867;
+
 	private final Gson GSON = new Gson();
 
 	private Map<String, Integer> obtainedCounts = new HashMap<>();
 	private Map<String, List<CollectionLogItem>> obtainedItems = new HashMap<>();
 	private List<String> completedCategories = new ArrayList<>();
 	private Map<String, Integer> killCounts = new HashMap<>();
+
+	private boolean lootReceived;
+	private Multiset<Integer> inventory;
 
 	@Inject
 	private Client client;
@@ -103,6 +138,9 @@ public class CollectionLogPlugin extends Plugin
 
 	@Inject
 	private ItemManager itemManager;
+
+	@Inject
+	private LootManager lootManager;
 
 	@Provides
 	CollectionLogConfig provideConfig(ConfigManager configManager)
@@ -186,6 +224,19 @@ public class CollectionLogPlugin extends Plugin
 		{
 			exportItems();
 		}
+
+		if (event.getMenuOption().equals("Open")
+			&& (event.getId() == ItemID.SUPPLY_CRATE
+			|| event.getId() == ItemID.EXTRA_SUPPLY_CRATE))
+		{
+			getInventory();
+			return;
+		}
+
+		if (SHOP_PURCHASE_REGEX.matcher(event.getMenuOption()).matches())
+		{
+			getInventory();
+		}
 	}
 
 	@Subscribe
@@ -198,17 +249,39 @@ public class CollectionLogPlugin extends Plugin
 	@Subscribe
 	public void onWidgetLoaded(WidgetLoaded widgetLoaded)
 	{
-
-		ItemContainer container;
+		final ItemContainer container;
 
 		switch (widgetLoaded.getGroupId())
 		{
-			case (WidgetID.BARROWS_GROUP_ID):
-			case (WidgetID.CLUE_SCROLL_REWARD_GROUP_ID):
+			case WidgetID.BARROWS_REWARD_GROUP_ID:
+			case WidgetID.CLUE_SCROLL_REWARD_GROUP_ID:
 				container = client.getItemContainer(InventoryID.BARROWS_REWARD);
 				break;
+
+			case WidgetID.FISHING_TRAWLER_REWARD_GROUP_ID:
+				container = client.getItemContainer(InventoryID.FISHING_TRAWLER_REWARD);
+				break;
+
+			case WidgetID.CHAMBERS_OF_XERIC_REWARD_GROUP_ID:
+				container = client.getItemContainer(InventoryID.CHAMBERS_OF_XERIC_CHEST);
+				break;
+
+			case WidgetID.THEATRE_OF_BLOOD_GROUP_ID:
+				int region = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();
+				if (region != THEATRE_OF_BLOOD_REGION)
+				{
+					return;
+				}
+				container = client.getItemContainer(InventoryID.THEATRE_OF_BLOOD_CHEST);
+				break;
+
 			default:
 				return;
+		}
+
+		if (container == null)
+		{
+			return;
 		}
 
 		Collection<ItemStack> items = Arrays.stream(container.getItems())
@@ -216,18 +289,111 @@ public class CollectionLogPlugin extends Plugin
 			.map(item -> new ItemStack(item.getId(), item.getQuantity(), client.getLocalPlayer().getLocalLocation()))
 			.collect(Collectors.toList());
 
-		if (items.isEmpty())
+		checkNewItems(items);
+	}
+
+	@Subscribe
+	public void onChatMessage(ChatMessage chatMessage)
+	{
+		if (chatMessage.getType() != ChatMessageType.GAMEMESSAGE && chatMessage.getType() != ChatMessageType.SPAM)
 		{
 			return;
 		}
 
-		checkNewItems(items);
+		final String message = chatMessage.getMessage();
+		final int regionID = client.getLocalPlayer().getWorldLocation().getRegionID();
+
+		if (message.equals(CHEST_LOOTED_MESSAGE) || LARRANS_CHEST_REGEX.matcher(message).matches())
+		{
+			if (!CHEST_REGIONS.contains(regionID))
+			{
+				return;
+			}
+			getInventory();
+			return;
+		}
+
+		if (message.equals(COFFIN_LOOTED_MESSAGE))
+		{
+			boolean playerInRegion = false;
+			for (int region : client.getMapRegions())
+			{
+				if (HALLOWED_SEPULCHRE_MAP_REGIONS.contains(region))
+				{
+					playerInRegion = true;
+					break;
+				}
+			}
+
+			if (!playerInRegion)
+			{
+				return;
+			}
+
+			getInventory();
+			return;
+		}
+
+		if (PICKPOCKET_REGEX.matcher(message).matches()
+			|| (HESPORI_REGION == regionID && message.equals(HESPORI_LOOTED_MESSAGE)))
+		{
+			getInventory();
+		}
+	}
+
+	@Subscribe
+	public void onItemContainerChanged(ItemContainerChanged itemContainerChanged)
+	{
+		if (itemContainerChanged.getContainerId() != InventoryID.INVENTORY.getId())
+		{
+			return;
+		}
+
+		if (lootReceived)
+		{
+			WorldPoint playerLocation = client.getLocalPlayer().getWorldLocation();
+			Collection<ItemStack> items = lootManager.getItemSpawns(playerLocation);
+			getInventoryDiff(itemContainerChanged.getItemContainer(), items);
+		}
+	}
+
+	private void getInventory()
+	{
+		final ItemContainer itemContainer = client.getItemContainer(InventoryID.INVENTORY);
+		if (itemContainer != null)
+		{
+			inventory = HashMultiset.create();
+			Arrays.stream(itemContainer.getItems()).forEach(item -> inventory.add(item.getId(), item.getQuantity()));
+			lootReceived = true;
+		}
+	}
+
+	private void getInventoryDiff(ItemContainer itemContainer, Collection<ItemStack> items)
+	{
+		if (inventory == null)
+		{
+			return;
+		}
+
+		Multiset<Integer> currentInventory = HashMultiset.create();
+		Arrays.stream(itemContainer.getItems()).forEach(item -> currentInventory.add(item.getId(), item.getQuantity()));
+		items.forEach(item -> currentInventory.add(item.getId(), item.getQuantity()));
+
+		final Multiset<Integer> diff = Multisets.difference(currentInventory, inventory);
+
+		List<ItemStack> newItems = diff.entrySet().stream()
+			.map(item -> new ItemStack(item.getElement(), item.getCount(), client.getLocalPlayer().getLocalLocation()))
+			.collect(Collectors.toList());
+
+		checkNewItems(newItems);
 	}
 
 	private void checkNewItems(Collection<ItemStack> items)
 	{
-		if (!config.sendNewItemChatMessage())
+		if (!config.sendNewItemChatMessage() || items.isEmpty())
 		{
+			lootReceived = false;
+			inventory = null;
 			return;
 		}
 
@@ -239,6 +405,7 @@ public class CollectionLogPlugin extends Plugin
 		for (ItemStack itemStack : items)
 		{
 			ItemComposition itemComp = itemManager.getItemComposition(itemStack.getId());
+			log.info(itemComp.getName());
 
 			CollectionLogItem foundItem = loadedItems.stream()
 				.filter(collectionLogItem -> collectionLogItem.getId() == itemComp.getId() && !collectionLogItem.isObtained())
@@ -270,6 +437,9 @@ public class CollectionLogPlugin extends Plugin
 					.build()
 			);
 		}
+
+		lootReceived = false;
+		inventory = null;
 	}
 
 	private void exportItems()
