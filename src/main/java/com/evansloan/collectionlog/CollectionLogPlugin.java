@@ -45,6 +45,7 @@ import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
@@ -235,6 +236,12 @@ public class CollectionLogPlugin extends Plugin
 
 		if (SHOP_PURCHASE_REGEX.matcher(event.getMenuOption()).matches())
 		{
+			if (isTrading())
+			{
+				lootReceived = false;
+				return;
+			}
+
 			getInventory();
 		}
 	}
@@ -339,6 +346,8 @@ public class CollectionLogPlugin extends Plugin
 		{
 			getInventory();
 		}
+
+		lootReceived = false;
 	}
 
 	@Subscribe
@@ -711,5 +720,14 @@ public class CollectionLogPlugin extends Plugin
 			return "{}";
 		}
 		return jsonString;
+	}
+
+	private boolean isTrading()
+	{
+		Widget offer = client.getWidget(WidgetID.PLAYER_TRADE_SCREEN_GROUP_ID, 2);
+		Widget accept = client.getWidget(334, 1);
+		Widget ge = client.getWidget(WidgetInfo.GRAND_EXCHANGE_OFFER_CONTAINER);
+
+		return offer != null || accept != null || ge != null;
 	}
 }
