@@ -107,6 +107,8 @@ public class CollectionLogPlugin extends Plugin
 	private static final Pattern PICKPOCKET_REGEX = Pattern.compile("You pick (the )?(?<target>.+)'s? pocket.*");
 	private static final Pattern SHOP_PURCHASE_REGEX = Pattern.compile("Accept|Buy ?.*|Confirm");
 
+	private static final String SEARCH_SKELETON_MESSAGE = "...you find something and stow it in your pack.";
+
 	private static final int THEATRE_OF_BLOOD_REGION = 12867;
 
 	private final Gson GSON = new Gson();
@@ -342,7 +344,8 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		if (PICKPOCKET_REGEX.matcher(message).matches()
-			|| (HESPORI_REGION == regionID && message.equals(HESPORI_LOOTED_MESSAGE)))
+			|| message.equals(SEARCH_SKELETON_MESSAGE)
+			|| (message.equals(HESPORI_LOOTED_MESSAGE) && HESPORI_REGION == regionID))
 		{
 			getInventory();
 		}
