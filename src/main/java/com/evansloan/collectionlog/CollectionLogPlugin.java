@@ -416,7 +416,6 @@ public class CollectionLogPlugin extends Plugin
 		for (ItemStack itemStack : items)
 		{
 			ItemComposition itemComp = itemManager.getItemComposition(itemStack.getId());
-			log.info(itemComp.getName());
 
 			CollectionLogItem foundItem = loadedItems.stream()
 				.filter(collectionLogItem -> collectionLogItem.getId() == itemComp.getId() && !collectionLogItem.isObtained())
@@ -745,8 +744,6 @@ public class CollectionLogPlugin extends Plugin
 				obtainedCounts.put("total", obtainedCounts.get("total") + 1);
 				savedItem.setObtained(true);
 				savedItem.setQuantity(savedItem.getQuantity() + quantity);
-
-				log.info(category + " " + savedItem.getName() + " updated.");
 			});
 		}
 
