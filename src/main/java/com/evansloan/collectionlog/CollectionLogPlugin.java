@@ -116,7 +116,7 @@ public class CollectionLogPlugin extends Plugin
 	private List<String> completedCategories = new ArrayList<>();
 	private Map<String, Integer> killCounts = new HashMap<>();
 
-	private boolean lootReceived;
+	private boolean lootReceived = false;
 	private Multiset<Integer> inventory;
 
 	@Inject
@@ -346,8 +346,6 @@ public class CollectionLogPlugin extends Plugin
 		{
 			getInventory();
 		}
-
-		lootReceived = false;
 	}
 
 	@Subscribe
@@ -381,6 +379,7 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (inventory == null)
 		{
+			lootReceived = false;
 			return;
 		}
 
@@ -435,6 +434,8 @@ public class CollectionLogPlugin extends Plugin
 			{
 				chatMessages.add(message);
 			}
+
+			updateObtainedItems(itemComp, itemStack.getQuantity());
 		}
 
 		for (String message : chatMessages)
@@ -729,5 +730,24 @@ public class CollectionLogPlugin extends Plugin
 		Widget ge = client.getWidget(WidgetInfo.GRAND_EXCHANGE_OFFER_CONTAINER);
 
 		return offer != null || accept != null || ge != null;
+	}
+
+	private void updateObtainedItems(ItemComposition item, int quantity)
+	{
+		for (Map.Entry<String, List<CollectionLogItem>> entry : obtainedItems.entrySet())
+		{
+			String category = entry.getKey();
+			entry.getValue().stream().filter(savedItem -> savedItem.getId() == item.getId()).forEach(savedItem -> {
+				obtainedCounts.put(category, obtainedCounts.get(category) + 1);
+				obtainedCounts.put("total", obtainedCounts.get("total") + 1);
+				savedItem.setObtained(true);
+				savedItem.setQuantity(savedItem.getQuantity() + quantity);
+
+				log.info(category + " " + savedItem.getName() + " updated.");
+			});
+		}
+
+		saveConfig(obtainedItems, OBTAINED_ITEMS);
+		saveConfig(obtainedCounts, OBTAINED_COUNTS);
 	}
 }
