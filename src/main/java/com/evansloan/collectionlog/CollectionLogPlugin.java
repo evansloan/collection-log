@@ -248,14 +248,13 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		Widget dialogWidget = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
-		String dialogText = dialogWidget.getText();
-
-		if (dialogText == null)
+		if (dialogWidget == null)
 		{
 			lootReceived = false;
 			return;
 		}
 
+		String dialogText = dialogWidget.getText();
 		if (dialogText.equals(FOSSIL_ISLAND_NOTE_MESSAGE)
 			|| GNOME_RESTAURANT_REGEX.matcher(dialogText).matches())
 		{
@@ -327,7 +326,7 @@ public class CollectionLogPlugin extends Plugin
 
 	private void checkNewItems(Collection<ItemStack> items)
 	{
-		if (!config.sendNewItemChatMessage() || items.isEmpty())
+		if (items.isEmpty())
 		{
 			lootReceived = false;
 			inventory = null;
@@ -365,14 +364,18 @@ public class CollectionLogPlugin extends Plugin
 			updateObtainedItems(itemComp, itemStack.getQuantity());
 		}
 
-		for (String message : chatMessages)
+
+		if (config.sendNewItemChatMessage())
 		{
-			chatMessageManager.queue(
-				QueuedMessage.builder()
-					.type(ChatMessageType.CONSOLE)
-					.runeLiteFormattedMessage(message)
-					.build()
-			);
+			for (String message : chatMessages)
+			{
+				chatMessageManager.queue(
+					QueuedMessage.builder()
+						.type(ChatMessageType.CONSOLE)
+						.runeLiteFormattedMessage(message)
+						.build()
+				);
+			}
 		}
 
 		lootReceived = false;
