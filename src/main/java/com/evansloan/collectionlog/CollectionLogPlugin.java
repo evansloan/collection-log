@@ -90,6 +90,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final File COLLECTION_LOG_EXPORT_DIR = new File(RUNELITE_DIR, "collectionlog");
 
 	private static final Pattern SHOP_PURCHASE_REGEX = Pattern.compile("Accept|Buy ?.*|Confirm");
+	private static final Pattern GNOME_RESTAURANT_REGEX = Pattern.compile("You are given .* as a tip\\.");
 	private static final String FOSSIL_ISLAND_NOTE_MESSAGE = "The chest pops open and you snatch a piece of parchment before it slams shut again.";
 	private static final String SEARCH_SKELETON_MESSAGE = "...you find something and stow it in your pack.";
 
@@ -247,7 +248,16 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		Widget dialogWidget = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
-		if (dialogWidget.getText().equals(FOSSIL_ISLAND_NOTE_MESSAGE))
+		String dialogText = dialogWidget.getText();
+
+		if (dialogText == null)
+		{
+			lootReceived = false;
+			return;
+		}
+
+		if (dialogText.equals(FOSSIL_ISLAND_NOTE_MESSAGE)
+			|| GNOME_RESTAURANT_REGEX.matcher(dialogText).matches())
 		{
 			getInventory();
 		}
