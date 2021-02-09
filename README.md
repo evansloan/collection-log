@@ -3,13 +3,13 @@
 
 A [Runelite](https://github.com/runelite/runelite) plugin that adds visual improvements to the collection log
 
-![](https://i.imgur.com/ocrQRVZ.png)
+![](https://i.imgur.com/1JQiKYV.png)
 
 ## Features
 * Item counter
 * Highlight completed categories
 * Export collection log data
-* Chat notifications when new collection log item is obtained from a drop or clue scroll
+* Chat notifications when new collection log item is obtained
 
 ## Usage
 Open the collection log and click through all the categories to get your total progress and to enable chat notifications for drops. In order to update your progress you must re-open the categories in which you've recently received new items.
