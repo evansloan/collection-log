@@ -54,13 +54,13 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStack;
 import net.runelite.client.game.LootManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
+import net.runelite.client.plugins.loottracker.LootReceived;
 import org.apache.commons.lang3.ArrayUtils;
 
 @Slf4j
@@ -89,27 +89,9 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_EXPORT = "Export";
 	private static final File COLLECTION_LOG_EXPORT_DIR = new File(RUNELITE_DIR, "collectionlog");
 
-	private static final String CHEST_LOOTED_MESSAGE = "You find some treasure in the chest!";
-	private static final Pattern LARRANS_CHEST_REGEX = Pattern.compile("You have opened Larran's big chest .*");
-	private static final List<Integer> CHEST_REGIONS = ImmutableList.of(
-		5179,  // Brimstone chest
-		12093, // Larran's big chest
-		12127, // Gauntlet chest
-		13151  // Elven crystal chest
-	);
-
-	private static final String COFFIN_LOOTED_MESSAGE = "You push the coffin lid aside.";
-	private static final Set<Integer> HALLOWED_SEPULCHRE_MAP_REGIONS = ImmutableSet.of(8797, 10077, 9308, 10074, 9050);
-
-	private static final String HESPORI_LOOTED_MESSAGE = "You have successfully cleared this patch for new crops.";
-	private static final int HESPORI_REGION = 5021;
-
-	private static final Pattern PICKPOCKET_REGEX = Pattern.compile("You pick (the )?(?<target>.+)'s? pocket.*");
 	private static final Pattern SHOP_PURCHASE_REGEX = Pattern.compile("Accept|Buy ?.*|Confirm");
-
+	private static final String FOSSIL_ISLAND_NOTE_MESSAGE = "The chest pops open and you snatch a piece of parchment before it slams shut again.";
 	private static final String SEARCH_SKELETON_MESSAGE = "...you find something and stow it in your pack.";
-
-	private static final int THEATRE_OF_BLOOD_REGION = 12867;
 
 	private final Gson GSON = new Gson();
 
@@ -249,56 +231,26 @@ public class CollectionLogPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onNpcLootReceived(NpcLootReceived npcLootReceived)
+	private void onLootReceived(LootReceived lootReceived)
 	{
-		Collection<ItemStack> items = npcLootReceived.getItems();
+		Collection<ItemStack> items = lootReceived.getItems();
 		checkNewItems(items);
 	}
 
 	@Subscribe
 	public void onWidgetLoaded(WidgetLoaded widgetLoaded)
 	{
-		final ItemContainer container;
-
-		switch (widgetLoaded.getGroupId())
+		if (widgetLoaded.getGroupId() != WidgetID.DIALOG_SPRITE_GROUP_ID)
 		{
-			case WidgetID.BARROWS_REWARD_GROUP_ID:
-			case WidgetID.CLUE_SCROLL_REWARD_GROUP_ID:
-				container = client.getItemContainer(InventoryID.BARROWS_REWARD);
-				break;
-
-			case WidgetID.FISHING_TRAWLER_REWARD_GROUP_ID:
-				container = client.getItemContainer(InventoryID.FISHING_TRAWLER_REWARD);
-				break;
-
-			case WidgetID.CHAMBERS_OF_XERIC_REWARD_GROUP_ID:
-				container = client.getItemContainer(InventoryID.CHAMBERS_OF_XERIC_CHEST);
-				break;
-
-			case WidgetID.THEATRE_OF_BLOOD_GROUP_ID:
-				int region = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();
-				if (region != THEATRE_OF_BLOOD_REGION)
-				{
-					return;
-				}
-				container = client.getItemContainer(InventoryID.THEATRE_OF_BLOOD_CHEST);
-				break;
-
-			default:
-				return;
-		}
-
-		if (container == null)
-		{
+			lootReceived = false;
 			return;
 		}
 
-		Collection<ItemStack> items = Arrays.stream(container.getItems())
-			.filter(item -> item.getId() > 0)
-			.map(item -> new ItemStack(item.getId(), item.getQuantity(), client.getLocalPlayer().getLocalLocation()))
-			.collect(Collectors.toList());
-
-		checkNewItems(items);
+		Widget dialogWidget = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
+		if (dialogWidget.getText().equals(FOSSIL_ISLAND_NOTE_MESSAGE))
+		{
+			getInventory();
+		}
 	}
 
 	@Subscribe
@@ -309,43 +261,7 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		final String message = chatMessage.getMessage();
-		final int regionID = client.getLocalPlayer().getWorldLocation().getRegionID();
-
-		if (message.equals(CHEST_LOOTED_MESSAGE) || LARRANS_CHEST_REGEX.matcher(message).matches())
-		{
-			if (!CHEST_REGIONS.contains(regionID))
-			{
-				return;
-			}
-			getInventory();
-			return;
-		}
-
-		if (message.equals(COFFIN_LOOTED_MESSAGE))
-		{
-			boolean playerInRegion = false;
-			for (int region : client.getMapRegions())
-			{
-				if (HALLOWED_SEPULCHRE_MAP_REGIONS.contains(region))
-				{
-					playerInRegion = true;
-					break;
-				}
-			}
-
-			if (!playerInRegion)
-			{
-				return;
-			}
-
-			getInventory();
-			return;
-		}
-
-		if (PICKPOCKET_REGEX.matcher(message).matches()
-			|| message.equals(SEARCH_SKELETON_MESSAGE)
-			|| (message.equals(HESPORI_LOOTED_MESSAGE) && HESPORI_REGION == regionID))
+		if (chatMessage.getMessage().equals(SEARCH_SKELETON_MESSAGE))
 		{
 			getInventory();
 		}
@@ -416,7 +332,6 @@ public class CollectionLogPlugin extends Plugin
 		for (ItemStack itemStack : items)
 		{
 			ItemComposition itemComp = itemManager.getItemComposition(itemStack.getId());
-
 			CollectionLogItem foundItem = loadedItems.stream()
 				.filter(collectionLogItem -> collectionLogItem.getId() == itemComp.getId() && !collectionLogItem.isObtained())
 				.findAny()
