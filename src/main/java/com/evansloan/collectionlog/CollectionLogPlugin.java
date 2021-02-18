@@ -61,6 +61,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.plugins.loottracker.LootReceived;
+import net.runelite.http.api.loottracker.LootRecordType;
 import org.apache.commons.lang3.ArrayUtils;
 
 @Slf4j
@@ -234,6 +235,11 @@ public class CollectionLogPlugin extends Plugin
 	@Subscribe
 	private void onLootReceived(LootReceived lootReceived)
 	{
+		if (lootReceived.getType() == LootRecordType.PLAYER)
+		{
+			return;
+		}
+		
 		Collection<ItemStack> items = lootReceived.getItems();
 		checkNewItems(items);
 	}
