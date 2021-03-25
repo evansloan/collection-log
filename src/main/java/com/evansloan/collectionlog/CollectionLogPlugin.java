@@ -345,7 +345,7 @@ public class CollectionLogPlugin extends Plugin
 		{
 			ItemComposition itemComp = itemManager.getItemComposition(itemStack.getId());
 			CollectionLogItem foundItem = loadedItems.stream()
-				.filter(collectionLogItem -> collectionLogItem.getId() == itemComp.getId() && !collectionLogItem.isObtained())
+				.filter(collectionLogItem -> collectionLogItem.getId() == itemComp.getId() && collectionLogItem.getQuantity() == 0)
 				.findAny()
 				.orElse(null);
 
@@ -418,8 +418,8 @@ public class CollectionLogPlugin extends Plugin
 				{
 					writer.beginObject();
 					writer.name("id").value(item.getId());
-					writer.name("name").value(item.getName());
-					writer.name("obtained").value(item.isObtained());
+					writer.name("name").value(itemManager.getItemComposition(item.getId()).getName());
+					writer.name("obtained").value(item.getQuantity() > 0);
 					writer.name("quantity").value(item.getQuantity());
 					writer.endObject();
 				}
@@ -511,7 +511,7 @@ public class CollectionLogPlugin extends Plugin
 		getKillCount(categoryTitle, categoryHead);
 
 		List<CollectionLogItem> categoryItems = obtainedItems.get(categoryTitle);
-		int itemCount = categoryItems.stream().filter(CollectionLogItem::isObtained).toArray().length;
+		int itemCount = categoryItems.stream().filter(c -> c.getQuantity() > 0).toArray().length;
 		int prevItemCount = getCategoryItemCount(categoryTitle);
 		int totalItemCount = categoryItems.size();
 
@@ -674,7 +674,6 @@ public class CollectionLogPlugin extends Plugin
 			entry.getValue().stream().filter(savedItem -> savedItem.getId() == item.getId()).forEach(savedItem -> {
 				obtainedCounts.put(category, obtainedCounts.get(category) + 1);
 				obtainedCounts.put("total", obtainedCounts.get("total") + 1);
-				savedItem.setObtained(true);
 				savedItem.setQuantity(savedItem.getQuantity() + quantity);
 			});
 		}
