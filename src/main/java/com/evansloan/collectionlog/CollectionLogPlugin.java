@@ -1,8 +1,6 @@
 package com.evansloan.collectionlog;
 
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
 import com.google.gson.Gson;
@@ -20,7 +18,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -47,6 +44,7 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.Notifier;
+import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
@@ -59,7 +57,6 @@ import net.runelite.client.game.ItemStack;
 import net.runelite.client.game.LootManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.plugins.loottracker.LootReceived;
 import net.runelite.http.api.loottracker.LootRecordType;
 import org.apache.commons.lang3.ArrayUtils;
@@ -629,6 +626,7 @@ public class CollectionLogPlugin extends Plugin
 	{
 		String json = GSON.toJson(items);
 		configManager.setRSProfileConfiguration(CONFIG_GROUP, configKey, json);
+		configManager.unsetConfiguration(CONFIG_GROUP + "." + client.getUsername(), configKey);
 	}
 
 	private void setTotalItems()
