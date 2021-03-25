@@ -1,5 +1,6 @@
 package com.evansloan.collectionlog;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.api.widgets.Widget;
@@ -9,6 +10,7 @@ import net.runelite.api.widgets.Widget;
 class CollectionLogItem
 {
 	private int id;
+	@SerializedName(value="qty", alternate = {"quantity"})
 	private int quantity;
 
 	CollectionLogItem(Widget item)
