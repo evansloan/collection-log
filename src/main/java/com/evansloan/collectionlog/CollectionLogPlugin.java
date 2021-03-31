@@ -1,8 +1,6 @@
 package com.evansloan.collectionlog;
 
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
 import com.google.gson.Gson;
@@ -20,7 +18,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -47,6 +44,7 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.Notifier;
+import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
@@ -59,7 +57,6 @@ import net.runelite.client.game.ItemStack;
 import net.runelite.client.game.LootManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.plugins.loottracker.LootReceived;
 import net.runelite.http.api.loottracker.LootRecordType;
 import org.apache.commons.lang3.ArrayUtils;
@@ -348,7 +345,7 @@ public class CollectionLogPlugin extends Plugin
 		{
 			ItemComposition itemComp = itemManager.getItemComposition(itemStack.getId());
 			CollectionLogItem foundItem = loadedItems.stream()
-				.filter(collectionLogItem -> collectionLogItem.getId() == itemComp.getId() && !collectionLogItem.isObtained())
+				.filter(collectionLogItem -> collectionLogItem.getId() == itemComp.getId() && collectionLogItem.getQuantity() == 0)
 				.findAny()
 				.orElse(null);
 
@@ -421,8 +418,8 @@ public class CollectionLogPlugin extends Plugin
 				{
 					writer.beginObject();
 					writer.name("id").value(item.getId());
-					writer.name("name").value(item.getName());
-					writer.name("obtained").value(item.isObtained());
+					writer.name("name").value(itemManager.getItemComposition(item.getId()).getName());
+					writer.name("obtained").value(item.getQuantity() > 0);
 					writer.name("quantity").value(item.getQuantity());
 					writer.endObject();
 				}
@@ -514,7 +511,7 @@ public class CollectionLogPlugin extends Plugin
 		getKillCount(categoryTitle, categoryHead);
 
 		List<CollectionLogItem> categoryItems = obtainedItems.get(categoryTitle);
-		int itemCount = categoryItems.stream().filter(CollectionLogItem::isObtained).toArray().length;
+		int itemCount = categoryItems.stream().filter(c -> c.getQuantity() > 0).toArray().length;
 		int prevItemCount = getCategoryItemCount(categoryTitle);
 		int totalItemCount = categoryItems.size();
 
@@ -629,6 +626,7 @@ public class CollectionLogPlugin extends Plugin
 	{
 		String json = GSON.toJson(items);
 		configManager.setRSProfileConfiguration(CONFIG_GROUP, configKey, json);
+		configManager.unsetConfiguration(CONFIG_GROUP + "." + client.getUsername(), configKey);
 	}
 
 	private void setTotalItems()
@@ -676,7 +674,6 @@ public class CollectionLogPlugin extends Plugin
 			entry.getValue().stream().filter(savedItem -> savedItem.getId() == item.getId()).forEach(savedItem -> {
 				obtainedCounts.put(category, obtainedCounts.get(category) + 1);
 				obtainedCounts.put("total", obtainedCounts.get("total") + 1);
-				savedItem.setObtained(true);
 				savedItem.setQuantity(savedItem.getQuantity() + quantity);
 			});
 		}
