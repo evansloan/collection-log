@@ -72,7 +72,6 @@ public class CollectionLogPlugin extends Plugin
 	private static final String CONFIG_GROUP = "collectionlog";
 	private static final String OBTAINED_COUNTS = "obtained_counts";
 	private static final String OBTAINED_ITEMS = "obtained_items";
-	private static final String COMPLETED_CATEGORIES = "completed_categories";
 	private static final String TOTAL_ITEMS = "total_items";
 	private static final String KILL_COUNTS = "kill_counts";
 
@@ -82,6 +81,9 @@ public class CollectionLogPlugin extends Plugin
 	private static final int COLLECTION_LOG_CATEGORY_ITEMS = 35;
 	private static final int COLLECTION_LOG_DRAW_LIST_SCRIPT_ID = 2730;
 	private static final int COLLECTION_LOG_CATEGORY_VARBIT_INDEX = 2049;
+
+	private static final int COLLECTION_LOG_DEFAULT_HIGHLIGHT = 901389;
+
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
 	private static final String COLLECTION_LOG_TARGET = "Collection log";
 	private static final String COLLECTION_LOG_EXPORT = "Export";
@@ -96,7 +98,6 @@ public class CollectionLogPlugin extends Plugin
 
 	private Map<String, Integer> obtainedCounts = new HashMap<>();
 	private Map<String, List<CollectionLogItem>> obtainedItems = new HashMap<>();
-	private List<String> completedCategories = new ArrayList<>();
 	private Map<String, Integer> killCounts = new HashMap<>();
 
 	private boolean lootReceived = false;
@@ -137,6 +138,8 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
+			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "completed_categories");
+
 			loadConfig();
 			update();
 		}
@@ -513,18 +516,6 @@ public class CollectionLogPlugin extends Plugin
 		List<CollectionLogItem> categoryItems = obtainedItems.get(categoryTitle);
 		int itemCount = categoryItems.stream().filter(c -> c.getQuantity() > 0).toArray().length;
 		int prevItemCount = getCategoryItemCount(categoryTitle);
-		int totalItemCount = categoryItems.size();
-
-		if (itemCount == totalItemCount && !completedCategories.contains(categoryTitle))
-		{
-			completedCategories.add(categoryTitle);
-			saveConfig(completedCategories, COMPLETED_CATEGORIES);
-		}
-		else if (itemCount < totalItemCount && completedCategories.contains(categoryTitle))
-		{
-			completedCategories.remove(categoryTitle);
-			saveConfig(completedCategories, COMPLETED_CATEGORIES);
-		}
 
 		if (itemCount == prevItemCount)
 		{
@@ -554,9 +545,9 @@ public class CollectionLogPlugin extends Plugin
 			Widget[] names = categoryList.getDynamicChildren();
 			for (Widget name : names)
 			{
-				if (completedCategories.contains(name.getText()))
+				if (name.getTextColor() == COLLECTION_LOG_DEFAULT_HIGHLIGHT)
 				{
-					name.setTextColor(config.highlightColor().getRGB() & 0x00FFFFFF);
+					name.setTextColor(config.highlightColor().getRGB());
 				}
 			}
 		}
@@ -581,10 +572,7 @@ public class CollectionLogPlugin extends Plugin
 		String title = buildTitle();
 		setCollectionLogTitle(title);
 
-		if (config.highlightCompleted())
-		{
-			highlightCategories();
-		}
+		highlightCategories();
 	}
 
 	private void setCollectionLogTitle(String title)
@@ -613,12 +601,10 @@ public class CollectionLogPlugin extends Plugin
 	{
 		String counts = getConfigJsonString(OBTAINED_COUNTS);
 		String items = getConfigJsonString(OBTAINED_ITEMS);
-		String completed = getConfigJsonString(COMPLETED_CATEGORIES);
 		String kc = getConfigJsonString(KILL_COUNTS);
 
 		obtainedCounts = GSON.fromJson(counts, new TypeToken<Map<String, Integer>>(){}.getType());
 		obtainedItems = GSON.fromJson(items, new TypeToken<Map<String, List<CollectionLogItem>>>(){}.getType());
-		completedCategories = GSON.fromJson(completed, new TypeToken<List<String>>(){}.getType());
 		killCounts = GSON.fromJson(kc, new TypeToken<Map<String, Integer>>(){}.getType());
 	}
 
@@ -648,10 +634,6 @@ public class CollectionLogPlugin extends Plugin
 		String jsonString = configManager.getRSProfileConfiguration(CONFIG_GROUP, configKey);
 		if (jsonString == null)
 		{
-			if (configKey.equals(COMPLETED_CATEGORIES))
-			{
-				return "[]";
-			}
 			return "{}";
 		}
 		return jsonString;

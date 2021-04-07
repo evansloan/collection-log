@@ -9,33 +9,22 @@ import net.runelite.client.config.ConfigItem;
 @ConfigGroup("collectionlog")
 public interface CollectionLogConfig extends Config
 {
-	@ConfigItem(
-		keyName = "highlight_completed",
-		name = "Highlight completed categories",
-		description = "Change the color of completed category names",
-		position = 1
-	)
-	default boolean highlightCompleted()
-	{
-		return true;
-	}
-
 	@Alpha
 	@ConfigItem(
 		keyName = "highlight_color",
 		name = "Completed category highlight color",
 		description = "Sets the highlight color of completed categories",
-		position = 2
+		position = 1
 	)
 	default Color highlightColor()
 	{
-		return Color.GREEN;
+		return new Color(13, 193, 13);
 	}
 	@ConfigItem(
 		keyName = "display_as_percentage",
 		name = "Display as percentage",
 		description = "Display collection log progress as a percentage",
-		position = 3
+		position = 2
 	)
 	default boolean displayAsPercentage()
 	{
@@ -46,7 +35,7 @@ public interface CollectionLogConfig extends Config
 		keyName = "notify_on_export",
 		name = "Notify on export",
 		description = "Send a notification on collection log export",
-		position = 4
+		position = 3
 	)
 	default boolean notifyOnExport()
 	{
@@ -57,7 +46,7 @@ public interface CollectionLogConfig extends Config
 		keyName = "export_chat_message",
 		name = "Chat message on export",
 		description = "Show exported file location in chat box on collection log export",
-		position = 5
+		position = 4
 	)
 	default boolean sendExportChatMessage()
 	{
@@ -68,7 +57,7 @@ public interface CollectionLogConfig extends Config
 		keyName = "new_item_chat_message",
 		name = "Chat message on new collection log item",
 		description = "Send chat message when a new collection log item is obtained",
-		position = 6
+		position = 5
 	)
 	default boolean sendNewItemChatMessage()
 	{
