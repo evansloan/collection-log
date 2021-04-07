@@ -16,6 +16,6 @@ class CollectionLogItem
 	CollectionLogItem(Widget item)
 	{
 		id = item.getItemId();
-		quantity = item.getItemQuantity();
+		quantity = item.getOpacity() == 0 ? item.getItemQuantity() : 0;
 	}
 }
