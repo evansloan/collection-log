@@ -130,6 +130,10 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
+			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "completed_categories");
+			configManager.unsetConfiguration(CONFIG_GROUP, "highlight_completed");
+			configManager.unsetConfiguration(CONFIG_GROUP, "new_item_chat_message");
+
 			loadConfig();
 			update();
 		}
