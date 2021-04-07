@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -85,6 +86,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final int COLLECTION_LOG_DEFAULT_HIGHLIGHT = 901389;
 
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
+	private static final Pattern COLLECTION_LOG_TITLE_REGEX = Pattern.compile("Collection Log - (?:U: )?(?:(\\d+)/(\\d+)|([\\d\\.%]+))(?: T: \\d+/\\d+)?");
 	private static final String COLLECTION_LOG_TARGET = "Collection log";
 	private static final String COLLECTION_LOG_EXPORT = "Export";
 	private static final File COLLECTION_LOG_EXPORT_DIR = new File(RUNELITE_DIR, "collectionlog");
@@ -138,8 +140,6 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "completed_categories");
-
 			loadConfig();
 			update();
 		}
@@ -555,20 +555,78 @@ public class CollectionLogPlugin extends Plugin
 
 	private String buildTitle()
 	{
-		setTotalItems();
-		int totalObtained = getCategoryItemCount("total");
-		String title = String.format("%s - %d/%d", COLLECTION_LOG_TITLE, totalObtained, config.totalItems());
+		StringBuilder titleBuilder = new StringBuilder(COLLECTION_LOG_TITLE);
+		List<String> titleSections = new ArrayList<>();
 
-		if (config.displayAsPercentage())
+		if (config.displayUniqueItems())
 		{
-			title = String.format("%s - %.2f%%", COLLECTION_LOG_TITLE, ((double) totalObtained / config.totalItems()) * 100);
+			Widget collLogContainer = client.getWidget(COLLECTION_LOG_GROUP_ID, COLLECTION_LOG_CONTAINER);
+
+			if (collLogContainer == null)
+			{
+				return COLLECTION_LOG_TITLE;
+			}
+
+			String collLogTitle = collLogContainer.getDynamicChildren()[1].getText();
+			Matcher m = COLLECTION_LOG_TITLE_REGEX.matcher(collLogTitle);
+
+			if (!m.find())
+			{
+				return COLLECTION_LOG_TITLE;
+			}
+
+			String uniqueTitle = "";
+
+			if (m.group(1) != null && m.group(2) != null)
+			{
+
+				int uniqueObtained = Integer.parseInt(m.group(1));
+				int uniqueTotal = Integer.parseInt(m.group(2));
+				uniqueTitle = String.format("U: %d/%d", uniqueObtained, uniqueTotal);
+			}
+
+			if (config.displayAsPercentage())
+			{
+				if (m.group(3) != null)
+				{
+					uniqueTitle = String.format("U: %s", m.group(3));
+				}
+				else
+				{
+					int uniqueObtained = Integer.parseInt(m.group(1));
+					int uniqueTotal = Integer.parseInt(m.group(2));
+					uniqueTitle = String.format("U: %.2f%%", ((double) uniqueObtained / uniqueTotal) * 100);
+				}
+			}
+			titleSections.add(uniqueTitle);
 		}
 
-		return title;
+		if (config.displayTotalItems())
+		{
+			int totalObtained = getCategoryItemCount("total");
+			String totalTitle = String.format("T: %d/%d", totalObtained, config.totalItems());
+
+			if (config.displayAsPercentage())
+			{
+				totalTitle = String.format("T: %.2f%%", ((double) totalObtained / config.totalItems()) * 100);
+			}
+
+			titleSections.add(totalTitle);
+		}
+
+		if (titleSections.size() > 0)
+		{
+			titleBuilder.append(" - ");
+		}
+		titleBuilder.append(String.join(" ", titleSections));
+
+		return titleBuilder.toString();
 	}
 
 	private void update()
 	{
+		setTotalItems();
+
 		String title = buildTitle();
 		setCollectionLogTitle(title);
 
