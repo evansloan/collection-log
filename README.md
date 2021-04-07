@@ -3,7 +3,7 @@
 
 A [Runelite](https://github.com/runelite/runelite) plugin that adds visual improvements to the collection log
 
-![](https://i.imgur.com/1JQiKYV.png)
+![](https://i.imgur.com/5sorDBc.png)
 
 ## Features
 * Display total item counts alongside unique item counts
