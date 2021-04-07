@@ -29,7 +29,6 @@ import net.runelite.api.GameState;
 import net.runelite.api.InventoryID;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemContainer;
-import net.runelite.api.ItemID;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.coords.WorldPoint;
@@ -40,10 +39,7 @@ import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.VarbitChanged;
-import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetID;
-import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.Notifier;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.callback.ClientThread;
@@ -58,8 +54,6 @@ import net.runelite.client.game.ItemStack;
 import net.runelite.client.game.LootManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.loottracker.LootReceived;
-import net.runelite.http.api.loottracker.LootRecordType;
 import org.apache.commons.lang3.ArrayUtils;
 
 @Slf4j
@@ -82,7 +76,6 @@ public class CollectionLogPlugin extends Plugin
 	private static final int COLLECTION_LOG_CATEGORY_ITEMS = 35;
 	private static final int COLLECTION_LOG_DRAW_LIST_SCRIPT_ID = 2730;
 	private static final int COLLECTION_LOG_CATEGORY_VARBIT_INDEX = 2049;
-
 	private static final int COLLECTION_LOG_DEFAULT_HIGHLIGHT = 901389;
 
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
@@ -91,10 +84,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_EXPORT = "Export";
 	private static final File COLLECTION_LOG_EXPORT_DIR = new File(RUNELITE_DIR, "collectionlog");
 
-	private static final Pattern SHOP_PURCHASE_REGEX = Pattern.compile("Accept|Buy ?.*|Confirm");
-	private static final Pattern GNOME_RESTAURANT_REGEX = Pattern.compile("You are given .* as a tip\\.");
-	private static final String FOSSIL_ISLAND_NOTE_MESSAGE = "The chest pops open and you snatch a piece of parchment before it slams shut again.";
-	private static final String SEARCH_SKELETON_MESSAGE = "...you find something and stow it in your pack.";
+	private static final Pattern COLLECTION_LOG_ITEM_REGEX = Pattern.compile("New item added to your collection log: .*");
 
 	private final Gson GSON = new Gson();
 
@@ -102,7 +92,7 @@ public class CollectionLogPlugin extends Plugin
 	private Map<String, List<CollectionLogItem>> obtainedItems = new HashMap<>();
 	private Map<String, Integer> killCounts = new HashMap<>();
 
-	private boolean lootReceived = false;
+	private boolean newCollectionLogItem = false;
 	private Multiset<Integer> inventory;
 
 	@Inject
@@ -211,61 +201,6 @@ public class CollectionLogPlugin extends Plugin
 		{
 			exportItems();
 		}
-
-		if (event.getMenuOption().equals("Open")
-			&& (event.getId() == ItemID.SUPPLY_CRATE
-			|| event.getId() == ItemID.EXTRA_SUPPLY_CRATE))
-		{
-			getInventory();
-			return;
-		}
-
-		if (SHOP_PURCHASE_REGEX.matcher(event.getMenuOption()).matches())
-		{
-			if (isTrading())
-			{
-				lootReceived = false;
-				return;
-			}
-
-			getInventory();
-		}
-	}
-
-	@Subscribe
-	private void onLootReceived(LootReceived lootReceived)
-	{
-		if (lootReceived.getType() == LootRecordType.PLAYER)
-		{
-			return;
-		}
-		
-		Collection<ItemStack> items = lootReceived.getItems();
-		checkNewItems(items);
-	}
-
-	@Subscribe
-	public void onWidgetLoaded(WidgetLoaded widgetLoaded)
-	{
-		if (widgetLoaded.getGroupId() != WidgetID.DIALOG_SPRITE_GROUP_ID)
-		{
-			lootReceived = false;
-			return;
-		}
-
-		Widget dialogWidget = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
-		if (dialogWidget == null)
-		{
-			lootReceived = false;
-			return;
-		}
-
-		String dialogText = dialogWidget.getText();
-		if (dialogText.equals(FOSSIL_ISLAND_NOTE_MESSAGE)
-			|| GNOME_RESTAURANT_REGEX.matcher(dialogText).matches())
-		{
-			getInventory();
-		}
 	}
 
 	@Subscribe
@@ -276,8 +211,9 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		if (chatMessage.getMessage().equals(SEARCH_SKELETON_MESSAGE))
+		if (COLLECTION_LOG_ITEM_REGEX.matcher(chatMessage.getMessage()).matches())
 		{
+			newCollectionLogItem = true;
 			getInventory();
 		}
 	}
@@ -290,7 +226,7 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		if (lootReceived)
+		if (newCollectionLogItem)
 		{
 			WorldPoint playerLocation = client.getLocalPlayer().getWorldLocation();
 			Collection<ItemStack> items = lootManager.getItemSpawns(playerLocation);
@@ -305,7 +241,6 @@ public class CollectionLogPlugin extends Plugin
 		{
 			inventory = HashMultiset.create();
 			Arrays.stream(itemContainer.getItems()).forEach(item -> inventory.add(item.getId(), item.getQuantity()));
-			lootReceived = true;
 		}
 	}
 
@@ -313,7 +248,7 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (inventory == null)
 		{
-			lootReceived = false;
+			newCollectionLogItem = false;
 			return;
 		}
 
@@ -327,64 +262,20 @@ public class CollectionLogPlugin extends Plugin
 			.map(item -> new ItemStack(item.getElement(), item.getCount(), client.getLocalPlayer().getLocalLocation()))
 			.collect(Collectors.toList());
 
-		checkNewItems(newItems);
-	}
-
-	private void checkNewItems(Collection<ItemStack> items)
-	{
-		if (items.isEmpty())
+		if (newItems.isEmpty())
 		{
-			lootReceived = false;
+			newCollectionLogItem = false;
 			inventory = null;
 			return;
 		}
 
-		List<CollectionLogItem> loadedItems = obtainedItems.values().stream()
-			.flatMap(List::stream)
-			.collect(Collectors.toList());
-		List<String> chatMessages = new ArrayList<>();
-
-		for (ItemStack itemStack : items)
+		for (ItemStack itemStack : newItems)
 		{
 			ItemComposition itemComp = itemManager.getItemComposition(itemStack.getId());
-			CollectionLogItem foundItem = loadedItems.stream()
-				.filter(collectionLogItem -> collectionLogItem.getId() == itemComp.getId() && collectionLogItem.getQuantity() == 0)
-				.findAny()
-				.orElse(null);
-
-			if (foundItem == null)
-			{
-				continue;
-			}
-
-			String message = new ChatMessageBuilder()
-				.append(ChatColorType.HIGHLIGHT)
-				.append("New collection log item: " + itemComp.getName())
-				.build();
-
-			if (!chatMessages.contains(message))
-			{
-				chatMessages.add(message);
-			}
-
 			updateObtainedItems(itemComp, itemStack.getQuantity());
 		}
 
-
-		if (config.sendNewItemChatMessage())
-		{
-			for (String message : chatMessages)
-			{
-				chatMessageManager.queue(
-					QueuedMessage.builder()
-						.type(ChatMessageType.CONSOLE)
-						.runeLiteFormattedMessage(message)
-						.build()
-				);
-			}
-		}
-
-		lootReceived = false;
+		newCollectionLogItem = false;
 		inventory = null;
 	}
 
@@ -697,22 +588,14 @@ public class CollectionLogPlugin extends Plugin
 		return jsonString;
 	}
 
-	private boolean isTrading()
-	{
-		Widget offer = client.getWidget(WidgetID.PLAYER_TRADE_SCREEN_GROUP_ID, 2);
-		Widget accept = client.getWidget(334, 1);
-		Widget ge = client.getWidget(WidgetInfo.GRAND_EXCHANGE_OFFER_CONTAINER);
-
-		return offer != null || accept != null || ge != null;
-	}
-
 	private void updateObtainedItems(ItemComposition item, int quantity)
 	{
 		for (Map.Entry<String, List<CollectionLogItem>> entry : obtainedItems.entrySet())
 		{
 			String category = entry.getKey();
 			entry.getValue().stream().filter(savedItem -> savedItem.getId() == item.getId()).forEach(savedItem -> {
-				obtainedCounts.put(category, obtainedCounts.get(category) + 1);
+				int newQuantity = obtainedCounts.get(category) == null ? 1 : obtainedCounts.get(category) + 1;
+				obtainedCounts.put(category, newQuantity);
 				obtainedCounts.put("total", obtainedCounts.get("total") + 1);
 				savedItem.setQuantity(savedItem.getQuantity() + quantity);
 			});

@@ -77,17 +77,6 @@ public interface CollectionLogConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "new_item_chat_message",
-		name = "Chat message on new collection log item",
-		description = "Send chat message when a new collection log item is obtained",
-		position = 7
-	)
-	default boolean sendNewItemChatMessage()
-	{
-		return true;
-	}
-
-	@ConfigItem(
 		keyName = "total_items",
 		name = "Total items",
 		description = "Total number of items within the collection log",
