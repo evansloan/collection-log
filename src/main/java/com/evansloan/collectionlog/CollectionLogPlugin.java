@@ -40,6 +40,8 @@ import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetID;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.Notifier;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.callback.ClientThread;
@@ -70,10 +72,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final String TOTAL_ITEMS = "total_items";
 	private static final String KILL_COUNTS = "kill_counts";
 
-	private static final int COLLECTION_LOG_GROUP_ID = 621;
 	private static final int COLLECTION_LOG_CONTAINER = 1;
-	private static final int COLLECTION_LOG_CATEGORY_HEAD = 19;
-	private static final int COLLECTION_LOG_CATEGORY_ITEMS = 35;
 	private static final int COLLECTION_LOG_DRAW_LIST_SCRIPT_ID = 2730;
 	private static final int COLLECTION_LOG_CATEGORY_VARBIT_INDEX = 2049;
 	private static final int COLLECTION_LOG_DEFAULT_HIGHLIGHT = 901389;
@@ -360,7 +359,7 @@ public class CollectionLogPlugin extends Plugin
 
 	private void getItems(String categoryTitle)
 	{
-		Widget itemsContainer = client.getWidget(COLLECTION_LOG_GROUP_ID, COLLECTION_LOG_CATEGORY_ITEMS);
+		Widget itemsContainer = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_ITEMS);
 
 		if (itemsContainer == null)
 		{
@@ -396,7 +395,7 @@ public class CollectionLogPlugin extends Plugin
 
 	private void getCategory()
 	{
-		Widget categoryHead = client.getWidget(COLLECTION_LOG_GROUP_ID, COLLECTION_LOG_CATEGORY_HEAD);
+		Widget categoryHead = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_HEADER);
 
 		if (categoryHead == null)
 		{
@@ -430,7 +429,7 @@ public class CollectionLogPlugin extends Plugin
 	{
 		for (CollectionLogList listType : CollectionLogList.values())
 		{
-			Widget categoryList = client.getWidget(COLLECTION_LOG_GROUP_ID, listType.getListIndex());
+			Widget categoryList = client.getWidget(WidgetID.COLLECTION_LOG_ID, listType.getListIndex());
 
 			if (categoryList == null)
 			{
@@ -455,7 +454,7 @@ public class CollectionLogPlugin extends Plugin
 
 		if (config.displayUniqueItems())
 		{
-			Widget collLogContainer = client.getWidget(COLLECTION_LOG_GROUP_ID, COLLECTION_LOG_CONTAINER);
+			Widget collLogContainer = client.getWidget(WidgetID.COLLECTION_LOG_ID, COLLECTION_LOG_CONTAINER);
 
 			if (collLogContainer == null)
 			{
@@ -530,7 +529,7 @@ public class CollectionLogPlugin extends Plugin
 
 	private void setCollectionLogTitle(String title)
 	{
-		Widget collLogContainer = client.getWidget(COLLECTION_LOG_GROUP_ID, COLLECTION_LOG_CONTAINER);
+		Widget collLogContainer = client.getWidget(WidgetID.COLLECTION_LOG_ID, COLLECTION_LOG_CONTAINER);
 
 		if (collLogContainer == null)
 		{
