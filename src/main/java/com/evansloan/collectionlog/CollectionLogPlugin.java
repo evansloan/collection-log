@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,7 +37,6 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOpened;
-import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.widgets.Widget;
@@ -56,7 +56,6 @@ import net.runelite.client.game.ItemStack;
 import net.runelite.client.game.LootManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import org.apache.commons.lang3.ArrayUtils;
 
 @Slf4j
 @PluginDescriptor(
@@ -183,27 +182,23 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		MenuEntry entry = event.getMenuEntries()[1];
-		if (!entry.getTarget().endsWith(COLLECTION_LOG_TARGET))
+
+		String entryTarget = entry.getTarget();
+		if (entryTarget.equals(""))
+		{
+			entryTarget = entry.getOption();
+		};
+
+		if (!entryTarget.toLowerCase(Locale.ROOT).endsWith(COLLECTION_LOG_TARGET.toLowerCase(Locale.ROOT)))
 		{
 			return;
 		}
 
-		MenuEntry menuEntry = new MenuEntry();
-		menuEntry.setOption(COLLECTION_LOG_EXPORT);
-		menuEntry.setTarget(entry.getTarget());
-		menuEntry.setType(MenuAction.RUNELITE.getId());
-		menuEntry.setIdentifier(entry.getIdentifier());
-		client.setMenuEntries(ArrayUtils.insert(1, client.getMenuEntries(), menuEntry));
-	}
-
-
-	@Subscribe
-	public void onMenuOptionClicked(MenuOptionClicked event)
-	{
-		if (event.getMenuOption().equals(COLLECTION_LOG_EXPORT) && event.getMenuTarget().endsWith(COLLECTION_LOG_TARGET))
-		{
-			exportItems();
-		}
+		client.createMenuEntry(1)
+			.setOption(COLLECTION_LOG_EXPORT)
+			.setTarget(entryTarget)
+			.setType(MenuAction.RUNELITE)
+			.onClick(e -> exportItems());
 	}
 
 	@Subscribe
