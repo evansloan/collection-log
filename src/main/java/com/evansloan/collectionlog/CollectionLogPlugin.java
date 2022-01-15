@@ -1,44 +1,40 @@
 package com.evansloan.collectionlog;
 
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonWriter;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.inject.Provides;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.InventoryID;
-import net.runelite.api.ItemComposition;
-import net.runelite.api.ItemContainer;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
-import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.ChatMessage;
+import net.runelite.api.Player;
 import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.ScriptPostFired;
-import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
@@ -51,11 +47,11 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
-import net.runelite.client.game.ItemStack;
-import net.runelite.client.game.LootManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import okhttp3.OkHttpClient;
 
 @Slf4j
 @PluginDescriptor(
@@ -66,32 +62,28 @@ import net.runelite.client.plugins.PluginDescriptor;
 public class CollectionLogPlugin extends Plugin
 {
 	private static final String CONFIG_GROUP = "collectionlog";
-	private static final String OBTAINED_COUNTS = "obtained_counts";
-	private static final String OBTAINED_ITEMS = "obtained_items";
-	private static final String TOTAL_ITEMS = "total_items";
-	private static final String KILL_COUNTS = "kill_counts";
 
 	private static final int COLLECTION_LOG_CONTAINER = 1;
 	private static final int COLLECTION_LOG_DRAW_LIST_SCRIPT_ID = 2730;
-	private static final int COLLECTION_LOG_CATEGORY_VARBIT_INDEX = 2049;
 	private static final int COLLECTION_LOG_DEFAULT_HIGHLIGHT = 901389;
+	private static final int COLLECTION_LOG_ACTIVE_TAB_SPRITE_ID = 2283;
 
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
 	private static final Pattern COLLECTION_LOG_TITLE_REGEX = Pattern.compile("Collection Log - (?:U: )?(?:(\\d+)/(\\d+)|([\\d\\.%]+))(?: T: \\d+/\\d+)?");
 	private static final String COLLECTION_LOG_TARGET = "Collection log";
 	private static final String COLLECTION_LOG_EXPORT = "Export";
-	private static final File COLLECTION_LOG_EXPORT_DIR = new File(RUNELITE_DIR, "collectionlog");
+	private static final File COLLECTION_LOG_SAVE_DATA_DIR = new File(RUNELITE_DIR, "collectionlog");
+	private static final File COLLECTION_LOG_EXPORT_DIR = new File(COLLECTION_LOG_SAVE_DATA_DIR, "exports");
 
-	private static final Pattern COLLECTION_LOG_ITEM_REGEX = Pattern.compile("New item added to your collection log: .*");
+	private static final String COLLECTION_LOG_TABS_KEY = "tabs";
+	private static final String COLLECTION_LOG_TOTAL_OBTAINED_KEY = "total_obtained";
+	private static final String COLLECTION_LOG_TOTAL_ITEMS_KEY = "total_items";
+	private static final String COLLECTION_LOG_UPLOAD_KEY = "upload_collection_log";
 
-	private final Gson GSON = new Gson();
-
-	private Map<String, Integer> obtainedCounts = new HashMap<>();
-	private Map<String, List<CollectionLogItem>> obtainedItems = new HashMap<>();
-	private Map<String, Integer> killCounts = new HashMap<>();
-
-	private boolean newCollectionLogItem = false;
-	private Multiset<Integer> inventory;
+	private CollectionLogApiClient apiClient;
+	private JsonObject collectionLogData;
+	private boolean isNewCollectionLog;
+	private String userHash;
 
 	@Inject
 	private Client client;
@@ -115,7 +107,7 @@ public class CollectionLogPlugin extends Plugin
 	private ItemManager itemManager;
 
 	@Inject
-	private LootManager lootManager;
+	private OkHttpClient okHttpClient;
 
 	@Provides
 	CollectionLogConfig provideConfig(ConfigManager configManager)
@@ -128,12 +120,13 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
+			// Remove old configs
 			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "completed_categories");
 			configManager.unsetConfiguration(CONFIG_GROUP, "highlight_completed");
 			configManager.unsetConfiguration(CONFIG_GROUP, "new_item_chat_message");
-
-			loadConfig();
-			update();
+			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "obtained_counts");
+			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "obtained_items");
+			configManager.unsetConfiguration(CONFIG_GROUP, "total_items");
 		}
 	}
 
@@ -149,9 +142,23 @@ public class CollectionLogPlugin extends Plugin
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
+		Player localPlayer = client.getLocalPlayer();
+		if (localPlayer == null)
+		{
+			return;
+		}
+
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			loadConfig();
+			apiClient = new CollectionLogApiClient(okHttpClient);
+			userHash = getUserHash();
+		}
+
+		if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN)
+		{
+			saveCollectionLogData();
+			collectionLogData = null;
+			userHash = null;
 		}
 	}
 
@@ -160,16 +167,7 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (scriptPostFired.getScriptId() == COLLECTION_LOG_DRAW_LIST_SCRIPT_ID)
 		{
-			clientThread.invokeLater(this::getCategory);
-		}
-	}
-
-	@Subscribe
-	public void onVarbitChanged(VarbitChanged varbitChanged)
-	{
-		if (varbitChanged.getIndex() == COLLECTION_LOG_CATEGORY_VARBIT_INDEX)
-		{
-			clientThread.invokeLater(this::getCategory);
+			clientThread.invokeLater(this::getEntry);
 		}
 	}
 
@@ -198,148 +196,80 @@ public class CollectionLogPlugin extends Plugin
 			.setOption(COLLECTION_LOG_EXPORT)
 			.setTarget(entryTarget)
 			.setType(MenuAction.RUNELITE)
-			.onClick(e -> exportItems());
+			.onClick(e -> saveCollectionLogDataToFile(true));
 	}
 
 	@Subscribe
-	public void onChatMessage(ChatMessage chatMessage)
+	public void onConfigChanged(ConfigChanged configChanged)
 	{
-		if (chatMessage.getType() != ChatMessageType.GAMEMESSAGE && chatMessage.getType() != ChatMessageType.SPAM)
+		if (configChanged.getKey().equals(COLLECTION_LOG_UPLOAD_KEY))
 		{
-			return;
-		}
-
-		if (COLLECTION_LOG_ITEM_REGEX.matcher(chatMessage.getMessage()).matches())
-		{
-			newCollectionLogItem = true;
-			getInventory();
-		}
-	}
-
-	@Subscribe
-	public void onItemContainerChanged(ItemContainerChanged itemContainerChanged)
-	{
-		if (itemContainerChanged.getContainerId() != InventoryID.INVENTORY.getId())
-		{
-			return;
-		}
-
-		if (newCollectionLogItem)
-		{
-			WorldPoint playerLocation = client.getLocalPlayer().getWorldLocation();
-			Collection<ItemStack> items = lootManager.getItemSpawns(playerLocation);
-			getInventoryDiff(itemContainerChanged.getItemContainer(), items);
-		}
-	}
-
-	private void getInventory()
-	{
-		final ItemContainer itemContainer = client.getItemContainer(InventoryID.INVENTORY);
-		if (itemContainer != null)
-		{
-			inventory = HashMultiset.create();
-			Arrays.stream(itemContainer.getItems()).forEach(item -> inventory.add(item.getId(), item.getQuantity()));
-		}
-	}
-
-	private void getInventoryDiff(ItemContainer itemContainer, Collection<ItemStack> items)
-	{
-		if (inventory == null)
-		{
-			newCollectionLogItem = false;
-			return;
-		}
-
-		Multiset<Integer> currentInventory = HashMultiset.create();
-		Arrays.stream(itemContainer.getItems()).forEach(item -> currentInventory.add(item.getId(), item.getQuantity()));
-		items.forEach(item -> currentInventory.add(item.getId(), item.getQuantity()));
-
-		final Multiset<Integer> diff = Multisets.difference(currentInventory, inventory);
-
-		List<ItemStack> newItems = diff.entrySet().stream()
-			.map(item -> new ItemStack(item.getElement(), item.getCount(), client.getLocalPlayer().getLocalLocation()))
-			.collect(Collectors.toList());
-
-		if (newItems.isEmpty())
-		{
-			newCollectionLogItem = false;
-			inventory = null;
-			return;
-		}
-
-		for (ItemStack itemStack : newItems)
-		{
-			ItemComposition itemComp = itemManager.getItemComposition(itemStack.getId());
-			updateObtainedItems(itemComp, itemStack.getQuantity());
-		}
-
-		newCollectionLogItem = false;
-		inventory = null;
-	}
-
-	private void exportItems()
-	{
-		COLLECTION_LOG_EXPORT_DIR.mkdir();
-
-		String fileName = new SimpleDateFormat("'collectionlog-'yyyyMMdd'T'HHmmss'.json'").format(new Date());
-		String filePath = COLLECTION_LOG_EXPORT_DIR + File.separator  + fileName;
-
-		try (JsonWriter writer = new JsonWriter(new FileWriter(filePath)))
-		{
-			writer.setIndent("  ");
-			writer.beginObject();
-			for (Map.Entry<String, List<CollectionLogItem>> entry : obtainedItems.entrySet())
+			try
 			{
-				String categoryName = entry.getKey();
-
-				writer.name(categoryName);
-				writer.beginObject();
-
-				if (killCounts.containsKey(categoryName))
+				JsonObject existingLog = apiClient.getCollectionLog(userHash);
+				if (existingLog.size() == 0)
 				{
-					writer.name("kill_count").value(killCounts.get(categoryName));
+					isNewCollectionLog = true;
 				}
-				else
-				{
-					writer.name("kill_count").nullValue();
-				}
-
-				writer.name("items");
-				writer.beginArray();
-				for (CollectionLogItem item : entry.getValue())
-				{
-					writer.beginObject();
-					writer.name("id").value(item.getId());
-					writer.name("name").value(itemManager.getItemComposition(item.getId()).getName());
-					writer.name("obtained").value(item.getQuantity() > 0);
-					writer.name("quantity").value(item.getQuantity());
-					writer.endObject();
-				}
-				writer.endArray();
-				writer.endObject();
 			}
-			writer.endObject();
-
-			String message = "Collection log exported to " + filePath;
-
-			if (config.notifyOnExport())
+			catch (IOException e)
 			{
-				notifier.notify(message);
+				log.warn("Unable to get existing collection log from collectionlog.net");
 			}
+		}
+	}
 
-			if (config.sendExportChatMessage())
+	/**
+	 * Save collection data to a .json file.
+	 *
+	 * @param export Flags the data as an export to be saved in collectionlog/export
+	 */
+	private void saveCollectionLogDataToFile(boolean export)
+	{
+		COLLECTION_LOG_SAVE_DATA_DIR.mkdir();
+
+		String filePath = "";
+		if (export)
+		{
+			COLLECTION_LOG_EXPORT_DIR.mkdir();
+			String fileName = new SimpleDateFormat("'collectionlog-'yyyyMMdd'T'HHmmss'.json'").format(new Date());
+			filePath = COLLECTION_LOG_EXPORT_DIR + File.separator  + fileName;
+		}
+		else
+		{
+			String fileName = "collectionlog-" + client.getLocalPlayer().getName() + ".json";
+			filePath = COLLECTION_LOG_SAVE_DATA_DIR + File.separator + fileName;
+		}
+
+		try
+		{
+			BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+			writer.write(collectionLogData.toString());
+			writer.close();
+
+			if (export)
 			{
-				String chatMessage = new ChatMessageBuilder()
-					.append(ChatColorType.HIGHLIGHT)
-					.append(message)
-					.build();
+				String message = "Collection log exported to " + filePath;
 
-				chatMessageManager.queue(
-					QueuedMessage.builder()
-						.type(ChatMessageType.CONSOLE)
-						.runeLiteFormattedMessage(chatMessage)
-						.build()
-				);
+				if (config.notifyOnExport())
+				{
+					notifier.notify(message);
+				}
+
+				if (config.sendExportChatMessage())
+				{
+					String chatMessage = new ChatMessageBuilder()
+						.append(ChatColorType.HIGHLIGHT)
+						.append(message)
+						.build();
+
+					chatMessageManager.queue(
+						QueuedMessage.builder()
+							.type(ChatMessageType.CONSOLE)
+							.runeLiteFormattedMessage(chatMessage)
+							.build()
+					);
+				}
 			}
 		}
 		catch (IOException e)
@@ -352,7 +282,41 @@ public class CollectionLogPlugin extends Plugin
 		}
 	}
 
-	private void getItems(String categoryTitle)
+	/**
+	 * Save collection log data to a file or upload to
+	 * collectionlog.net
+	 */
+	private void saveCollectionLogData()
+	{
+		saveCollectionLogDataToFile(false);
+
+		if (config.uploadCollectionLog())
+		{
+			try
+			{
+				apiClient.createUser(client.getLocalPlayer().getName(), userHash);
+				if (isNewCollectionLog)
+				{
+					apiClient.createCollectionLog(collectionLogData, userHash);
+				}
+				else
+				{
+					apiClient.updateCollectionLog(collectionLogData, userHash);
+				}
+			}
+			catch (IOException e)
+			{
+				log.warn("Unable to save collection log data to collectionlog.net");
+			}
+		}
+	}
+
+	/**
+	 * Retrieves and updates all items in the given entry
+	 *
+	 * @param collectionLogEntry Collection log entry to update
+	 */
+	private void updateEntryItems(JsonObject collectionLogEntry)
 	{
 		Widget itemsContainer = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_ITEMS);
 
@@ -361,77 +325,125 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		Widget[] items = itemsContainer.getDynamicChildren();
-		List<CollectionLogItem> collectionLogItems = new ArrayList<>();
-		for (Widget item : items)
+		Widget[] widgetItems = itemsContainer.getDynamicChildren();
+		JsonArray items = new JsonArray();
+		for (Widget widgetItem : widgetItems)
 		{
-			collectionLogItems.add(new CollectionLogItem(item));
+			JsonObject item = new JsonObject();
+			item.addProperty("id", widgetItem.getItemId());
+			item.addProperty("name", itemManager.getItemComposition(widgetItem.getItemId()).getName());
+			item.addProperty("quantity", widgetItem.getOpacity() == 0 ? widgetItem.getItemQuantity() : 0);
+			item.addProperty("obtained", widgetItem.getOpacity() == 0);
+			items.add(item);
 		}
 
-		obtainedItems.put(categoryTitle, collectionLogItems);
-		saveConfig(obtainedItems, OBTAINED_ITEMS);
+		collectionLogEntry.add("items", items);
 	}
 
-	private void getKillCount(String categoryTitle, Widget categoryHead)
+	/**
+	 * Retrieves and updates kill counts found in the given collection log entry
+	 *
+	 * @param categoryHead Widget containing kill count information
+	 * @param collectionLogEntry Collection log entry to update
+	 */
+	private void updateEntryKillCounts(Widget categoryHead, JsonObject collectionLogEntry)
 	{
 		Widget[] children = categoryHead.getDynamicChildren();
-		if (children.length < 3) {
-			return;
-		}
-
-		String killCount = categoryHead.getDynamicChildren()[2].getText();
-		killCount = killCount.split(": ")[1]
-			.split(">")[1]
-			.split("<")[0]
-			.replace(",", "");
-		killCounts.put(categoryTitle, Integer.parseInt(killCount));
-		saveConfig(killCounts, KILL_COUNTS);
-	}
-
-	private void getCategory()
-	{
-		Widget categoryHead = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_HEADER);
-
-		if (categoryHead == null)
+		if (children.length < 3)
 		{
 			return;
 		}
 
-		String categoryTitle = categoryHead.getDynamicChildren()[0].getText();
+		JsonArray killCounts = new JsonArray();
+		Widget[] killCountWidgets = Arrays.copyOfRange(children, 2, children.length);
+		for (Widget killCountWidget : killCountWidgets)
+		{
+			String[] killCountText = killCountWidget.getText().split(": ");
+			String killCountName = killCountText[0];
+			String killCountAmount = killCountText[1].split(">")[1]
+				.split("<")[0]
+				.replace(",", "");
+			killCounts.add(String.format("%s: %s", killCountName, killCountAmount));
+		}
+		collectionLogEntry.add("kill_count", killCounts);
+	}
 
-		getItems(categoryTitle);
-		getKillCount(categoryTitle, categoryHead);
+	/**
+	 * Load the current entry being viewed in the collection log
+	 * and get/update relevant information contained in the entry
+	 */
+	private void getEntry()
+	{
+		if (collectionLogData == null)
+		{
+			loadCollectionLogData();
+		}
 
-		List<CollectionLogItem> categoryItems = obtainedItems.get(categoryTitle);
-		int itemCount = categoryItems.stream().filter(c -> c.getQuantity() > 0).toArray().length;
-		int prevItemCount = getCategoryItemCount(categoryTitle);
+		String activeTabName = getActiveTabName();
+		if (activeTabName == null)
+		{
+			return;
+		}
 
-		if (itemCount == prevItemCount)
+		Widget entryHead = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_HEADER);
+
+		if (entryHead == null)
+		{
+			return;
+		}
+
+		String entryTitle = entryHead.getDynamicChildren()[0].getText();
+
+		int prevObtainedItemCount = getEntryItemCount(activeTabName, entryTitle);
+
+		JsonObject collectionLogEntry = new JsonObject();
+		updateEntryItems(collectionLogEntry);
+		updateEntryKillCounts(entryHead, collectionLogEntry);
+
+		JsonObject collectionLogTabs = collectionLogData.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
+
+		if (collectionLogTabs.has(activeTabName))
+		{
+			JsonObject collectionLogTab = collectionLogTabs.get(activeTabName).getAsJsonObject();
+			collectionLogTab.add(entryTitle, collectionLogEntry);
+		}
+		else
+		{
+			JsonObject collectionLogTab = new JsonObject();
+			collectionLogTab.add(entryTitle, collectionLogEntry);
+			collectionLogTabs.add(activeTabName, collectionLogTab);
+		}
+
+		int obtainedItemCount = getEntryItemCount(activeTabName, entryTitle);
+
+		if (obtainedItemCount == prevObtainedItemCount)
 		{
 			update();
 			return;
 		}
 
-		int prevTotalObtained = getCategoryItemCount("total");
-		obtainedCounts.put("total", prevTotalObtained + (itemCount - prevItemCount));
-		obtainedCounts.put(categoryTitle, itemCount);
-		saveConfig(obtainedCounts, OBTAINED_COUNTS);
+		int prevTotalObtained = collectionLogData.get(COLLECTION_LOG_TOTAL_OBTAINED_KEY).getAsInt();
+		int newTotalObtained = prevTotalObtained + (obtainedItemCount - prevObtainedItemCount);
+		collectionLogData.addProperty(COLLECTION_LOG_TOTAL_OBTAINED_KEY, newTotalObtained);
 
 		update();
 	}
 
-	private void highlightCategories()
+	/**
+	 * Update completed collection log entries with user specified color
+	 */
+	private void highlightEntries()
 	{
 		for (CollectionLogList listType : CollectionLogList.values())
 		{
-			Widget categoryList = client.getWidget(WidgetID.COLLECTION_LOG_ID, listType.getListIndex());
+			Widget entryList = client.getWidget(WidgetID.COLLECTION_LOG_ID, listType.getListIndex());
 
-			if (categoryList == null)
+			if (entryList == null)
 			{
 				continue;
 			}
 
-			Widget[] names = categoryList.getDynamicChildren();
+			Widget[] names = entryList.getDynamicChildren();
 			for (Widget name : names)
 			{
 				if (name.getTextColor() == COLLECTION_LOG_DEFAULT_HIGHLIGHT)
@@ -442,6 +454,12 @@ public class CollectionLogPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * Build the new title for the collection log containing unique/total counts
+	 * or display counts as a percentage
+	 *
+	 * @return Collection log title
+	 */
 	private String buildTitle()
 	{
 		StringBuilder titleBuilder = new StringBuilder(COLLECTION_LOG_TITLE);
@@ -492,12 +510,13 @@ public class CollectionLogPlugin extends Plugin
 
 		if (config.displayTotalItems())
 		{
-			int totalObtained = getCategoryItemCount("total");
-			String totalTitle = String.format("T: %d/%d", totalObtained, config.totalItems());
+			int totalItemsObtained = collectionLogData.get(COLLECTION_LOG_TOTAL_OBTAINED_KEY).getAsInt();
+			int totalItems = collectionLogData.get(COLLECTION_LOG_TOTAL_ITEMS_KEY).getAsInt();
+			String totalTitle = String.format("T: %d/%d", totalItemsObtained, totalItems);
 
 			if (config.displayAsPercentage())
 			{
-				totalTitle = String.format("T: %.2f%%", ((double) totalObtained / config.totalItems()) * 100);
+				totalTitle = String.format("T: %.2f%%", ((double) totalItemsObtained / totalItems) * 100);
 			}
 
 			titleSections.add(totalTitle);
@@ -512,16 +531,23 @@ public class CollectionLogPlugin extends Plugin
 		return titleBuilder.toString();
 	}
 
+	/**
+	 * Update collection log title and highlight completed entries
+	 */
 	private void update()
 	{
-		setTotalItems();
+		updateTotalItems();
 
 		String title = buildTitle();
 		setCollectionLogTitle(title);
 
-		highlightCategories();
+		highlightEntries();
 	}
 
+	/**
+	 * Updates the collection log title with updated counts
+	 * @param title
+	 */
 	private void setCollectionLogTitle(String title)
 	{
 		Widget collLogContainer = client.getWidget(WidgetID.COLLECTION_LOG_ID, COLLECTION_LOG_CONTAINER);
@@ -535,71 +561,129 @@ public class CollectionLogPlugin extends Plugin
 		collLogTitle.setText(title);
 	}
 
-	private int getCategoryItemCount(String categoryTitle)
+	/**
+	 * Get the number of obtained items in the provided entry
+	 *
+	 * @param activeTabName Current collection log tab
+	 * @param entryTitle Current collection log entry
+	 * @return Number of obtained items
+	 */
+	private int getEntryItemCount(String activeTabName, String entryTitle)
 	{
-		if (obtainedCounts.containsKey(categoryTitle))
+		JsonObject collectionLogTabs = collectionLogData.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
+		if (!collectionLogTabs.has(activeTabName))
 		{
-			return obtainedCounts.get(categoryTitle);
+			return 0;
 		}
-		return 0;
+
+		JsonObject collectionLogTabData = collectionLogTabs.get(activeTabName).getAsJsonObject();
+		if (!collectionLogTabData.has(entryTitle))
+		{
+			return 0;
+		}
+
+		JsonObject entry = collectionLogTabData.get(entryTitle).getAsJsonObject();
+		JsonArray items = entry.get("items").getAsJsonArray();
+		return StreamSupport.stream(items.spliterator(), false).filter(item -> {
+			return item.getAsJsonObject().get("obtained").getAsBoolean();
+		}).toArray().length;
 	}
 
-	private void loadConfig()
+	/**
+	 * Load collection log data from an existing .json file.
+	 * If a file is not found, create a new JsonObject
+	 */
+	private void loadCollectionLogData()
 	{
-		String counts = getConfigJsonString(OBTAINED_COUNTS);
-		String items = getConfigJsonString(OBTAINED_ITEMS);
-		String kc = getConfigJsonString(KILL_COUNTS);
-
-		obtainedCounts = GSON.fromJson(counts, new TypeToken<Map<String, Integer>>(){}.getType());
-		obtainedItems = GSON.fromJson(items, new TypeToken<Map<String, List<CollectionLogItem>>>(){}.getType());
-		killCounts = GSON.fromJson(kc, new TypeToken<Map<String, Integer>>(){}.getType());
+		try
+		{
+			String fileName = "collectionlog-" + client.getLocalPlayer().getName() + ".json";
+			FileReader reader = new FileReader(COLLECTION_LOG_SAVE_DATA_DIR + File.separator + fileName);
+			collectionLogData = new JsonParser().parse(reader).getAsJsonObject();
+			reader.close();
+		}
+		catch (IOException e)
+		{
+			collectionLogData = new JsonObject();
+			collectionLogData.addProperty(COLLECTION_LOG_TOTAL_OBTAINED_KEY, 0);
+			collectionLogData.addProperty(COLLECTION_LOG_TOTAL_ITEMS_KEY, 0);
+			collectionLogData.add(COLLECTION_LOG_TABS_KEY, new JsonObject());
+			isNewCollectionLog = true;
+		}
 	}
 
-	private void saveConfig(Object items, String configKey)
-	{
-		String json = GSON.toJson(items);
-		configManager.setRSProfileConfiguration(CONFIG_GROUP, configKey, json);
-		configManager.unsetConfiguration(CONFIG_GROUP + "." + client.getUsername(), configKey);
-	}
-
-	private void setTotalItems()
+	/**
+	 * Updates the count of total amount of items in the collection log
+	 */
+	private void updateTotalItems()
 	{
 		int newTotal = 0;
-		for (Map.Entry<String, List<CollectionLogItem>> entry : obtainedItems.entrySet())
+		JsonObject collectionLogTabs = collectionLogData.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
+		for (Map.Entry<String, JsonElement> tab : collectionLogTabs.entrySet())
 		{
-			newTotal += entry.getValue().size();
+			JsonElement y = tab.getValue();
+			for (Map.Entry<String, JsonElement> entry : tab.getValue().getAsJsonObject().entrySet())
+			{
+				JsonElement x = entry.getValue();
+				JsonArray items = entry.getValue()
+						.getAsJsonObject()
+						.get("items")
+						.getAsJsonArray();
+				newTotal += items.size();
+			}
 		}
 
-		if (newTotal > config.totalItems())
+		if (newTotal > collectionLogData.get(COLLECTION_LOG_TOTAL_ITEMS_KEY).getAsInt())
 		{
-			configManager.setConfiguration(CONFIG_GROUP, TOTAL_ITEMS, newTotal);
+			collectionLogData.addProperty(COLLECTION_LOG_TOTAL_ITEMS_KEY, newTotal);
 		}
 	}
 
-	private String getConfigJsonString(String configKey)
+	/**
+	 * Get the title of the current selected collection log tab
+	 *
+	 * @return Title of collection log tab
+	 */
+	private String getActiveTabName()
 	{
-		String jsonString = configManager.getRSProfileConfiguration(CONFIG_GROUP, configKey);
-		if (jsonString == null)
-		{
-			return "{}";
-		}
-		return jsonString;
-	}
-
-	private void updateObtainedItems(ItemComposition item, int quantity)
-	{
-		for (Map.Entry<String, List<CollectionLogItem>> entry : obtainedItems.entrySet())
-		{
-			String category = entry.getKey();
-			entry.getValue().stream().filter(savedItem -> savedItem.getId() == item.getId()).forEach(savedItem -> {
-				int newQuantity = obtainedCounts.get(category) == null ? 1 : obtainedCounts.get(category) + 1;
-				obtainedCounts.put(category, newQuantity);
-				obtainedCounts.put("total", obtainedCounts.get("total") + 1);
-				savedItem.setQuantity(savedItem.getQuantity() + quantity);
-			});
+		Widget tabsWidget = client.getWidget(WidgetInfo.COLLECTION_LOG_TABS);
+		if (tabsWidget == null) {
+			return "";
 		}
 
-		saveConfig(obtainedItems, OBTAINED_ITEMS);
-		saveConfig(obtainedCounts, OBTAINED_COUNTS);
+		Widget[] tabs = tabsWidget.getStaticChildren();
+		for (Widget tab : tabs) {
+			Widget subTab = tab.getChild(0);
+
+			if (subTab.getSpriteId() == COLLECTION_LOG_ACTIVE_TAB_SPRITE_ID) {
+				return tab.getName()
+					.split(">")[1]
+					.split("<")[0];
+			}
+		}
+
+		return null;
 	}
+
+	/**
+	 * Create a hashed unique identifier based on user login to
+	 * store alongside collection log data for collectionlog.net.
+	 *
+	 * @return SHA-256 hashed user login
+	 * @throws NoSuchAlgorithmException
+	 */
+	private String getUserHash() {
+        String username = client.getUsername();
+		try
+		{
+			MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = messageDigest.digest(username.getBytes(StandardCharsets.UTF_8));
+			return Base64.getEncoder().encodeToString(hash);
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			log.warn("Error creating userHash");
+			return null;
+		}
+    }
 }
