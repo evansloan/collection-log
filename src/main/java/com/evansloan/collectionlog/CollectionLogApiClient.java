@@ -113,8 +113,8 @@ public class CollectionLogApiClient {
 
     private JsonObject putRequest(HttpUrl url, JsonObject putData) throws IOException
     {
-        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-        RequestBody body = RequestBody.create(JSON, putData.toString());
+        MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
+        RequestBody body = RequestBody.create(mediaType, putData.toString());
         Request request = new Request.Builder()
             .header("User-Agent", "Runelite")
             .url(url)
