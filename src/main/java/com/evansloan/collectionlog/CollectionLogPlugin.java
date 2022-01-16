@@ -604,7 +604,6 @@ public class CollectionLogPlugin extends Plugin
 			JsonElement y = tab.getValue();
 			for (Map.Entry<String, JsonElement> entry : tab.getValue().getAsJsonObject().entrySet())
 			{
-				JsonElement x = entry.getValue();
 				JsonArray items = entry.getValue()
 						.getAsJsonObject()
 						.get("items")
@@ -627,15 +626,18 @@ public class CollectionLogPlugin extends Plugin
 	private String getActiveTabName()
 	{
 		Widget tabsWidget = client.getWidget(WidgetInfo.COLLECTION_LOG_TABS);
-		if (tabsWidget == null) {
-			return "";
+		if (tabsWidget == null)
+		{
+			return null;
 		}
 
 		Widget[] tabs = tabsWidget.getStaticChildren();
-		for (Widget tab : tabs) {
+		for (Widget tab : tabs)
+		{
 			Widget subTab = tab.getChild(0);
 
-			if (subTab.getSpriteId() == COLLECTION_LOG_ACTIVE_TAB_SPRITE_ID) {
+			if (subTab.getSpriteId() == COLLECTION_LOG_ACTIVE_TAB_SPRITE_ID)
+			{
 				return tab.getName()
 					.split(">")[1]
 					.split("<")[0];
@@ -652,7 +654,8 @@ public class CollectionLogPlugin extends Plugin
 	 * @return SHA-256 hashed user login
 	 * @throws NoSuchAlgorithmException
 	 */
-	private String getUserHash() {
+	private String getUserHash()
+	{
         String username = client.getUsername();
 		try
 		{
