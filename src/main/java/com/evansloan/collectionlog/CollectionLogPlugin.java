@@ -126,6 +126,7 @@ public class CollectionLogPlugin extends Plugin
 			configManager.unsetConfiguration(CONFIG_GROUP, "new_item_chat_message");
 			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "obtained_counts");
 			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "obtained_items");
+			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "kill_counts");
 			configManager.unsetConfiguration(CONFIG_GROUP, "total_items");
 		}
 	}
