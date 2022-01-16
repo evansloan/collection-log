@@ -206,6 +206,11 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private void saveCollectionLogDataToFile(boolean export)
 	{
+		if (collectionLogData == null)
+		{
+			return;
+		}
+
 		COLLECTION_LOG_SAVE_DATA_DIR.mkdir();
 
 		String filePath = "";
@@ -276,7 +281,7 @@ public class CollectionLogPlugin extends Plugin
 			{
 				apiClient.createUser(client.getLocalPlayer().getName(), userHash);
 
-				if (collectionLogExists())
+				if (!collectionLogExists())
 				{
 					apiClient.createCollectionLog(collectionLogData, userHash);
 				}
@@ -675,10 +680,7 @@ public class CollectionLogPlugin extends Plugin
 		try
 		{
 			JsonObject existingLog = apiClient.getCollectionLog(userHash);
-			if (existingLog.size() == 0)
-			{
-				return true;
-			}
+			return existingLog.size() != 0;
 		}
 		catch (IOException e)
 		{
