@@ -45,8 +45,8 @@ public interface CollectionLogConfig extends Config
 	@Alpha
 	@ConfigItem(
 		keyName = "highlight_color",
-		name = "Completed category highlight color",
-		description = "Sets the highlight color of completed categories",
+		name = "Completed entry highlight color",
+		description = "Sets the highlight color of completed entries",
 		position = 4
 	)
 	default Color highlightColor()
@@ -77,13 +77,13 @@ public interface CollectionLogConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "total_items",
-		name = "Total items",
-		description = "Total number of items within the collection log",
-		hidden = true
+		keyName = "upload_collection_log",
+		name = "Upload collection log data to collectionlog.net",
+		description = "Upload saved collection log data to collectionlog.net on log out",
+		position = 7
 	)
-	default int totalItems()
+	default boolean uploadCollectionLog()
 	{
-		return 0;
+		return false;
 	}
 }
