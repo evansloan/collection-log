@@ -10,12 +10,11 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-
 import java.io.IOException;
 
 @RequiredArgsConstructor
-public class CollectionLogApiClient {
-
+public class CollectionLogApiClient
+{
     private static final String COLLECTION_LOG_API_BASE = "api.collectionlog.net";
     private static final String COLLECTION_LOG_USER_PATH = "user";
     private static final String COLLECTION_LOG_LOG_PATH = "collectionlog";
