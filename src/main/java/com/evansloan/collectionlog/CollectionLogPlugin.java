@@ -82,7 +82,6 @@ public class CollectionLogPlugin extends Plugin
 
 	private CollectionLogApiClient apiClient;
 	private JsonObject collectionLogData;
-	private boolean isNewCollectionLog;
 	private String userHash;
 
 	@Inject
@@ -276,9 +275,8 @@ public class CollectionLogPlugin extends Plugin
 			try
 			{
 				apiClient.createUser(client.getLocalPlayer().getName(), userHash);
-				getCollectionLogExists();
 
-				if (isNewCollectionLog)
+				if (collectionLogExists())
 				{
 					apiClient.createCollectionLog(collectionLogData, userHash);
 				}
@@ -591,7 +589,6 @@ public class CollectionLogPlugin extends Plugin
 			collectionLogData.addProperty(COLLECTION_LOG_TOTAL_OBTAINED_KEY, 0);
 			collectionLogData.addProperty(COLLECTION_LOG_TOTAL_ITEMS_KEY, 0);
 			collectionLogData.add(COLLECTION_LOG_TABS_KEY, new JsonObject());
-			isNewCollectionLog = true;
 		}
 	}
 
@@ -670,19 +667,21 @@ public class CollectionLogPlugin extends Plugin
 		}
     }
 
-    private void getCollectionLogExists()
+    private boolean collectionLogExists()
 	{
 		try
 		{
 			JsonObject existingLog = apiClient.getCollectionLog(userHash);
 			if (existingLog.size() == 0)
 			{
-				isNewCollectionLog = true;
+				return true;
 			}
 		}
 		catch (IOException e)
 		{
 			log.warn("Unable to get existing collection log from collectionlog.net");
 		}
+
+		return false;
 	}
 }
