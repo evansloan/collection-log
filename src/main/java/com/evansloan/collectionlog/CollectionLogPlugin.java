@@ -200,26 +200,6 @@ public class CollectionLogPlugin extends Plugin
 			.onClick(e -> saveCollectionLogDataToFile(true));
 	}
 
-	@Subscribe
-	public void onConfigChanged(ConfigChanged configChanged)
-	{
-		if (configChanged.getKey().equals(COLLECTION_LOG_UPLOAD_KEY))
-		{
-			try
-			{
-				JsonObject existingLog = apiClient.getCollectionLog(userHash);
-				if (existingLog.size() == 0)
-				{
-					isNewCollectionLog = true;
-				}
-			}
-			catch (IOException e)
-			{
-				log.warn("Unable to get existing collection log from collectionlog.net");
-			}
-		}
-	}
-
 	/**
 	 * Save collection data to a .json file.
 	 *
@@ -296,6 +276,8 @@ public class CollectionLogPlugin extends Plugin
 			try
 			{
 				apiClient.createUser(client.getLocalPlayer().getName(), userHash);
+				getCollectionLogExists();
+
 				if (isNewCollectionLog)
 				{
 					apiClient.createCollectionLog(collectionLogData, userHash);
@@ -687,4 +669,20 @@ public class CollectionLogPlugin extends Plugin
 			return null;
 		}
     }
+
+    private void getCollectionLogExists()
+	{
+		try
+		{
+			JsonObject existingLog = apiClient.getCollectionLog(userHash);
+			if (existingLog.size() == 0)
+			{
+				isNewCollectionLog = true;
+			}
+		}
+		catch (IOException e)
+		{
+			log.warn("Unable to get existing collection log from collectionlog.net");
+		}
+	}
 }
