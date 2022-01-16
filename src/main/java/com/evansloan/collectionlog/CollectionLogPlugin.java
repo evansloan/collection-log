@@ -666,7 +666,7 @@ public class CollectionLogPlugin extends Plugin
 		{
 			MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
 			byte[] hash = messageDigest.digest(username.getBytes(StandardCharsets.UTF_8));
-			return Base64.getEncoder().encodeToString(hash);
+			return Base64.getEncoder().encodeToString(hash).replace('/', '-');
 		}
 		catch (NoSuchAlgorithmException e)
 		{
