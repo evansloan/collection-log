@@ -1,9 +1,9 @@
 
 # Collection Log Plugin ![Plugin Installs](https://img.shields.io/endpoint?url=https://i.pluginhub.info/shields/installs/plugin/collection-log) ![Plugin Rank](https://img.shields.io/endpoint?url=https://i.pluginhub.info/shields/rank/plugin/collection-log)
 
-A [Runelite](https://github.com/runelite/runelite) plugin that adds visual improvements to the collection log
+A [Runelite](https://github.com/runelite/runelite) plugin that adds visual improvements to the collection log.
 
-![](https://i.imgur.com/5sorDBc.png)
+![](https://i.imgur.com/XsIk092.png)
 
 ## Features
 * Display total item counts alongside unique item counts
@@ -15,7 +15,7 @@ A [Runelite](https://github.com/runelite/runelite) plugin that adds visual impro
 ## Usage
 Open the collection log and click through all the categories to get your total progress.
 
-If the "Upload collection log data to collectionlog.net" config is enabled, your collection log data will be shared on logout to [collectionlog.net](https://collectionlog.net),
+If the "Upload collection log data to collectionlog.net" config is enabled, your collection log data will be shared on logout to [collectionlog.net](https://collectionlog.net).
 
 ### Exporting
 
