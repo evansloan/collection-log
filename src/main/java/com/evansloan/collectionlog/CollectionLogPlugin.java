@@ -1,5 +1,6 @@
 package com.evansloan.collectionlog;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -14,24 +15,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ChatMessageType;
-import net.runelite.api.Client;
-import net.runelite.api.GameState;
-import net.runelite.api.MenuAction;
-import net.runelite.api.MenuEntry;
-import net.runelite.api.Player;
+import net.runelite.api.*;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.ScriptPostFired;
@@ -142,8 +132,7 @@ public class CollectionLogPlugin extends Plugin
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
-		Player localPlayer = client.getLocalPlayer();
-		if (localPlayer == null)
+		if (!isValidWorldType())
 		{
 			return;
 		}
@@ -154,7 +143,8 @@ public class CollectionLogPlugin extends Plugin
 			userHash = getUserHash();
 		}
 
-		if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN)
+		if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN ||
+			gameStateChanged.getGameState() == GameState.HOPPING)
 		{
 			saveCollectionLogData();
 			collectionLogData = null;
@@ -273,6 +263,11 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private void saveCollectionLogData()
 	{
+		if (collectionLogData == null || !isValidWorldType())
+		{
+			return;
+		}
+
 		saveCollectionLogDataToFile(false);
 
 		if (config.uploadCollectionLog())
@@ -360,6 +355,11 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private void getEntry()
 	{
+	    if (!isValidWorldType())
+        {
+            return;
+        }
+
 		if (collectionLogData == null)
 		{
 			loadCollectionLogData();
@@ -689,4 +689,24 @@ public class CollectionLogPlugin extends Plugin
 
 		return false;
 	}
+
+	private boolean isValidWorldType()
+    {
+        List<WorldType> invalidTypes = ImmutableList.of(
+            WorldType.DEADMAN,
+            WorldType.NOSAVE_MODE,
+            WorldType.SEASONAL,
+            WorldType.TOURNAMENT_WORLD
+        );
+
+        for (WorldType worldType : invalidTypes)
+        {
+            if (client.getWorldType().contains(worldType))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
