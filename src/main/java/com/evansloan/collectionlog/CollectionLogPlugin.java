@@ -40,7 +40,6 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import okhttp3.OkHttpClient;
 
 @Slf4j
 @PluginDescriptor(
@@ -91,9 +90,6 @@ public class CollectionLogPlugin extends Plugin
 
 	@Inject
 	private ItemManager itemManager;
-
-	@Inject
-	private OkHttpClient okHttpClient;
 
 	@Inject
 	private CollectionLogApiClient apiClient;
@@ -354,10 +350,10 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private void getEntry()
 	{
-	    if (!isValidWorldType())
-        {
-            return;
-        }
+		if (!isValidWorldType())
+		{
+			return;
+		}
 
 		if (collectionLogData == null)
 		{
@@ -660,7 +656,7 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private String getUserHash()
 	{
-        String username = client.getUsername();
+		String username = client.getUsername();
 		try
 		{
 			MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
@@ -672,9 +668,9 @@ public class CollectionLogPlugin extends Plugin
 			log.warn("Error creating userHash");
 			return null;
 		}
-    }
+	}
 
-    private boolean collectionLogExists()
+	private boolean collectionLogExists()
 	{
 		try
 		{
@@ -690,22 +686,22 @@ public class CollectionLogPlugin extends Plugin
 	}
 
 	private boolean isValidWorldType()
-    {
-        List<WorldType> invalidTypes = ImmutableList.of(
-            WorldType.DEADMAN,
-            WorldType.NOSAVE_MODE,
-            WorldType.SEASONAL,
-            WorldType.TOURNAMENT_WORLD
-        );
+	{
+		List<WorldType> invalidTypes = ImmutableList.of(
+			WorldType.DEADMAN,
+			WorldType.NOSAVE_MODE,
+			WorldType.SEASONAL,
+			WorldType.TOURNAMENT_WORLD
+		);
 
-        for (WorldType worldType : invalidTypes)
-        {
-            if (client.getWorldType().contains(worldType))
-            {
-                return false;
-            }
-        }
+		for (WorldType worldType : invalidTypes)
+		{
+			if (client.getWorldType().contains(worldType))
+			{
+				return false;
+			}
+		}
 
-        return true;
-    }
+		return true;
+	}
 }
