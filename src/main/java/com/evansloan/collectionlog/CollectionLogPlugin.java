@@ -37,7 +37,6 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -68,9 +67,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_TABS_KEY = "tabs";
 	private static final String COLLECTION_LOG_TOTAL_OBTAINED_KEY = "total_obtained";
 	private static final String COLLECTION_LOG_TOTAL_ITEMS_KEY = "total_items";
-	private static final String COLLECTION_LOG_UPLOAD_KEY = "upload_collection_log";
 
-	private CollectionLogApiClient apiClient;
 	private JsonObject collectionLogData;
 	private String userHash;
 
@@ -97,6 +94,9 @@ public class CollectionLogPlugin extends Plugin
 
 	@Inject
 	private OkHttpClient okHttpClient;
+
+	@Inject
+	private CollectionLogApiClient apiClient;
 
 	@Provides
 	CollectionLogConfig provideConfig(ConfigManager configManager)
@@ -139,7 +139,6 @@ public class CollectionLogPlugin extends Plugin
 
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			apiClient = new CollectionLogApiClient(okHttpClient);
 			userHash = getUserHash();
 		}
 

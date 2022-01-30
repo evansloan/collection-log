@@ -80,7 +80,8 @@ public interface CollectionLogConfig extends Config
 		keyName = "upload_collection_log",
 		name = "Upload collection log data to collectionlog.net",
 		description = "Upload saved collection log data to collectionlog.net on log out",
-		position = 7
+		position = 7,
+		warning = "Enabling this option submits your IP address and hashed login name to a 3rd party website not controlled or verified by the RuneLite Developers."
 	)
 	default boolean uploadCollectionLog()
 	{

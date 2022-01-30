@@ -2,7 +2,9 @@ package com.evansloan.collectionlog;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -10,9 +12,8 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import java.io.IOException;
 
-@RequiredArgsConstructor
+@Singleton
 public class CollectionLogApiClient
 {
     private static final String COLLECTION_LOG_API_BASE = "api.collectionlog.net";
@@ -20,7 +21,11 @@ public class CollectionLogApiClient
     private static final String COLLECTION_LOG_LOG_PATH = "collectionlog";
     private static final String COLLECTION_LOG_JSON_KEY = "collection_log";
 
-    private final OkHttpClient okHttpClient;
+    @Inject
+    private CollectionLogConfig config;
+
+    @Inject
+    private OkHttpClient okHttpClient;
 
     public void createUser(String username, String userHash) throws IOException
     {
@@ -125,6 +130,11 @@ public class CollectionLogApiClient
 
     private JsonObject apiRequest(Request request) throws IOException
     {
+        if (!config.uploadCollectionLog())
+        {
+            return null;
+        }
+
         Response response =  okHttpClient.newCall(request).execute();
         JsonObject responseJson = processResponse(response);
         response.close();
