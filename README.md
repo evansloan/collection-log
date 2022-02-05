@@ -21,7 +21,7 @@ If the "Upload collection log data to collectionlog.net" config is enabled, your
 
 ![](https://i.imgur.com/zz90og4.png)
 
-Right click the collection log item or the collection log section in the adventurer's log and select "export" to save your collection log data into a .json file within the Runelite directory.
+Right click the collection log item or the collection log section in the character summary tab and select "export" to save your collection log data into a .json file within the Runelite directory.
 
 Windows location: `%USERPROFILE%/.runelite/collectionlog/exports/`
 
