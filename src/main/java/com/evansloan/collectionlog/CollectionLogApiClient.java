@@ -5,6 +5,9 @@ import com.google.gson.JsonParser;
 import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -13,6 +16,7 @@ import okhttp3.ResponseBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 
+@Slf4j
 @Singleton
 public class CollectionLogApiClient
 {
@@ -27,7 +31,7 @@ public class CollectionLogApiClient
 	@Inject
 	private OkHttpClient okHttpClient;
 
-	public void createUser(String username, String userHash) throws IOException
+	public void createUser(String username, String accountType, String userHash) throws IOException
 	{
 		HttpUrl url = new HttpUrl.Builder()
 			.scheme("https")
@@ -38,26 +42,27 @@ public class CollectionLogApiClient
 		JsonObject jsonObject = new JsonObject();
 		jsonObject.addProperty("username", username);
 		jsonObject.addProperty("runelite_id", userHash);
+		jsonObject.addProperty("account_type", accountType);
 
 		postRequest(url, jsonObject);
 	}
 
-	public JsonObject getCollectionLog(String userHash) throws IOException
+	public boolean getCollectionLogExists(String userHash) throws IOException
 	{
 		HttpUrl url = new HttpUrl.Builder()
 			.scheme("https")
 			.host(COLLECTION_LOG_API_BASE)
 			.addPathSegment(COLLECTION_LOG_LOG_PATH)
-			.addPathSegment("runelite")
+			.addPathSegment("exists")
 			.addPathSegment(userHash)
 			.build();
 
 		JsonObject response = getRequest(url);
 		if (response == null)
 		{
-			return new JsonObject();
+			return false;
 		}
-		return response.get(COLLECTION_LOG_JSON_KEY).getAsJsonObject();
+		return response.get("exists").getAsBoolean();
 	}
 
 	public void createCollectionLog(JsonObject collectionLogData, String userHash) throws IOException
@@ -115,7 +120,7 @@ public class CollectionLogApiClient
 		return apiRequest(request);
 	}
 
-	private JsonObject putRequest(HttpUrl url, JsonObject putData) throws IOException
+	private void putRequest(HttpUrl url, JsonObject putData) throws IOException
 	{
 		MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
 		RequestBody body = RequestBody.create(mediaType, putData.toString());
@@ -125,7 +130,8 @@ public class CollectionLogApiClient
 			.put(body)
 			.build();
 
-		return apiRequest(request);
+		String errorMessage = "Unable to update collection log: {}";
+		asyncApiRequest(request, requestCallback(errorMessage));
 	}
 
 	private JsonObject apiRequest(Request request) throws IOException
@@ -141,6 +147,15 @@ public class CollectionLogApiClient
 		return responseJson;
 	}
 
+	private void asyncApiRequest(Request request, Callback callback) {
+		if (!config.uploadCollectionLog())
+		{
+			return;
+		}
+
+		okHttpClient.newCall(request).enqueue(callback);
+	}
+
 	private JsonObject processResponse(Response response) throws IOException
 	{
 		if (!response.isSuccessful())
@@ -154,5 +169,22 @@ public class CollectionLogApiClient
 			return null;
 		}
 		return new JsonParser().parse(resBody.string()).getAsJsonObject();
+	}
+
+	private Callback requestCallback(String errorMessage)
+	{
+		return new Callback() {
+			@Override
+			public void onFailure(Call call, IOException e)
+			{
+				log.warn(errorMessage, e.getMessage());
+			}
+
+			@Override
+			public void onResponse(Call call, Response response) throws IOException
+			{
+				response.close();
+			}
+		};
 	}
 }
