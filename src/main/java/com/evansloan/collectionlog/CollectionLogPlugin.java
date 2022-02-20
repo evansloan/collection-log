@@ -66,6 +66,8 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_TABS_KEY = "tabs";
 	private static final String COLLECTION_LOG_TOTAL_OBTAINED_KEY = "total_obtained";
 	private static final String COLLECTION_LOG_TOTAL_ITEMS_KEY = "total_items";
+	private static final String COLLECTION_LOG_UNIQUE_OBTAINED_KEY = "unique_obtained";
+	private static final String COLLECTION_LOG_UNIQUE_ITEMS_KEY = "unique_items";
 
 	private JsonObject collectionLogData;
 	private String userHash;
@@ -269,7 +271,11 @@ public class CollectionLogPlugin extends Plugin
 		{
 			try
 			{
-				apiClient.createUser(client.getLocalPlayer().getName(), userHash);
+				apiClient.createUser(
+					client.getLocalPlayer().getName(),
+					client.getAccountType().toString(),
+					userHash
+				);
 
 				if (!collectionLogExists())
 				{
@@ -375,16 +381,29 @@ public class CollectionLogPlugin extends Plugin
 
 		String entryTitle = entryHead.getDynamicChildren()[0].getText();
 
+		if (!entryExistsInActiveTab(activeTabName, entryTitle))
+		{
+			return;
+		}
+
 		int prevObtainedItemCount = getEntryItemCount(activeTabName, entryTitle);
 
 		JsonObject collectionLogEntry = new JsonObject();
 		updateEntryItems(collectionLogEntry);
 		updateEntryKillCounts(entryHead, collectionLogEntry);
 
-		JsonObject collectionLogTabs = collectionLogData.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
+		int newObtainedItemCount = getEntryItemCount(collectionLogEntry);
 
+		JsonObject collectionLogTabs = collectionLogData.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
 		if (collectionLogTabs.has(activeTabName))
 		{
+			// Can happen when entries are opened in quick succession
+			// Item data in the widget doesn't load properly and obtained count shows as 0
+			if (prevObtainedItemCount > newObtainedItemCount)
+			{
+				return;
+			}
+
 			JsonObject collectionLogTab = collectionLogTabs.get(activeTabName).getAsJsonObject();
 			collectionLogTab.add(entryTitle, collectionLogEntry);
 		}
@@ -395,16 +414,14 @@ public class CollectionLogPlugin extends Plugin
 			collectionLogTabs.add(activeTabName, collectionLogTab);
 		}
 
-		int obtainedItemCount = getEntryItemCount(activeTabName, entryTitle);
-
-		if (obtainedItemCount == prevObtainedItemCount)
+		if (prevObtainedItemCount == newObtainedItemCount)
 		{
 			update();
 			return;
 		}
 
 		int prevTotalObtained = collectionLogData.get(COLLECTION_LOG_TOTAL_OBTAINED_KEY).getAsInt();
-		int newTotalObtained = prevTotalObtained + (obtainedItemCount - prevObtainedItemCount);
+		int newTotalObtained = prevTotalObtained + (newObtainedItemCount - prevObtainedItemCount);
 		collectionLogData.addProperty(COLLECTION_LOG_TOTAL_OBTAINED_KEY, newTotalObtained);
 
 		update();
@@ -539,6 +556,7 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		Widget collLogTitle = collLogContainer.getDynamicChildren()[1];
+		updateUniqueItems(collLogTitle.getText());
 		collLogTitle.setText(title);
 	}
 
@@ -563,8 +581,13 @@ public class CollectionLogPlugin extends Plugin
 			return 0;
 		}
 
-		JsonObject entry = collectionLogTabData.get(entryTitle).getAsJsonObject();
-		JsonArray items = entry.get("items").getAsJsonArray();
+		JsonObject collectionLogEntry = collectionLogTabData.get(entryTitle).getAsJsonObject();
+		return getEntryItemCount(collectionLogEntry);
+	}
+
+	private int getEntryItemCount(JsonObject collectionLogEntry)
+	{
+		JsonArray items = collectionLogEntry.get("items").getAsJsonArray();
 		return StreamSupport.stream(items.spliterator(), false).filter(item -> {
 			return item.getAsJsonObject().get("obtained").getAsBoolean();
 		}).toArray().length;
@@ -588,12 +611,14 @@ public class CollectionLogPlugin extends Plugin
 			collectionLogData = new JsonObject();
 			collectionLogData.addProperty(COLLECTION_LOG_TOTAL_OBTAINED_KEY, 0);
 			collectionLogData.addProperty(COLLECTION_LOG_TOTAL_ITEMS_KEY, 0);
+			collectionLogData.addProperty(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, 0);
+			collectionLogData.addProperty(COLLECTION_LOG_UNIQUE_ITEMS_KEY, 0);
 			collectionLogData.add(COLLECTION_LOG_TABS_KEY, new JsonObject());
 		}
 	}
 
 	/**
-	 * Updates the count of total amount of items in the collection log
+	 * Updates the total amount of items in the collection log
 	 */
 	private void updateTotalItems()
 	{
@@ -601,7 +626,6 @@ public class CollectionLogPlugin extends Plugin
 		JsonObject collectionLogTabs = collectionLogData.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
 		for (Map.Entry<String, JsonElement> tab : collectionLogTabs.entrySet())
 		{
-			JsonElement y = tab.getValue();
 			for (Map.Entry<String, JsonElement> entry : tab.getValue().getAsJsonObject().entrySet())
 			{
 				JsonArray items = entry.getValue()
@@ -615,6 +639,28 @@ public class CollectionLogPlugin extends Plugin
 		if (newTotal > collectionLogData.get(COLLECTION_LOG_TOTAL_ITEMS_KEY).getAsInt())
 		{
 			collectionLogData.addProperty(COLLECTION_LOG_TOTAL_ITEMS_KEY, newTotal);
+		}
+	}
+
+	/**
+	 * Updates the count of unique items in the collection log
+	 * Parses item counts from collection log title
+	 */
+	private void updateUniqueItems(String collectionLogTitle)
+	{
+		Matcher m = COLLECTION_LOG_TITLE_REGEX.matcher(collectionLogTitle);
+
+		if (!m.find())
+		{
+			return;
+		}
+
+		if (m.group(1) != null && m.group(2) != null)
+		{
+			int uniqueObtained = Integer.parseInt(m.group(1));
+			int uniqueTotal = Integer.parseInt(m.group(2));
+			collectionLogData.addProperty(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, uniqueObtained);
+			collectionLogData.addProperty(COLLECTION_LOG_UNIQUE_ITEMS_KEY, uniqueTotal);
 		}
 	}
 
@@ -670,12 +716,16 @@ public class CollectionLogPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * Check if a collection log exists for the current user on collectionlog.net
+	 *
+	 * @return collectionlog.net collection log exists
+	 */
 	private boolean collectionLogExists()
 	{
 		try
 		{
-			JsonObject existingLog = apiClient.getCollectionLog(userHash);
-			return existingLog.size() != 0;
+			return apiClient.getCollectionLogExists(userHash);
 		}
 		catch (IOException e)
 		{
@@ -703,5 +753,29 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		return true;
+	}
+
+	/**
+	 * Check that the current entry being viewed exists in the current active tab.
+	 * Mismatches can occur when a tab and entry are loaded within the same game tick
+	 * causing item counts to be thrown off.
+	 *
+	 * @param tabName Active tab name
+	 * @param entryName Active entry name
+	 * @return Entry exists in tab
+	 */
+	private boolean entryExistsInActiveTab(String tabName, String entryName)
+	{
+		CollectionLogList activeEntryList = CollectionLogList.valueOf(tabName.toUpperCase());
+		Widget entryList = client.getWidget(WidgetID.COLLECTION_LOG_ID, activeEntryList.getListIndex());
+		if (entryList == null)
+		{
+			return false;
+		}
+
+		Widget[] listEntries = entryList.getDynamicChildren();
+		return Arrays.stream(listEntries).anyMatch(listEntry -> {
+			return listEntry.getText().equals(entryName);
+		});
 	}
 }
