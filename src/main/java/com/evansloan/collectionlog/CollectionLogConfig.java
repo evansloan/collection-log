@@ -87,4 +87,15 @@ public interface CollectionLogConfig extends Config
 	{
 		return false;
 	}
+
+	@ConfigItem(
+			keyName = "show_collection_log_panel",
+			name = "Show the collection log side panel",
+			description = "Show the collection log side panel",
+			position = 8
+	)
+	default boolean showCollectionLogSidePanel()
+	{
+		return true;
+	}
 }

@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Provides;
+import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
@@ -20,6 +21,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
 import javax.inject.Inject;
+import javax.swing.SwingUtilities;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.GameStateChanged;
@@ -37,9 +40,12 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
 
 @Slf4j
 @PluginDescriptor(
@@ -69,12 +75,17 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_UNIQUE_OBTAINED_KEY = "unique_obtained";
 	private static final String COLLECTION_LOG_UNIQUE_ITEMS_KEY = "unique_items";
 
+	private CollectionLogPanel collectionLogPanel;
+	private NavigationButton navigationButton;
+
+	@Getter
 	private JsonObject collectionLogData;
 	private String userHash;
 
 	@Inject
 	private Client client;
 
+	@Getter
 	@Inject
 	private ClientThread clientThread;
 
@@ -85,8 +96,12 @@ public class CollectionLogPlugin extends Plugin
 	private ChatMessageManager chatMessageManager;
 
 	@Inject
+	private ClientToolbar clientToolbar;
+
+	@Inject
 	private ConfigManager configManager;
 
+	@Getter
 	@Inject
 	private CollectionLogConfig config;
 
@@ -116,6 +131,31 @@ public class CollectionLogPlugin extends Plugin
 			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "kill_counts");
 			configManager.unsetConfiguration(CONFIG_GROUP, "total_items");
 		}
+
+
+		if (config.showCollectionLogSidePanel())
+		{
+			final BufferedImage toolbarIcon = Icon.COLLECTION_LOG_TOOLBAR.getImage();
+
+			collectionLogPanel = new CollectionLogPanel(this);
+			navigationButton = NavigationButton.builder()
+				.tooltip("Collection Log")
+				.icon(toolbarIcon)
+				.panel(collectionLogPanel)
+				.priority(10)
+				.build();
+			clientToolbar.addNavigation(navigationButton);
+
+			if (client.getGameState() == GameState.LOGGED_IN)
+			{
+				collectionLogPanel.loadUtilityButtons();
+			}
+			else
+			{
+				collectionLogPanel.loadDefaultState();
+			}
+		}
+
 	}
 
 	@Override
@@ -124,6 +164,27 @@ public class CollectionLogPlugin extends Plugin
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
 			setCollectionLogTitle(COLLECTION_LOG_TITLE);
+		}
+
+		clientToolbar.removeNavigation(navigationButton);
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged configChanged)
+	{
+		if (!configChanged.getGroup().equals(CONFIG_GROUP))
+		{
+			return;
+		}
+
+		if (configChanged.getKey().equals("upload_collection_log"))
+		{
+			collectionLogPanel.loadUtilityButtons();
+		}
+
+		if (configChanged.getKey().equals("show_collection_log_panel"))
+		{
+			clientToolbar.removeNavigation(navigationButton);
 		}
 	}
 
@@ -138,6 +199,7 @@ public class CollectionLogPlugin extends Plugin
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
 			userHash = getUserHash();
+			SwingUtilities.invokeLater(() -> collectionLogPanel.loadUtilityButtons());
 		}
 
 		if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN ||
@@ -145,7 +207,7 @@ public class CollectionLogPlugin extends Plugin
 		{
 			saveCollectionLogData();
 			collectionLogData = null;
-			userHash = null;
+			SwingUtilities.invokeLater(() -> collectionLogPanel.loadDefaultState());
 		}
 	}
 
@@ -258,7 +320,7 @@ public class CollectionLogPlugin extends Plugin
 	 * Save collection log data to a file or upload to
 	 * collectionlog.net
 	 */
-	private void saveCollectionLogData()
+	public void saveCollectionLogData()
 	{
 		if (collectionLogData == null || !isValidWorldType())
 		{
@@ -269,27 +331,33 @@ public class CollectionLogPlugin extends Plugin
 
 		if (config.uploadCollectionLog())
 		{
-			try
-			{
-				apiClient.createUser(
-					client.getLocalPlayer().getName(),
-					client.getAccountType().toString(),
-					userHash
-				);
+			String username = client.getLocalPlayer().getName();
+			String accountType = client.getAccountType().toString();
+			JsonObject saveData = collectionLogData; // copy data to prevent sending null on logout
 
-				if (!collectionLogExists())
+			new Thread(() -> {
+				try
 				{
-					apiClient.createCollectionLog(collectionLogData, userHash);
+					apiClient.createUser(
+							username,
+							accountType,
+							userHash
+					);
+
+					if (!collectionLogExists())
+					{
+						apiClient.createCollectionLog(saveData, userHash);
+					}
+					else
+					{
+						apiClient.updateCollectionLog(saveData, userHash);
+					}
 				}
-				else
+				catch (IOException e)
 				{
-					apiClient.updateCollectionLog(collectionLogData, userHash);
+					log.warn("Unable to save collection log data to collectionlog.net: " + e.getMessage());
 				}
-			}
-			catch (IOException e)
-			{
-				log.warn("Unable to save collection log data to collectionlog.net");
-			}
+			}).start();
 		}
 	}
 
@@ -364,6 +432,7 @@ public class CollectionLogPlugin extends Plugin
 		if (collectionLogData == null)
 		{
 			loadCollectionLogData();
+			SwingUtilities.invokeLater(() -> collectionLogPanel.loadUtilityButtons());
 		}
 
 		String activeTabName = getActiveTabName();
@@ -394,7 +463,7 @@ public class CollectionLogPlugin extends Plugin
 
 		int newObtainedItemCount = getEntryItemCount(collectionLogEntry);
 
-		JsonObject collectionLogTabs = collectionLogData.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
+		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
 		if (collectionLogTabs.has(activeTabName))
 		{
 			// Can happen when entries are opened in quick succession
@@ -404,7 +473,7 @@ public class CollectionLogPlugin extends Plugin
 				return;
 			}
 
-			JsonObject collectionLogTab = collectionLogTabs.get(activeTabName).getAsJsonObject();
+			JsonObject collectionLogTab = collectionLogTabs.getAsJsonObject(activeTabName);
 			collectionLogTab.add(entryTitle, collectionLogEntry);
 		}
 		else
@@ -535,15 +604,19 @@ public class CollectionLogPlugin extends Plugin
 	private void update()
 	{
 		updateTotalItems();
+		setCollectionLogTitle();
+		highlightEntries();
+	}
 
+	private void setCollectionLogTitle()
+	{
 		String title = buildTitle();
 		setCollectionLogTitle(title);
-
-		highlightEntries();
 	}
 
 	/**
 	 * Updates the collection log title with updated counts
+	 *
 	 * @param title
 	 */
 	private void setCollectionLogTitle(String title)
@@ -569,25 +642,25 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private int getEntryItemCount(String activeTabName, String entryTitle)
 	{
-		JsonObject collectionLogTabs = collectionLogData.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
+		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
 		if (!collectionLogTabs.has(activeTabName))
 		{
 			return 0;
 		}
 
-		JsonObject collectionLogTabData = collectionLogTabs.get(activeTabName).getAsJsonObject();
+		JsonObject collectionLogTabData = collectionLogTabs.getAsJsonObject(activeTabName);
 		if (!collectionLogTabData.has(entryTitle))
 		{
 			return 0;
 		}
 
-		JsonObject collectionLogEntry = collectionLogTabData.get(entryTitle).getAsJsonObject();
+		JsonObject collectionLogEntry = collectionLogTabData.getAsJsonObject(entryTitle);
 		return getEntryItemCount(collectionLogEntry);
 	}
 
 	private int getEntryItemCount(JsonObject collectionLogEntry)
 	{
-		JsonArray items = collectionLogEntry.get("items").getAsJsonArray();
+		JsonArray items = collectionLogEntry.getAsJsonArray("items");
 		return StreamSupport.stream(items.spliterator(), false).filter(item -> {
 			return item.getAsJsonObject().get("obtained").getAsBoolean();
 		}).toArray().length;
@@ -623,15 +696,14 @@ public class CollectionLogPlugin extends Plugin
 	private void updateTotalItems()
 	{
 		int newTotal = 0;
-		JsonObject collectionLogTabs = collectionLogData.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
+		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
 		for (Map.Entry<String, JsonElement> tab : collectionLogTabs.entrySet())
 		{
 			for (Map.Entry<String, JsonElement> entry : tab.getValue().getAsJsonObject().entrySet())
 			{
 				JsonArray items = entry.getValue()
 						.getAsJsonObject()
-						.get("items")
-						.getAsJsonArray();
+						.getAsJsonArray("items");
 				newTotal += items.size();
 			}
 		}
@@ -777,5 +849,53 @@ public class CollectionLogPlugin extends Plugin
 		return Arrays.stream(listEntries).anyMatch(listEntry -> {
 			return listEntry.getText().equals(entryName);
 		});
+	}
+
+	/**
+	 * Deletes saved collection log data for the current user
+	 */
+	public void clearCollectionLogData()
+	{
+		String fileName = "collectionlog-" + client.getLocalPlayer().getName() + ".json";
+		String filePath = COLLECTION_LOG_SAVE_DATA_DIR + File.separator + fileName;
+
+		File savedData = new File(filePath);
+		if (!savedData.delete())
+		{
+			log.error("Unable to delete collection log save file: " + filePath);
+			return;
+		}
+
+		collectionLogData = null;
+	}
+
+	/**
+	 * Recalculate obtained and total item counts based on saved
+	 * collection log data for the current user
+	 */
+	public void recalculateTotalCounts()
+	{
+		int newObtained = 0;
+		int newTotal = 0;
+		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
+		for (Map.Entry<String, JsonElement> tab : collectionLogTabs.entrySet())
+		{
+			for (Map.Entry<String, JsonElement> entry : tab.getValue().getAsJsonObject().entrySet())
+			{
+				JsonArray items = entry.getValue()
+					.getAsJsonObject()
+					.getAsJsonArray("items");
+
+				newObtained += StreamSupport.stream(items.spliterator(), false).filter(item -> {
+					return item.getAsJsonObject().get("obtained").getAsBoolean();
+				}).toArray().length;
+				newTotal += items.size();
+			}
+		}
+
+		collectionLogData.addProperty(COLLECTION_LOG_TOTAL_OBTAINED_KEY, newObtained);
+		collectionLogData.addProperty(COLLECTION_LOG_TOTAL_ITEMS_KEY, newTotal);
+
+		setCollectionLogTitle();
 	}
 }
