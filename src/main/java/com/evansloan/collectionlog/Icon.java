@@ -39,7 +39,6 @@ public enum Icon
 	COLLECTION_LOG_TOOLBAR("/collection_log_toolbar.png"),
 	DISCORD("/discord.png"),
 	GITHUB("/github.png"),
-	SETTINGS("/settings_icon.png"),
 	;
 
 	private final String file;
