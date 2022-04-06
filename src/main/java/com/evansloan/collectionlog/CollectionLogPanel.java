@@ -15,6 +15,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 
 @Slf4j
@@ -31,9 +32,15 @@ public class CollectionLogPanel extends PluginPanel
 		WEBSITE_ICON = Icon.COLLECTION_LOG.getIcon(img -> ImageUtil.resizeImage(img, 16, 16));
 	}
 
-	private final Dimension DEFAULT_DIMENSIONS = new Dimension(PluginPanel.PANEL_WIDTH - 5, 30);
+	private final int DEFAULT_WIDTH = PluginPanel.PANEL_WIDTH - 5;
+	private final Dimension BUTTON_DIMENSION = new Dimension(DEFAULT_WIDTH, 30);
+	private final EmptyBorder DEFAULT_BORDER = new EmptyBorder(10, 10, 10, 10);
+
 	private final CollectionLogPlugin collectionLogPlugin;
+	private final JPanel missingEntriesPanel;
 	private final JPanel utilityBtnPanel;
+
+	private JList<String> missingEntriesList;
 
 	public CollectionLogPanel(CollectionLogPlugin collectionLogPlugin)
 	{
@@ -41,14 +48,19 @@ public class CollectionLogPanel extends PluginPanel
 
 		this.collectionLogPlugin = collectionLogPlugin;
 
+		missingEntriesPanel = new JPanel();
+		missingEntriesPanel.setLayout(new BorderLayout());
+		missingEntriesPanel.setBorder(DEFAULT_BORDER);
+
 		utilityBtnPanel = new JPanel();
-		utilityBtnPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+		utilityBtnPanel.setLayout(new BorderLayout());
+		utilityBtnPanel.setBorder(DEFAULT_BORDER);
 
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 		setLayout(new BorderLayout());
 
 		JPanel titlePanel = new JPanel();
-		titlePanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+		titlePanel.setBorder(DEFAULT_BORDER);
 		titlePanel.setLayout(new BorderLayout());
 
 		JLabel title = new JLabel();
@@ -87,39 +99,57 @@ public class CollectionLogPanel extends PluginPanel
 		titleContainer.add(titlePanel, BorderLayout.NORTH);
 
 		add(titleContainer, BorderLayout.NORTH);
-		add(utilityBtnPanel, BorderLayout.CENTER);
+		add(utilityBtnPanel, BorderLayout.SOUTH);
+		add(missingEntriesPanel, BorderLayout.CENTER);
 	}
 
-	public void loadDefaultState()
+	public void loadLoggedOutState()
 	{
+		missingEntriesPanel.removeAll();
+
+		JTextArea logInMessage = createTextArea("Log in to view collection log information");
+		missingEntriesPanel.add(logInMessage, BorderLayout.NORTH);
+
+		missingEntriesPanel.repaint();
+		missingEntriesPanel.revalidate();
+
 		utilityBtnPanel.removeAll();
-
-		JLabel defaultState = new JLabel();
-		defaultState.setText("Log in to view collection log information");
-		defaultState.setForeground(Color.WHITE);
-
-		utilityBtnPanel.add(defaultState);
 		utilityBtnPanel.repaint();
 		utilityBtnPanel.revalidate();
 	}
 
-	public void loadUtilityButtons()
+	public void loadLoggedInState()
 	{
+		missingEntriesPanel.removeAll();
+
+		JTextArea openLogMessage = createTextArea("Open your collection log to start tracking your progress!");
+		missingEntriesPanel.add(openLogMessage);
+
+		missingEntriesPanel.repaint();
+		missingEntriesPanel.revalidate();
+
 		utilityBtnPanel.removeAll();
+		utilityBtnPanel.repaint();
+		utilityBtnPanel.revalidate();
+	}
 
-		if (collectionLogPlugin.getCollectionLogData() == null)
-		{
-			JTextArea openLogMessage = createTextArea("Open your collectionLog to start tracking your progress!");
-
-			utilityBtnPanel.add(openLogMessage);
-			utilityBtnPanel.repaint();
-			utilityBtnPanel.revalidate();
-
-			return;
-		}
+	public void loadLogOpenedState()
+	{
+		missingEntriesPanel.removeAll();
 
 		JTextArea instructions = createTextArea("Click through each entry in the collection log to save your current progress.");
-		utilityBtnPanel.add(instructions);
+		missingEntriesPanel.add(instructions, BorderLayout.NORTH);
+
+		loadMissingEntries();
+		loadUtilityButtons();
+
+		missingEntriesPanel.repaint();
+		missingEntriesPanel.revalidate();
+	}
+
+	private void loadUtilityButtons()
+	{
+		utilityBtnPanel.removeAll();
 
 		JButton uploadDataBtn = createButton(
 			"Upload collection log data",
@@ -128,25 +158,85 @@ public class CollectionLogPanel extends PluginPanel
 
 		if (collectionLogPlugin.getConfig().uploadCollectionLog())
 		{
-			utilityBtnPanel.add(uploadDataBtn);
+			utilityBtnPanel.add(uploadDataBtn, BorderLayout.NORTH);
 		}
 
 		JButton recalcBtn = createButton(
 			"Recalculate totals",
 			(action) -> collectionLogPlugin.recalculateTotalCounts()
 		);
-		recalcBtn.setPreferredSize(DEFAULT_DIMENSIONS);
+		recalcBtn.setPreferredSize(BUTTON_DIMENSION);
 		recalcBtn.addActionListener((event) -> collectionLogPlugin.recalculateTotalCounts());
-		utilityBtnPanel.add(recalcBtn);
+		utilityBtnPanel.add(recalcBtn, BorderLayout.CENTER);
 
 		JButton clearDataBtn = createButton(
 			"Reset collection log data",
 			(action) -> collectionLogPlugin.clearCollectionLogData()
 		);
-		utilityBtnPanel.add(clearDataBtn);
+		utilityBtnPanel.add(clearDataBtn, BorderLayout.SOUTH);
 
 		utilityBtnPanel.repaint();
 		utilityBtnPanel.revalidate();
+	}
+
+	private void loadMissingEntries()
+	{
+		List<String> missingEntries = collectionLogPlugin.findMissingEntries();
+
+		if (missingEntries.size() == 0)
+		{
+			missingEntriesPanel.removeAll();
+
+			JTextArea entriesLoadedText = createTextArea("All collection log entries loaded!");
+			missingEntriesPanel.add(entriesLoadedText, BorderLayout.NORTH);
+
+			missingEntriesPanel.repaint();
+			missingEntriesPanel.revalidate();
+			return;
+		}
+
+		JPanel missingEntriesContainer = new JPanel();
+		missingEntriesContainer.setLayout(new BorderLayout());
+
+		JLabel missingEntriesLabel = new JLabel("Missing collection log entries");
+		missingEntriesLabel.setBorder(DEFAULT_BORDER);
+		missingEntriesLabel.setForeground(Color.WHITE);
+		missingEntriesContainer.add(missingEntriesLabel, BorderLayout.NORTH);
+
+		missingEntriesList = new JList<>();
+		missingEntriesList.setListData(missingEntries.toArray(new String[0]));
+		missingEntriesList.setLayout(new BorderLayout());
+		missingEntriesList.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
+		JScrollPane listScrollContainer = new JScrollPane(missingEntriesList);
+		missingEntriesContainer.add(listScrollContainer, BorderLayout.CENTER);
+
+		missingEntriesPanel.add(missingEntriesContainer, BorderLayout.CENTER);
+	}
+
+	public void updateMissingEntriesList()
+	{
+		if (missingEntriesList == null)
+		{
+			return;
+		}
+
+		missingEntriesList.removeAll();
+
+		List<String> missingEntries = collectionLogPlugin.findMissingEntries();
+
+		if (missingEntries.size() == 0)
+		{
+			missingEntriesList.repaint();
+			missingEntriesList.revalidate();
+			loadMissingEntries();
+			return;
+		}
+
+		missingEntriesList.setListData(missingEntries.toArray(new String[0]));
+
+		missingEntriesList.repaint();
+		missingEntriesList.revalidate();
 	}
 
 	private JTextArea createTextArea(String text)
@@ -157,6 +247,7 @@ public class CollectionLogPanel extends PluginPanel
 		textArea.setLineWrap(true);
 		textArea.setEditable(false);
 		textArea.setFocusable(false);
+		textArea.setOpaque(false);
 
 		return textArea;
 	}
@@ -191,8 +282,9 @@ public class CollectionLogPanel extends PluginPanel
 		JButton btn = new JButton();
 		btn.setText(text);
 		btn.setForeground(Color.WHITE);
-		btn.setPreferredSize(DEFAULT_DIMENSIONS);
+		btn.setPreferredSize(BUTTON_DIMENSION);
 		btn.addActionListener(actionListener);
+		btn.setBorder(new EmptyBorder(5, 0, 5, 0));
 
 		return btn;
 	}
