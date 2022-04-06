@@ -71,6 +71,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final File COLLECTION_LOG_EXPORT_DIR = new File(COLLECTION_LOG_SAVE_DATA_DIR, "exports");
 
 	private static final String COLLECTION_LOG_TABS_KEY = "tabs";
+	private static final String COLLECTION_LOG_ITEMS_KEY = "items";
 	private static final String COLLECTION_LOG_TOTAL_OBTAINED_KEY = "total_obtained";
 	private static final String COLLECTION_LOG_TOTAL_ITEMS_KEY = "total_items";
 	private static final String COLLECTION_LOG_UNIQUE_OBTAINED_KEY = "unique_obtained";
@@ -399,7 +400,7 @@ public class CollectionLogPlugin extends Plugin
 			items.add(item);
 		}
 
-		collectionLogEntry.add("items", items);
+		collectionLogEntry.add(COLLECTION_LOG_ITEMS_KEY, items);
 	}
 
 	/**
@@ -675,7 +676,7 @@ public class CollectionLogPlugin extends Plugin
 
 	private int getEntryItemCount(JsonObject collectionLogEntry)
 	{
-		JsonArray items = collectionLogEntry.getAsJsonArray("items");
+		JsonArray items = collectionLogEntry.getAsJsonArray(COLLECTION_LOG_ITEMS_KEY);
 		return StreamSupport.stream(items.spliterator(), false).filter(item -> {
 			return item.getAsJsonObject().get("obtained").getAsBoolean();
 		}).toArray().length;
@@ -718,8 +719,8 @@ public class CollectionLogPlugin extends Plugin
 			for (Map.Entry<String, JsonElement> entry : tab.getValue().getAsJsonObject().entrySet())
 			{
 				JsonArray items = entry.getValue()
-						.getAsJsonObject()
-						.getAsJsonArray("items");
+					.getAsJsonObject()
+					.getAsJsonArray(COLLECTION_LOG_ITEMS_KEY);
 				newTotal += items.size();
 			}
 		}
@@ -906,7 +907,7 @@ public class CollectionLogPlugin extends Plugin
 
 				JsonArray items = entry.getValue()
 					.getAsJsonObject()
-					.getAsJsonArray("items");
+					.getAsJsonArray(COLLECTION_LOG_ITEMS_KEY);
 
 				newObtained += StreamSupport.stream(items.spliterator(), false).filter(item -> {
 					return item.getAsJsonObject().get("obtained").getAsBoolean();
