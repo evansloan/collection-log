@@ -922,6 +922,11 @@ public class CollectionLogPlugin extends Plugin
 		setCollectionLogTitle();
 	}
 
+	/**
+	 * Find entries not loaded into collectionLogData
+	 *
+	 * @return List of missing entries
+	 */
 	public List<String> findMissingEntries()
 	{
 		List<String> missingEntries = new ArrayList<>();
