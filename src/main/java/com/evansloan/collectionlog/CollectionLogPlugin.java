@@ -25,10 +25,16 @@ import javax.inject.Inject;
 import javax.swing.SwingUtilities;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.*;
+import net.runelite.api.ChatMessageType;
+import net.runelite.api.Client;
+import net.runelite.api.GameState;
+import net.runelite.api.MenuAction;
+import net.runelite.api.MenuEntry;
+import net.runelite.api.WorldType;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.ScriptPostFired;
+import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
@@ -77,8 +83,13 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_UNIQUE_OBTAINED_KEY = "unique_obtained";
 	private static final String COLLECTION_LOG_UNIQUE_ITEMS_KEY = "unique_items";
 
+	private static final int ADVENTURE_LOG_COLLECTION_LOG_SELECTED_VARBIT_ID = 12061;
+	private static final Pattern ADVENTURE_LOG_TITLE_PATTERN = Pattern.compile("The Exploits of (.+)");
+
 	private CollectionLogPanel collectionLogPanel;
 	private NavigationButton navigationButton;
+
+	private boolean isPohOwner = false;
 
 	@Getter
 	private JsonObject collectionLogData;
@@ -261,6 +272,27 @@ public class CollectionLogPlugin extends Plugin
 			.onClick(e -> saveCollectionLogDataToFile(true));
 	}
 
+	@Subscribe
+	public void onWidgetLoaded(WidgetLoaded widgetLoaded)
+	{
+		if (widgetLoaded.getGroupId() == WidgetID.ADVENTURE_LOG_ID)
+		{
+			Widget adventureLog = client.getWidget(WidgetInfo.ADVENTURE_LOG);
+			if (adventureLog != null)
+			{
+				// Children are rendered  on tick after widget load. Invoke later to prevent null children on adventure log widget
+				clientThread.invokeLater(() -> {
+					Matcher adventureLogUser = ADVENTURE_LOG_TITLE_PATTERN.matcher(adventureLog.getChild(1).getText());
+					if (adventureLogUser.find())
+					{
+						isPohOwner = adventureLogUser.group(1).equals(client.getLocalPlayer().getName());
+					}
+				});
+
+			}
+		}
+	}
+
 	/**
 	 * Save collection data to a .json file.
 	 *
@@ -438,6 +470,12 @@ public class CollectionLogPlugin extends Plugin
 	private void getEntry()
 	{
 		if (!isValidWorldType())
+		{
+			return;
+		}
+
+		boolean openedFromAdventureLog = client.getVarbitValue(ADVENTURE_LOG_COLLECTION_LOG_SELECTED_VARBIT_ID) != 0;
+		if (openedFromAdventureLog && !isPohOwner)
 		{
 			return;
 		}
