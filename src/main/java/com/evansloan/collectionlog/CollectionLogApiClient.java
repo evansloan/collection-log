@@ -25,6 +25,10 @@ public class CollectionLogApiClient
 	private static final String COLLECTION_LOG_LOG_PATH = "collectionlog";
 	private static final String COLLECTION_LOG_JSON_KEY = "collection_log";
 
+	private static final String COLLECTION_LOG_TEMPLATE_BASE = "api.github.com";
+	private static final String COLLECTION_LOG_TEMPLATE_USER = "gists";
+	private static final String COLLECTION_LOG_TEMPLATE_GIST = "24179c0fbfb370ce162f69dde36d72f0";
+
 	@Inject
 	private CollectionLogConfig config;
 
@@ -94,6 +98,24 @@ public class CollectionLogApiClient
 		logData.add(COLLECTION_LOG_JSON_KEY, collectionLogData);
 
 		putRequest(url, logData);
+	}
+
+	public JsonObject getCollectionLogTemplate() throws IOException
+	{
+		HttpUrl url = new HttpUrl.Builder()
+			.scheme("https")
+			.host(COLLECTION_LOG_TEMPLATE_BASE)
+			.addPathSegment(COLLECTION_LOG_TEMPLATE_USER)
+			.addPathSegment(COLLECTION_LOG_TEMPLATE_GIST)
+			.build();
+
+		JsonObject githubRes = githubRequest(url);
+		String content = githubRes.getAsJsonObject("files")
+			.getAsJsonObject("collection_log_template.json")
+			.get("content")
+			.getAsString();
+
+		return new JsonParser().parse(content).getAsJsonObject();
 	}
 
 	private JsonObject getRequest(HttpUrl url) throws IOException
@@ -181,10 +203,24 @@ public class CollectionLogApiClient
 			}
 
 			@Override
-			public void onResponse(Call call, Response response) throws IOException
+			public void onResponse(Call call, Response response)
 			{
 				response.close();
 			}
 		};
+	}
+
+	private JsonObject githubRequest(HttpUrl url) throws IOException
+	{
+		Request request = new Request.Builder()
+			.header("User-Agent", "Runelite")
+			.url(url)
+			.get()
+			.build();
+
+		Response response =  okHttpClient.newCall(request).execute();
+		JsonObject responseJson = processResponse(response);
+		response.close();
+		return responseJson;
 	}
 }
