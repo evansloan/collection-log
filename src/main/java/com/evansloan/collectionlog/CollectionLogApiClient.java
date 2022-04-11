@@ -24,6 +24,7 @@ public class CollectionLogApiClient
 	private static final String COLLECTION_LOG_USER_PATH = "user";
 	private static final String COLLECTION_LOG_LOG_PATH = "collectionlog";
 	private static final String COLLECTION_LOG_JSON_KEY = "collection_log";
+	private static final String COLLECTION_LOG_USER_AGENT = "Runelite collection-log/2.1";
 
 	private static final String COLLECTION_LOG_TEMPLATE_BASE = "api.github.com";
 	private static final String COLLECTION_LOG_TEMPLATE_USER = "gists";
@@ -121,7 +122,7 @@ public class CollectionLogApiClient
 	private JsonObject getRequest(HttpUrl url) throws IOException
 	{
 		Request request = new Request.Builder()
-			.header("User-Agent", "Runelite collection-log/2.1")
+			.header("User-Agent", COLLECTION_LOG_USER_AGENT)
 			.url(url)
 			.get()
 			.build();
@@ -134,7 +135,7 @@ public class CollectionLogApiClient
 		MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
 		RequestBody body = RequestBody.create(mediaType, postData.toString());
 		Request request = new Request.Builder()
-			.header("User-Agent", "Runelite")
+			.header("User-Agent", COLLECTION_LOG_USER_AGENT)
 			.url(url)
 			.post(body)
 			.build();
@@ -147,7 +148,7 @@ public class CollectionLogApiClient
 		MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
 		RequestBody body = RequestBody.create(mediaType, putData.toString());
 		Request request = new Request.Builder()
-			.header("User-Agent", "Runelite")
+			.header("User-Agent", COLLECTION_LOG_USER_AGENT)
 			.url(url)
 			.put(body)
 			.build();
@@ -213,7 +214,7 @@ public class CollectionLogApiClient
 	private JsonObject githubRequest(HttpUrl url) throws IOException
 	{
 		Request request = new Request.Builder()
-			.header("User-Agent", "Runelite collection-log/2.1")
+			.header("User-Agent", COLLECTION_LOG_USER_AGENT)
 			.url(url)
 			.get()
 			.build();
