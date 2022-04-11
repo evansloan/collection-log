@@ -121,7 +121,7 @@ public class CollectionLogApiClient
 	private JsonObject getRequest(HttpUrl url) throws IOException
 	{
 		Request request = new Request.Builder()
-			.header("User-Agent", "Runelite")
+			.header("User-Agent", "Runelite collection-log/2.1")
 			.url(url)
 			.get()
 			.build();
