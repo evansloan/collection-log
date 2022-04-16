@@ -1,8 +1,6 @@
 package com.evansloan.collectionlog;
 
 import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -143,9 +141,6 @@ public class CollectionLogPlugin extends Plugin
 
 	@Inject
 	private CollectionLogApiClient apiClient;
-
-	@Inject
-	private Gson gson;
 
 	@Provides
 	CollectionLogConfig provideConfig(ConfigManager configManager)
