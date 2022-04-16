@@ -195,96 +195,6 @@ public class CollectionLogPlugin extends Plugin
 		chatCommandManager.registerCommandAsync(COLLECTION_LOG_COMMAND_STRING, this::collectionLogLookup);
 	}
 
-	private void collectionLogLookup(ChatMessage chatMessage, String message)
-	{
-		JsonObject collectionLogJson;
-		try
-		{
-			collectionLogJson = apiClient.getCollectionLog(sanitize(chatMessage.getName()));
-		}
-		catch (IOException | NullPointerException e)
-		{
-			log.debug("username has no collection log data");
-			log.error(String.valueOf(e));
-			return;
-		}
-		// Todo this should live in api client
-		CollectionLog collectionLog = new GsonBuilder()
-				.registerTypeAdapter(CollectionLog.class, new CollectionLogDeserilizer())
-				.create()
-				.fromJson(collectionLogJson, CollectionLog.class);
-
-		String[] commands = message.split("\\s+", 2);
-		if (commands.length != 2)
-		{
-			log.debug("Missing page argument");
-			return;
-		}
-
-		String logPageCommand = CollectionLogPage.aliasPageName(commands[1]);
-
-		CollectionLogPage collectionLogPage = collectionLog.searchForPage(logPageCommand);
-		if (collectionLogPage == null)
-		{
-			log.debug("No Collection Log page found");
-			return;
-		}
-		clientThread.invoke(() ->
-		{
-			loadPageIcons(collectionLogPage.getItems());
-
-			StringBuilder replacementMessageBuilder = new StringBuilder();
-			int obtained = 0;
-			for (CollectionLogItem item : collectionLogPage.getItems())
-			{
-				if (!item.isObtained())
-				{
-					continue;
-				}
-				obtained++;
-
-				String itemReplace = "<img=" + loadedCollectionLogIcons.get(item.getId()) + ">";
-				if (item.getQuantity() > 1)
-				{
-					itemReplace += "x" + item.getQuantity();
-				}
-				itemReplace += "  ";
-				replacementMessageBuilder.append(itemReplace);
-			}
-			String replacementMessage = collectionLogPage.getName() + ": " + obtained + "/" + collectionLogPage.getItems().size() + " ";
-			replacementMessage += replacementMessageBuilder.toString();
-			chatMessage.getMessageNode().setValue(replacementMessage);
-			client.runScript(ScriptID.BUILD_CHATBOX);
-		});
-	}
-
-	private void loadPageIcons(List<CollectionLogItem> collectionLogItems)
-	{
-		List<CollectionLogItem> itemsToLoad = collectionLogItems
-				.stream()
-				.filter(item -> !loadedCollectionLogIcons.containsKey(item.getId()))
-				.collect(Collectors.toList());
-
-		final IndexedSprite[] modIcons = client.getModIcons();
-
-		final IndexedSprite[] newModIcons = Arrays.copyOf(modIcons, modIcons.length + itemsToLoad.size());
-		int modIconIdx = modIcons.length;
-
-		for (int i = 0; i < itemsToLoad.size(); i++)
-		{
-			final CollectionLogItem item = itemsToLoad.get(i);
-			final ItemComposition itemComposition = itemManager.getItemComposition(item.getId());
-			final BufferedImage image = ImageUtil.resizeImage(itemManager.getImage(itemComposition.getId()), 18, 16);
-			final IndexedSprite sprite = ImageUtil.getImageIndexedSprite(image, client);
-			final int spriteIndex = modIconIdx + i;
-
-			newModIcons[spriteIndex] = sprite;
-			loadedCollectionLogIcons.put(item.getId(), spriteIndex);
-		}
-
-		client.setModIcons(newModIcons);
-	}
-
 	@Override
 	protected void shutDown()
 	{
@@ -1013,6 +923,111 @@ public class CollectionLogPlugin extends Plugin
 		return Arrays.stream(listEntries).anyMatch(listEntry -> {
 			return listEntry.getText().equals(entryName);
 		});
+	}
+
+	/**
+	 * Looks up and then replaces !log chat messages
+	 *
+	 * @param chatMessage The ChatMessage event
+	 * @param message Text of the message
+	 */
+	private void collectionLogLookup(ChatMessage chatMessage, String message)
+	{
+		CollectionLog collectionLog;
+		try
+		{
+			collectionLog = apiClient.getCollectionLog(sanitize(chatMessage.getName()));
+		}
+		catch (IOException | NullPointerException e)
+		{
+			return;
+		}
+
+		String[] commands = message.split("\\s+", 2);
+		if (commands.length != 2)
+		{
+			log.debug("Missing page argument");
+			return;
+		}
+
+		String pageArgument = CollectionLogPage.aliasPageName(commands[1]);
+		CollectionLogPage collectionLogPage = collectionLog.searchForPage(pageArgument);
+		if (collectionLogPage == null)
+		{
+			log.debug("No Collection Log page found");
+			return;
+		}
+		clientThread.invoke(() ->
+		{
+			loadPageIcons(collectionLogPage.getItems());
+			String replacementMessage = buildMessageReplacement(collectionLogPage);
+
+			chatMessage.getMessageNode().setValue(replacementMessage);
+			client.runScript(ScriptID.BUILD_CHATBOX);
+		});
+	}
+
+	/**
+	 * Loads a list of Collection Log items into the client's mod icons.
+	 *
+	 * @param collectionLogItems List of items to load
+	 */
+	private void loadPageIcons(List<CollectionLogItem> collectionLogItems)
+	{
+		List<CollectionLogItem> itemsToLoad = collectionLogItems
+				.stream()
+				.filter(item -> !loadedCollectionLogIcons.containsKey(item.getId()))
+				.collect(Collectors.toList());
+
+		final IndexedSprite[] modIcons = client.getModIcons();
+
+		final IndexedSprite[] newModIcons = Arrays.copyOf(modIcons, modIcons.length + itemsToLoad.size());
+		int modIconIdx = modIcons.length;
+
+		for (int i = 0; i < itemsToLoad.size(); i++)
+		{
+			final CollectionLogItem item = itemsToLoad.get(i);
+			final ItemComposition itemComposition = itemManager.getItemComposition(item.getId());
+			final BufferedImage image = ImageUtil.resizeImage(itemManager.getImage(itemComposition.getId()), 18, 16);
+			final IndexedSprite sprite = ImageUtil.getImageIndexedSprite(image, client);
+			final int spriteIndex = modIconIdx + i;
+
+			newModIcons[spriteIndex] = sprite;
+			loadedCollectionLogIcons.put(item.getId(), spriteIndex);
+		}
+
+		client.setModIcons(newModIcons);
+	}
+
+	/**
+	 * Builds the replacement messages for the !log command
+	 *
+	 * @param collectionLogPage Page to format into a chat message
+	 * @return Replacement message
+	 */
+	private String buildMessageReplacement(CollectionLogPage collectionLogPage)
+	{
+		StringBuilder replacementMessageBuilder = new StringBuilder();
+		int obtained = 0;
+		for (CollectionLogItem item : collectionLogPage.getItems())
+		{
+			if (!item.isObtained())
+			{
+				continue;
+			}
+			obtained++;
+
+			String itemString = "<img=" + loadedCollectionLogIcons.get(item.getId()) + ">";
+			if (item.getQuantity() > 1)
+			{
+				itemString += "x" + item.getQuantity();
+			}
+			itemString += "  ";
+			replacementMessageBuilder.append(itemString);
+		}
+		String replacementMessage = collectionLogPage.getName() + ": " + obtained + "/" + collectionLogPage.getItems().size() + " ";
+		replacementMessage += replacementMessageBuilder.toString();
+		return replacementMessage;
 	}
 
 	/**
