@@ -1,6 +1,7 @@
 package com.evansloan.collectionlog;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -20,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
@@ -27,10 +29,14 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.ItemComposition;
 import net.runelite.api.GameState;
+import net.runelite.api.IndexedSprite;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
+import net.runelite.api.ScriptID;
 import net.runelite.api.WorldType;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.ScriptPostFired;
@@ -40,10 +46,12 @@ import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.Notifier;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
+import static net.runelite.client.util.Text.sanitize;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.ChatCommandManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -53,6 +61,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.ImageUtil;
 
 @Slf4j
 @PluginDescriptor(
@@ -82,6 +91,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_TOTAL_ITEMS_KEY = "total_items";
 	private static final String COLLECTION_LOG_UNIQUE_OBTAINED_KEY = "unique_obtained";
 	private static final String COLLECTION_LOG_UNIQUE_ITEMS_KEY = "unique_items";
+	private static final String COLLECTION_LOG_COMMAND_STRING = "!log";
 
 	private static final int ADVENTURE_LOG_COLLECTION_LOG_SELECTED_VARBIT_ID = 12061;
 	private static final Pattern ADVENTURE_LOG_TITLE_PATTERN = Pattern.compile("The Exploits of (.+)");
@@ -90,6 +100,8 @@ public class CollectionLogPlugin extends Plugin
 	private NavigationButton navigationButton;
 
 	private boolean isPohOwner = false;
+
+	private Map<Integer, Integer> loadedCollectionLogIcons;
 
 	@Getter
 	private JsonObject collectionLogData;
@@ -113,6 +125,9 @@ public class CollectionLogPlugin extends Plugin
 	private ChatMessageManager chatMessageManager;
 
 	@Inject
+	private ChatCommandManager chatCommandManager;
+
+	@Inject
 	private ClientToolbar clientToolbar;
 
 	@Inject
@@ -127,6 +142,9 @@ public class CollectionLogPlugin extends Plugin
 
 	@Inject
 	private CollectionLogApiClient apiClient;
+
+	@Inject
+	private Gson gson;
 
 	@Provides
 	CollectionLogConfig provideConfig(ConfigManager configManager)
@@ -172,7 +190,77 @@ public class CollectionLogPlugin extends Plugin
 				collectionLogPanel.loadLoggedOutState();
 			}
 		}
+		loadedCollectionLogIcons = new HashMap<>();
+		chatCommandManager.registerCommandAsync(COLLECTION_LOG_COMMAND_STRING, this::collectionLogLookup);
+	}
 
+	private void collectionLogLookup(ChatMessage chatMessage, String message)
+	{
+		String[] commands = message.split("\\s+", 3);
+		String logTabCommand = commands[1];
+		String logPageCommand = commands[2];
+
+		JsonObject collectionLogTabs;
+
+		try
+		{
+			JsonObject collectionLog = apiClient.getCollectionLog(sanitize(chatMessage.getName()));
+			collectionLogTabs = collectionLog.get("collection_log").getAsJsonObject().get("tabs").getAsJsonObject();
+		}
+		catch (IOException | NullPointerException e)
+		{
+			log.debug("username has no collection log data");
+			log.error(String.valueOf(e));
+			return;
+		}
+
+		JsonObject collectionLogTab = collectionLogTabs.get(logTabCommand).getAsJsonObject();
+		JsonObject collectionLogPage = collectionLogTab.get(logPageCommand).getAsJsonObject();
+		JsonArray items = collectionLogPage.get("items").getAsJsonArray();
+
+		List<CollectionLogItem> collectionLogItems = new ArrayList<>();
+		for (JsonElement item : items)
+		{
+			CollectionLogItem newItem = gson.fromJson(item, CollectionLogItem.class);
+			collectionLogItems.add(newItem);
+		}
+		clientThread.invoke(() ->
+		{
+			loadPageIcons(collectionLogItems);
+
+			StringBuilder replacementMessageBuilder = new StringBuilder(logPageCommand + ": ");
+			for (CollectionLogItem item : collectionLogItems)
+			{
+				String itemReplace = "<img=" + loadedCollectionLogIcons.get(item.getId()) + ">x" + item.getQuantity() + "   ";
+				replacementMessageBuilder.append(itemReplace);
+			}
+			String replacementMessage = replacementMessageBuilder.toString();
+			chatMessage.getMessageNode().setValue(replacementMessage);
+			client.runScript(ScriptID.BUILD_CHATBOX);
+		});
+	}
+
+	private void loadPageIcons(List<CollectionLogItem> collectionLogItems)
+	{
+		List<CollectionLogItem> itemsToLoad = collectionLogItems.stream().filter(item -> !loadedCollectionLogIcons.containsKey(item.getId())).collect(Collectors.toList());
+		final IndexedSprite[] modIcons = client.getModIcons();
+
+		final IndexedSprite[] newModIcons = Arrays.copyOf(modIcons, modIcons.length + itemsToLoad.size());
+		int modIconIdx = modIcons.length;
+
+		for (int i = 0; i < itemsToLoad.size(); i++)
+		{
+			final CollectionLogItem item = itemsToLoad.get(i);
+			final ItemComposition itemComposition = itemManager.getItemComposition(item.getId());
+			final BufferedImage image = ImageUtil.resizeImage(itemManager.getImage(itemComposition.getId()), 18, 16);
+			final IndexedSprite sprite = ImageUtil.getImageIndexedSprite(image, client);
+			final int spriteIndex = modIconIdx + i;
+
+			newModIcons[spriteIndex] = sprite;
+			loadedCollectionLogIcons.put(item.getId(), spriteIndex);
+		}
+
+		client.setModIcons(newModIcons);
 	}
 
 	@Override
