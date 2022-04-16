@@ -2,6 +2,7 @@ package com.evansloan.collectionlog;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -196,16 +197,10 @@ public class CollectionLogPlugin extends Plugin
 
 	private void collectionLogLookup(ChatMessage chatMessage, String message)
 	{
-		String[] commands = message.split("\\s+", 3);
-		String logTabCommand = commands[1];
-		String logPageCommand = commands[2];
-
-		JsonObject collectionLogTabs;
-
+		JsonObject collectionLogJson;
 		try
 		{
-			JsonObject collectionLog = apiClient.getCollectionLog(sanitize(chatMessage.getName()));
-			collectionLogTabs = collectionLog.get("collection_log").getAsJsonObject().get("tabs").getAsJsonObject();
+			collectionLogJson = apiClient.getCollectionLog(sanitize(chatMessage.getName()));
 		}
 		catch (IOException | NullPointerException e)
 		{
@@ -213,28 +208,51 @@ public class CollectionLogPlugin extends Plugin
 			log.error(String.valueOf(e));
 			return;
 		}
+		// Todo this should live in api client
+		CollectionLog collectionLog = new GsonBuilder()
+				.registerTypeAdapter(CollectionLog.class, new CollectionLogDeserilizer())
+				.create()
+				.fromJson(collectionLogJson, CollectionLog.class);
 
-		JsonObject collectionLogTab = collectionLogTabs.get(logTabCommand).getAsJsonObject();
-		JsonObject collectionLogPage = collectionLogTab.get(logPageCommand).getAsJsonObject();
-		JsonArray items = collectionLogPage.get("items").getAsJsonArray();
-
-		List<CollectionLogItem> collectionLogItems = new ArrayList<>();
-		for (JsonElement item : items)
+		String[] commands = message.split("\\s+", 2);
+		if (commands.length != 2)
 		{
-			CollectionLogItem newItem = gson.fromJson(item, CollectionLogItem.class);
-			collectionLogItems.add(newItem);
+			log.debug("Missing page argument");
+			return;
+		}
+
+		String logPageCommand = CollectionLogPage.aliasPageName(commands[1]);
+
+		CollectionLogPage collectionLogPage = collectionLog.searchForPage(logPageCommand);
+		if (collectionLogPage == null)
+		{
+			log.debug("No Collection Log page found");
+			return;
 		}
 		clientThread.invoke(() ->
 		{
-			loadPageIcons(collectionLogItems);
+			loadPageIcons(collectionLogPage.getItems());
 
-			StringBuilder replacementMessageBuilder = new StringBuilder(logPageCommand + ": ");
-			for (CollectionLogItem item : collectionLogItems)
+			StringBuilder replacementMessageBuilder = new StringBuilder();
+			int obtained = 0;
+			for (CollectionLogItem item : collectionLogPage.getItems())
 			{
-				String itemReplace = "<img=" + loadedCollectionLogIcons.get(item.getId()) + ">x" + item.getQuantity() + "   ";
+				if (!item.isObtained())
+				{
+					continue;
+				}
+				obtained++;
+
+				String itemReplace = "<img=" + loadedCollectionLogIcons.get(item.getId()) + ">";
+				if (item.getQuantity() > 1)
+				{
+					itemReplace += "x" + item.getQuantity();
+				}
+				itemReplace += "  ";
 				replacementMessageBuilder.append(itemReplace);
 			}
-			String replacementMessage = replacementMessageBuilder.toString();
+			String replacementMessage = collectionLogPage.getName() + ": " + obtained + "/" + collectionLogPage.getItems().size() + " ";
+			replacementMessage += replacementMessageBuilder.toString();
 			chatMessage.getMessageNode().setValue(replacementMessage);
 			client.runScript(ScriptID.BUILD_CHATBOX);
 		});
@@ -242,7 +260,11 @@ public class CollectionLogPlugin extends Plugin
 
 	private void loadPageIcons(List<CollectionLogItem> collectionLogItems)
 	{
-		List<CollectionLogItem> itemsToLoad = collectionLogItems.stream().filter(item -> !loadedCollectionLogIcons.containsKey(item.getId())).collect(Collectors.toList());
+		List<CollectionLogItem> itemsToLoad = collectionLogItems
+				.stream()
+				.filter(item -> !loadedCollectionLogIcons.containsKey(item.getId()))
+				.collect(Collectors.toList());
+
 		final IndexedSprite[] modIcons = client.getModIcons();
 
 		final IndexedSprite[] newModIcons = Arrays.copyOf(modIcons, modIcons.length + itemsToLoad.size());
