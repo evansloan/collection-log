@@ -9,6 +9,21 @@ import java.util.Map;
 public class CollectionLog
 {
     @Getter
+    private final String username;
+
+    @Getter
+    private final int totalObtained;
+
+    @Getter
+    private final int totalItems;
+
+    @Getter
+    private final int uniqueObtained;
+
+    @Getter
+    private final int uniqueItems;
+
+    @Getter
     private final Map<String, CollectionLogTab> tabs;
 
     public CollectionLogPage searchForPage(String pageName)
@@ -26,6 +41,30 @@ public class CollectionLog
                 {
                     return page;
                 }
+            }
+        }
+        return null;
+    }
+
+    public CollectionLogPage randomPage()
+    {
+        int pageCount = 0;
+        for (CollectionLogTab tab : tabs.values())
+        {
+            pageCount += tab.getPages().size();
+        }
+
+        int randomIndex = (int) (Math.random() * pageCount);
+        int index = 0;
+        for (CollectionLogTab tab : tabs.values())
+        {
+            for (CollectionLogPage page : tab.getPages().values())
+            {
+                if (index == randomIndex)
+                {
+                    return page;
+                }
+                index++;
             }
         }
         return null;

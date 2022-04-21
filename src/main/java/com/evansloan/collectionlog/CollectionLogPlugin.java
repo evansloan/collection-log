@@ -199,6 +199,7 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		clientToolbar.removeNavigation(navigationButton);
+		loadedCollectionLogIcons.clear();
 	}
 
 	@Subscribe
@@ -933,29 +934,46 @@ public class CollectionLogPlugin extends Plugin
 		{
 			collectionLog = apiClient.getCollectionLog(sanitize(chatMessage.getName()));
 		}
-		catch (IOException | NullPointerException e)
+		catch (IOException e)
 		{
-			return;
-		}
-
-		String[] commands = message.split("\\s+", 2);
-		if (commands.length != 2)
-		{
-			log.debug("Missing page argument");
-			return;
-		}
-
-		String pageArgument = CollectionLogPage.aliasPageName(commands[1]);
-		CollectionLogPage collectionLogPage = collectionLog.searchForPage(pageArgument);
-		if (collectionLogPage == null)
-		{
-			log.debug("No Collection Log page found");
 			return;
 		}
 		clientThread.invoke(() ->
 		{
-			loadPageIcons(collectionLogPage.getItems());
-			String replacementMessage = buildMessageReplacement(collectionLogPage);
+			String replacementMessage;
+
+			String[] commands = message.split("\\s+", 2);
+			if (collectionLog == null)
+			{
+				replacementMessage = "No Collection Log data found for user.";
+			}
+			else if (commands.length == 1)
+			{
+				replacementMessage = "Collection Log: " + collectionLog.getUniqueObtained() + "/" + collectionLog.getUniqueItems();
+			}
+			else
+			{
+				String pageArgument = CollectionLogPage.aliasPageName(commands[1]);
+				CollectionLogPage collectionLogPage;
+				if (pageArgument.equals("any"))
+				{
+					collectionLogPage = collectionLog.randomPage();
+				}
+				else
+				{
+					collectionLogPage = collectionLog.searchForPage(pageArgument);
+				}
+
+				if (collectionLogPage == null)
+				{
+					replacementMessage = "No Collection Log page found.";
+				}
+				else
+				{
+					loadPageIcons(collectionLogPage.getItems());
+					replacementMessage = buildMessageReplacement(collectionLogPage);
+				}
+			}
 
 			chatMessage.getMessageNode().setValue(replacementMessage);
 			client.runScript(ScriptID.BUILD_CHATBOX);
@@ -995,14 +1013,14 @@ public class CollectionLogPlugin extends Plugin
 	}
 
 	/**
-	 * Builds the replacement messages for the !log command
+	 * Builds the replacement messages for the !log command with a page argument
 	 *
 	 * @param collectionLogPage Page to format into a chat message
 	 * @return Replacement message
 	 */
 	private String buildMessageReplacement(CollectionLogPage collectionLogPage)
 	{
-		StringBuilder replacementMessageBuilder = new StringBuilder();
+		StringBuilder itemBuilder = new StringBuilder();
 		int obtained = 0;
 		for (CollectionLogItem item : collectionLogPage.getItems())
 		{
@@ -1018,10 +1036,12 @@ public class CollectionLogPlugin extends Plugin
 				itemString += "x" + item.getQuantity();
 			}
 			itemString += "  ";
-			replacementMessageBuilder.append(itemString);
+			itemBuilder.append(itemString);
 		}
+
 		String replacementMessage = collectionLogPage.getName() + ": " + obtained + "/" + collectionLogPage.getItems().size() + " ";
-		replacementMessage += replacementMessageBuilder.toString();
+		replacementMessage += itemBuilder.toString();
+
 		return replacementMessage;
 	}
 

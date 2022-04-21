@@ -12,34 +12,50 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CollectionLogDeserilizer implements JsonDeserializer
+public class CollectionLogDeserilizer implements JsonDeserializer<CollectionLog>
 {
     @Override
     public CollectionLog deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
     {
         Gson gson = new Gson();
-        JsonObject jsonObject = json.getAsJsonObject();
-
-        jsonObject = jsonObject.get("collection_log").getAsJsonObject().get("tabs").getAsJsonObject();
+        JsonObject jsonObjectLog = json.getAsJsonObject().get("collection_log").getAsJsonObject();
+        JsonObject jsonObjectTabs  = jsonObjectLog.get("tabs").getAsJsonObject();
 
         Map<String, CollectionLogTab> newTabs = new HashMap<>();
-        for (String tabKey : jsonObject.keySet())
+        for (String tabKey : jsonObjectTabs.keySet())
         {
+            JsonObject tab = jsonObjectTabs.get(tabKey).getAsJsonObject();
             Map<String, CollectionLogPage> newPages = new HashMap<>();
-            for (String pageKey : jsonObject.get(tabKey).getAsJsonObject().keySet())
+
+            for (String pageKey : tab.keySet())
             {
+                JsonObject page = tab.get(pageKey).getAsJsonObject();
                 List<CollectionLogItem> newItems = new ArrayList<>();
-                for (JsonElement item : jsonObject.get(tabKey).getAsJsonObject().get(pageKey).getAsJsonObject().get("items").getAsJsonArray())
+
+                for (JsonElement item : page.get("items").getAsJsonArray())
                 {
                     CollectionLogItem newItem = gson.fromJson(item, CollectionLogItem.class);
                     newItems.add(newItem);
                 }
-                CollectionLogPage newPage = new CollectionLogPage(pageKey, newItems);
+
+                List<CollectionLogKillCount> newKillCounts = new ArrayList<>();
+                for (JsonElement killCount : page.get("kill_count").getAsJsonArray())
+                {
+                    CollectionLogKillCount newKillCount = gson.fromJson(killCount, CollectionLogKillCount.class);
+                    newKillCounts.add(newKillCount);
+                }
+                CollectionLogPage newPage = new CollectionLogPage(pageKey, newItems, newKillCounts);
                 newPages.put(pageKey, newPage);
             }
             CollectionLogTab newTab = new CollectionLogTab(tabKey, newPages);
             newTabs.put(tabKey, newTab);
         }
-        return new CollectionLog(newTabs);
+        return new CollectionLog(
+                jsonObjectLog.get("username").getAsString(),
+                jsonObjectLog.get("total_obtained").getAsInt(),
+                jsonObjectLog.get("total_items").getAsInt(),
+                jsonObjectLog.get("unique_obtained").getAsInt(),
+                jsonObjectLog.get("unique_items").getAsInt(),
+                newTabs);
     }
 }

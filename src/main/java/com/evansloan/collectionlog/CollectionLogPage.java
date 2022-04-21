@@ -13,6 +13,9 @@ public class CollectionLogPage
     @Getter
     private final List<CollectionLogItem> items;
 
+    @Getter
+    private final List<CollectionLogKillCount> killCounts;
+
     public static String aliasPageName(String pageName)
     {
         switch (pageName.toLowerCase())
