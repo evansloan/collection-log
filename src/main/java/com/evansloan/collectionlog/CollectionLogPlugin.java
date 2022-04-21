@@ -390,7 +390,7 @@ public class CollectionLogPlugin extends Plugin
 
 		saveCollectionLogDataToFile(false);
 
-		if (config.uploadCollectionLog())
+		if (config.allowApiConnections())
 		{
 			String username = client.getLocalPlayer().getName();
 			String accountType = client.getAccountType().toString();

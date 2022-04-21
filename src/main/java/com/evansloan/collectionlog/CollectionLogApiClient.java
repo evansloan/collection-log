@@ -176,7 +176,7 @@ public class CollectionLogApiClient
 
 	private JsonObject apiRequest(Request request) throws IOException
 	{
-		if (!config.uploadCollectionLog())
+		if (!config.allowApiConnections())
 		{
 			return null;
 		}
@@ -188,7 +188,7 @@ public class CollectionLogApiClient
 	}
 
 	private void asyncApiRequest(Request request, Callback callback) {
-		if (!config.uploadCollectionLog())
+		if (!config.allowApiConnections())
 		{
 			return;
 		}
