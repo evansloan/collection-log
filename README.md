@@ -11,11 +11,27 @@ A [Runelite](https://github.com/runelite/runelite) plugin that adds visual impro
 * Custom completed category colors
 * Export collection log data to file
 * Upload collection log data to [collectionlog.net](https://collectionlog.net)
+* Display collection log data in chat with a command
 
 ## Usage
 Open the collection log and click through all the categories to get your total progress.
 
 If the "Upload collection log data to collectionlog.net" config is enabled, your collection log data will be shared on logout to [collectionlog.net](https://collectionlog.net).
+
+### Command
+Either type `!log` to display the total unique items obtained or `!log page name` where page name is the name of the collection page.
+
+The command will try to alias common ways to refer to a piece of content to the correct page, but the full page name will also work.
+
+- `!log cox` -> Chambers of Xeric
+- `!log wt` -> Wintertodt
+- `!log ba` -> Barbarian Assault
+- `!log rooftop` -> Rooftop Agility
+- `!log pets` -> All Pets
+- `!log brim agility` -> Brimhaven Agility Arena
+- `!log shared clues` -> Shared Treasure Trail Rewards
+
+![](https://i.imgur.com/U2C2t1G.gif)
 
 ### Exporting
 

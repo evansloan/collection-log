@@ -1,5 +1,6 @@
 package com.evansloan.collectionlog;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
@@ -119,6 +120,22 @@ public class CollectionLogApiClient
 		return new JsonParser().parse(content).getAsJsonObject();
 	}
 
+	public CollectionLog getCollectionLog(String username) throws IOException
+	{
+		HttpUrl url = new HttpUrl.Builder()
+				.scheme("https")
+				.host(COLLECTION_LOG_API_BASE)
+				.addPathSegment(COLLECTION_LOG_LOG_PATH)
+				.addPathSegment(COLLECTION_LOG_USER_PATH)
+				.addEncodedPathSegment(username)
+				.build();
+
+		return new GsonBuilder()
+				.registerTypeAdapter(CollectionLog.class, new CollectionLogDeserilizer())
+				.create()
+				.fromJson(getRequest(url), CollectionLog.class);
+	}
+
 	private JsonObject getRequest(HttpUrl url) throws IOException
 	{
 		Request request = new Request.Builder()
@@ -159,7 +176,7 @@ public class CollectionLogApiClient
 
 	private JsonObject apiRequest(Request request) throws IOException
 	{
-		if (!config.uploadCollectionLog())
+		if (!config.allowApiConnections())
 		{
 			return null;
 		}
@@ -171,7 +188,7 @@ public class CollectionLogApiClient
 	}
 
 	private void asyncApiRequest(Request request, Callback callback) {
-		if (!config.uploadCollectionLog())
+		if (!config.allowApiConnections())
 		{
 			return;
 		}

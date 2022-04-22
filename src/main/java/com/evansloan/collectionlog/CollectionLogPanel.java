@@ -156,7 +156,7 @@ public class CollectionLogPanel extends PluginPanel
 			(action) -> collectionLogPlugin.getClientThread().invokeLater(collectionLogPlugin::saveCollectionLogData)
 		);
 
-		if (collectionLogPlugin.getConfig().uploadCollectionLog())
+		if (collectionLogPlugin.getConfig().allowApiConnections())
 		{
 			utilityBtnPanel.add(uploadDataBtn, BorderLayout.NORTH);
 		}
