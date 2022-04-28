@@ -33,6 +33,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.IndexedSprite;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
+import net.runelite.api.Player;
 import net.runelite.api.ScriptID;
 import net.runelite.api.WorldType;
 import net.runelite.api.events.ChatMessage;
@@ -930,10 +931,17 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private void collectionLogLookup(ChatMessage chatMessage, String message)
 	{
+		Player localPlayer = client.getLocalPlayer();
+		String username = chatMessage.getName();
+		if (chatMessage.getType().equals(ChatMessageType.PRIVATECHATOUT))
+		{
+			username = localPlayer.getName();
+		}
+
 		CollectionLog collectionLog;
 		try
 		{
-			collectionLog = apiClient.getCollectionLog(sanitize(chatMessage.getName()));
+			collectionLog = apiClient.getCollectionLog(sanitize(username));
 		}
 		catch (IOException e)
 		{
