@@ -199,6 +199,7 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		clientToolbar.removeNavigation(navigationButton);
+		chatCommandManager.unregisterCommand(COLLECTION_LOG_COMMAND_STRING);
 		loadedCollectionLogIcons.clear();
 	}
 
