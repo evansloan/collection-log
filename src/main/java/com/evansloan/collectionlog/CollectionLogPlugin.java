@@ -394,17 +394,26 @@ public class CollectionLogPlugin extends Plugin
 
 		if (config.allowApiConnections())
 		{
-			String username = client.getLocalPlayer().getName();
+			Player localPlayer = client.getLocalPlayer();
+			String username = localPlayer.getName();
+
+			// Jagex launcher does not work with getUserHash()
+			// Fully replace with accountHash in future
+			long accountHash = client.getAccountHash();
 			String accountType = client.getAccountType().toString();
+			// Used to display proper farming outfit on site
+			boolean isFemale = localPlayer.getPlayerComposition().isFemale();
 			JsonObject saveData = collectionLogData; // copy data to prevent sending null on logout
 
 			new Thread(() -> {
 				try
 				{
 					apiClient.createUser(
-							username,
-							accountType,
-							userHash
+						username,
+						accountType,
+						userHash,
+						accountHash,
+						isFemale
 					);
 
 					if (!collectionLogExists())
@@ -842,11 +851,18 @@ public class CollectionLogPlugin extends Plugin
 	 * Create a hashed unique identifier based on user login to
 	 * store alongside collection log data for collectionlog.net.
 	 *
+	 * @deprecated Will be replaced fully with Client::getAccountHash
 	 * @return SHA-256 hashed user login
 	 */
 	private String getUserHash()
 	{
 		String username = client.getUsername();
+
+		if (username.isEmpty())
+		{
+			return null;
+		}
+
 		try
 		{
 			MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
