@@ -296,18 +296,19 @@ public class CollectionLogPlugin extends Plugin
 		if (widgetLoaded.getGroupId() == WidgetID.ADVENTURE_LOG_ID)
 		{
 			Widget adventureLog = client.getWidget(WidgetInfo.ADVENTURE_LOG);
-			if (adventureLog != null)
+			if (adventureLog == null)
 			{
-				// Children are rendered  on tick after widget load. Invoke later to prevent null children on adventure log widget
-				clientThread.invokeLater(() -> {
-					Matcher adventureLogUser = ADVENTURE_LOG_TITLE_PATTERN.matcher(adventureLog.getChild(1).getText());
-					if (adventureLogUser.find())
-					{
-						isPohOwner = adventureLogUser.group(1).equals(client.getLocalPlayer().getName());
-					}
-				});
-
+				return;
 			}
+
+			// Children are rendered on tick after widget load. Invoke later to prevent null children on adventure log widget
+			clientThread.invokeLater(() -> {
+				Matcher adventureLogUser = ADVENTURE_LOG_TITLE_PATTERN.matcher(adventureLog.getChild(1).getText());
+				if (adventureLogUser.find())
+				{
+					isPohOwner = adventureLogUser.group(1).equals(client.getLocalPlayer().getName());
+				}
+			});
 		}
 	}
 
@@ -330,7 +331,7 @@ public class CollectionLogPlugin extends Plugin
 		{
 			COLLECTION_LOG_EXPORT_DIR.mkdir();
 			String fileName = new SimpleDateFormat("'collectionlog-'yyyyMMdd'T'HHmmss'.json'").format(new Date());
-			filePath = COLLECTION_LOG_EXPORT_DIR + File.separator  + fileName;
+			filePath = COLLECTION_LOG_EXPORT_DIR + File.separator + fileName;
 		}
 		else
 		{
