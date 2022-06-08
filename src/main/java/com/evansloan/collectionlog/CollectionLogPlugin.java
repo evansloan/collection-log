@@ -391,20 +391,32 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
+		recalculateTotalCounts();
+
 		saveCollectionLogDataToFile(false);
 
 		if (config.allowApiConnections())
 		{
+			if (client.getAccountHash() == -1)
+			{
+				return;
+			}
+
 			Player localPlayer = client.getLocalPlayer();
 			String username = localPlayer.getName();
 
 			// Jagex launcher does not work with getUserHash()
 			// Fully replace with accountHash in future
-			long accountHash = client.getAccountHash();
+			// Convert to string since API doesn't like long types
+			// in request payload
+			String accountHash = String.valueOf(client.getAccountHash());
 			String accountType = client.getAccountType().toString();
+
 			// Used to display proper farming outfit on site
 			boolean isFemale = localPlayer.getPlayerComposition().isFemale();
-			JsonObject saveData = collectionLogData; // copy data to prevent sending null on logout
+
+			// Copy data to prevent sending null on logout
+			JsonObject saveData = collectionLogData;
 
 			new Thread(() -> {
 				try
@@ -417,13 +429,13 @@ public class CollectionLogPlugin extends Plugin
 						isFemale
 					);
 
-					if (!collectionLogExists())
+					if (!collectionLogExists(accountHash))
 					{
-						apiClient.createCollectionLog(saveData, userHash);
+						apiClient.createCollectionLog(saveData, accountHash);
 					}
 					else
 					{
-						apiClient.updateCollectionLog(saveData, userHash);
+						apiClient.updateCollectionLog(saveData, accountHash);
 					}
 				}
 				catch (IOException e)
@@ -882,11 +894,11 @@ public class CollectionLogPlugin extends Plugin
 	 *
 	 * @return collectionlog.net collection log exists
 	 */
-	private boolean collectionLogExists()
+	private boolean collectionLogExists(String accountHash)
 	{
 		try
 		{
-			return apiClient.getCollectionLogExists(userHash);
+			return apiClient.getCollectionLogExists(accountHash);
 		}
 		catch (IOException e)
 		{

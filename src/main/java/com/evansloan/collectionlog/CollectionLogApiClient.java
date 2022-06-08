@@ -25,7 +25,7 @@ public class CollectionLogApiClient
 	private static final String COLLECTION_LOG_USER_PATH = "user";
 	private static final String COLLECTION_LOG_LOG_PATH = "collectionlog";
 	private static final String COLLECTION_LOG_JSON_KEY = "collection_log";
-	private static final String COLLECTION_LOG_USER_AGENT = "Runelite collection-log/2.1";
+	private static final String COLLECTION_LOG_USER_AGENT = "Runelite collection-log/2.2";
 
 	private static final String COLLECTION_LOG_TEMPLATE_BASE = "api.github.com";
 	private static final String COLLECTION_LOG_TEMPLATE_USER = "gists";
@@ -37,7 +37,7 @@ public class CollectionLogApiClient
 	@Inject
 	private OkHttpClient okHttpClient;
 
-	public void createUser(String username, String accountType, String userHash, long accountHash, boolean isFemale) throws IOException
+	public void createUser(String username, String accountType, String userHash, String accountHash, boolean isFemale) throws IOException
 	{
 		HttpUrl url = new HttpUrl.Builder()
 			.scheme("https")
@@ -47,7 +47,12 @@ public class CollectionLogApiClient
 
 		JsonObject jsonObject = new JsonObject();
 		jsonObject.addProperty("username", username);
-		jsonObject.addProperty("runelite_id", userHash);
+
+		if (userHash != null)
+		{
+			jsonObject.addProperty("runelite_id", userHash);
+		}
+
 		jsonObject.addProperty("account_type", accountType);
 		jsonObject.addProperty("account_hash", accountHash);
 		jsonObject.addProperty("is_female", isFemale);
@@ -55,14 +60,14 @@ public class CollectionLogApiClient
 		postRequest(url, jsonObject);
 	}
 
-	public boolean getCollectionLogExists(String userHash) throws IOException
+	public boolean getCollectionLogExists(String accountHash) throws IOException
 	{
 		HttpUrl url = new HttpUrl.Builder()
 			.scheme("https")
 			.host(COLLECTION_LOG_API_BASE)
 			.addPathSegment(COLLECTION_LOG_LOG_PATH)
 			.addPathSegment("exists")
-			.addPathSegment(userHash)
+			.addPathSegment(accountHash)
 			.build();
 
 		JsonObject response = getRequest(url);
@@ -73,7 +78,7 @@ public class CollectionLogApiClient
 		return response.get("exists").getAsBoolean();
 	}
 
-	public void createCollectionLog(JsonObject collectionLogData, String userHash) throws IOException
+	public void createCollectionLog(JsonObject collectionLogData, String accountHash) throws IOException
 	{
 		HttpUrl url = new HttpUrl.Builder()
 			.scheme("https")
@@ -83,19 +88,18 @@ public class CollectionLogApiClient
 
 		JsonObject newCollectionLog = new JsonObject();
 		newCollectionLog.add(COLLECTION_LOG_JSON_KEY, collectionLogData);
-		newCollectionLog.addProperty("runelite_id", userHash);
+		newCollectionLog.addProperty("runelite_id", accountHash);
 
-		JsonObject response = postRequest(url, newCollectionLog);
-		response.get(COLLECTION_LOG_JSON_KEY).getAsJsonObject();
+		postRequest(url, newCollectionLog);
 	}
 
-	public void updateCollectionLog(JsonObject collectionLogData, String userHash) throws IOException
+	public void updateCollectionLog(JsonObject collectionLogData, String accountHash) throws IOException
 	{
 		HttpUrl url = new HttpUrl.Builder()
 			.scheme("https")
 			.host(COLLECTION_LOG_API_BASE)
 			.addPathSegment(COLLECTION_LOG_LOG_PATH)
-			.addPathSegment(userHash)
+			.addPathSegment(accountHash)
 			.build();
 
 		JsonObject logData = new JsonObject();
@@ -125,12 +129,12 @@ public class CollectionLogApiClient
 	public CollectionLog getCollectionLog(String username) throws IOException
 	{
 		HttpUrl url = new HttpUrl.Builder()
-				.scheme("https")
-				.host(COLLECTION_LOG_API_BASE)
-				.addPathSegment(COLLECTION_LOG_LOG_PATH)
-				.addPathSegment(COLLECTION_LOG_USER_PATH)
-				.addEncodedPathSegment(username)
-				.build();
+			.scheme("https")
+			.host(COLLECTION_LOG_API_BASE)
+			.addPathSegment(COLLECTION_LOG_LOG_PATH)
+			.addPathSegment(COLLECTION_LOG_USER_PATH)
+			.addEncodedPathSegment(username)
+			.build();
 
 		return new GsonBuilder()
 				.registerTypeAdapter(CollectionLog.class, new CollectionLogDeserilizer())
