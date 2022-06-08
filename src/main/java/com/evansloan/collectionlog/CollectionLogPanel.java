@@ -81,7 +81,7 @@ public class CollectionLogPanel extends PluginPanel
 		JButton discordBtn = createTitleButton(
 			DISCORD_ICON,
 			"Join the Log Hunters Discord Server",
-			"https://discord.gg/cFVa9BRSEN"
+			"https://discord.gg/loghunters"
 		);
 		infoButtons.add(discordBtn);
 
