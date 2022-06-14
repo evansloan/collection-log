@@ -182,6 +182,10 @@ public class CollectionLogPanel extends PluginPanel
 	private void loadMissingEntries()
 	{
 		List<String> missingEntries = collectionLogPlugin.findMissingEntries();
+		if (missingEntries == null)
+		{
+			return;
+		}
 
 		if (missingEntries.size() == 0)
 		{

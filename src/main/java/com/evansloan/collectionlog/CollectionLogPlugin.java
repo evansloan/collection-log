@@ -1107,6 +1107,11 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	public void recalculateTotalCounts()
 	{
+		if (collectionLogTemplate == null)
+		{
+			return;
+		}
+
 		int newObtained = 0;
 		int newTotal = 0;
 		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
@@ -1145,6 +1150,18 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	public List<String> findMissingEntries()
 	{
+		if (collectionLogTemplate == null)
+		{
+			try
+			{
+				collectionLogTemplate = apiClient.getCollectionLogTemplate();
+			}
+			catch (IOException e)
+			{
+				return null;
+			}
+		}
+
 		List<String> missingEntries = new ArrayList<>();
 
 		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
