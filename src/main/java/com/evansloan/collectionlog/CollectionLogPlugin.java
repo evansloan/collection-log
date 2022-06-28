@@ -167,8 +167,6 @@ public class CollectionLogPlugin extends Plugin
 
 		if (config.showCollectionLogSidePanel())
 		{
-			final BufferedImage toolbarIcon = Icon.COLLECTION_LOG_TOOLBAR.getImage();
-
 			createUIIfNotCreatedBefore();
 			clientToolbar.addNavigation(navigationButton);
 
@@ -190,6 +188,7 @@ public class CollectionLogPlugin extends Plugin
 			collectionLogPanel = new CollectionLogPanel(this);
 		}
 		if(navigationButton == null) {
+			final BufferedImage toolbarIcon = Icon.COLLECTION_LOG_TOOLBAR.getImage();
 			navigationButton = NavigationButton.builder()
 				.tooltip("Collection Log")
 				.icon(toolbarIcon)
