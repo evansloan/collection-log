@@ -419,10 +419,6 @@ public class CollectionLogPlugin extends Plugin
 			Player localPlayer = client.getLocalPlayer();
 			String username = localPlayer.getName();
 
-			// Jagex launcher does not work with getUserHash()
-			// Fully replace with accountHash in future
-			// Convert to string since API doesn't like long types
-			// in request payload
 			String accountHash = String.valueOf(client.getAccountHash());
 			String accountType = client.getAccountType().toString();
 
@@ -438,7 +434,6 @@ public class CollectionLogPlugin extends Plugin
 					apiClient.createUser(
 						username,
 						accountType,
-						userHash,
 						accountHash,
 						isFemale
 					);
@@ -876,35 +871,6 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		return null;
-	}
-
-	/**
-	 * Create a hashed unique identifier based on user login to
-	 * store alongside collection log data for collectionlog.net.
-	 *
-	 * @deprecated Will be replaced fully with Client::getAccountHash
-	 * @return SHA-256 hashed user login
-	 */
-	private String getUserHash()
-	{
-		String username = client.getUsername();
-
-		if (username.isEmpty())
-		{
-			return null;
-		}
-
-		try
-		{
-			MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-			byte[] hash = messageDigest.digest(username.getBytes(StandardCharsets.UTF_8));
-			return Base64.getEncoder().encodeToString(hash).replace('/', '-');
-		}
-		catch (NoSuchAlgorithmException e)
-		{
-			log.warn("Error creating userHash");
-			return null;
-		}
 	}
 
 	/**

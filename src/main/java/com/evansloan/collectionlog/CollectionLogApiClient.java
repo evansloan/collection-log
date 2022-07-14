@@ -37,7 +37,7 @@ public class CollectionLogApiClient
 	@Inject
 	private OkHttpClient okHttpClient;
 
-	public void createUser(String username, String accountType, String userHash, String accountHash, boolean isFemale) throws IOException
+	public void createUser(String username, String accountType, String accountHash, boolean isFemale) throws IOException
 	{
 		HttpUrl url = new HttpUrl.Builder()
 			.scheme("https")
@@ -47,12 +47,6 @@ public class CollectionLogApiClient
 
 		JsonObject jsonObject = new JsonObject();
 		jsonObject.addProperty("username", username);
-
-		if (userHash != null)
-		{
-			jsonObject.addProperty("runelite_id", userHash);
-		}
-
 		jsonObject.addProperty("account_type", accountType);
 		jsonObject.addProperty("account_hash", accountHash);
 		jsonObject.addProperty("is_female", isFemale);
