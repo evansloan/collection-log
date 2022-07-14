@@ -167,15 +167,7 @@ public class CollectionLogPlugin extends Plugin
 
 		if (config.showCollectionLogSidePanel())
 		{
-			final BufferedImage toolbarIcon = Icon.COLLECTION_LOG_TOOLBAR.getImage();
-
-			collectionLogPanel = new CollectionLogPanel(this);
-			navigationButton = NavigationButton.builder()
-				.tooltip("Collection Log")
-				.icon(toolbarIcon)
-				.panel(collectionLogPanel)
-				.priority(10)
-				.build();
+			createUIIfNotCreatedBefore();
 			clientToolbar.addNavigation(navigationButton);
 
 			if (client.getGameState() == GameState.LOGGED_IN)
@@ -189,6 +181,21 @@ public class CollectionLogPlugin extends Plugin
 		}
 		loadedCollectionLogIcons = new HashMap<>();
 		chatCommandManager.registerCommandAsync(COLLECTION_LOG_COMMAND_STRING, this::collectionLogLookup);
+	}
+	
+	private void createUIIfNotCreatedBefore() {
+		if(collectionLogPanel == null) {
+			collectionLogPanel = new CollectionLogPanel(this);
+		}
+		if(navigationButton == null) {
+			final BufferedImage toolbarIcon = Icon.COLLECTION_LOG_TOOLBAR.getImage();
+			navigationButton = NavigationButton.builder()
+				.tooltip("Collection Log")
+				.icon(toolbarIcon)
+				.panel(collectionLogPanel)
+				.priority(10)
+				.build();
+		}
 	}
 
 	@Override
@@ -211,20 +218,23 @@ public class CollectionLogPlugin extends Plugin
 		{
 			return;
 		}
-
-		if (configChanged.getKey().equals("upload_collection_log"))
-		{
-			collectionLogPanel.loadLoggedInState();
+		if(collectionLogPanel != null) {
+			if (configChanged.getKey().equals("upload_collection_log"))
+			{
+				collectionLogPanel.loadLoggedInState();
+			}
 		}
 
 		if (configChanged.getKey().equals("show_collection_log_panel"))
 		{
-			if (configChanged.getNewValue().equals("false"))
+			if (configChanged.getNewValue().equals("false") && navigationButton != null)
 			{
 				clientToolbar.removeNavigation(navigationButton);
 			}
 			else
-			{
+			{	if(navigationButton == null) {
+					createUIIfNotCreatedBefore();
+				}
 				clientToolbar.addNavigation(navigationButton);
 			}
 		}
@@ -241,7 +251,9 @@ public class CollectionLogPlugin extends Plugin
 		if (gameStateChanged.getGameState() == GameState.LOGGING_IN)
 		{
 			userHash = getUserHash();
-			SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedInState());
+			if(collectionLogPanel != null) {
+				SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedInState());
+			}
 		}
 
 		if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN ||
@@ -249,7 +261,9 @@ public class CollectionLogPlugin extends Plugin
 		{
 			saveCollectionLogData();
 			collectionLogData = null;
-			SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedOutState());
+			if(collectionLogPanel != null) {
+				SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedOutState());
+			}
 		}
 	}
 
@@ -524,8 +538,10 @@ public class CollectionLogPlugin extends Plugin
 		{
 			loadCollectionLogData();
 		}
-
-		SwingUtilities.invokeLater(() -> collectionLogPanel.loadLogOpenedState());
+		
+		if(collectionLogPanel != null) {
+			SwingUtilities.invokeLater(() -> collectionLogPanel.loadLogOpenedState());
+		}
 
 		String activeTabName = getActiveTabName();
 		if (activeTabName == null)
@@ -698,8 +714,10 @@ public class CollectionLogPlugin extends Plugin
 		updateTotalItems();
 		setCollectionLogTitle();
 		highlightEntries();
-
-		SwingUtilities.invokeLater(() -> collectionLogPanel.updateMissingEntriesList());
+		
+		if(collectionLogPanel != null) {
+			SwingUtilities.invokeLater(() -> collectionLogPanel.updateMissingEntriesList());
+		}
 	}
 
 	private void setCollectionLogTitle()
