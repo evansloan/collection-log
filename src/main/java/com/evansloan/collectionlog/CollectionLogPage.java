@@ -287,6 +287,10 @@ public class CollectionLogPage
             case "fishing trawler":
             case "trawler":
                 return "Fishing Trawler";
+            case "giants' foundry":
+            case "giants foundry":
+            case "foundry":
+                return "Giants' Foundry";
             case "gnome restaurant":
             case "gnome":
             case "restaurant":
