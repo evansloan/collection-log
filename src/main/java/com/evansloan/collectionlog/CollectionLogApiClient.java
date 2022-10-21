@@ -131,9 +131,9 @@ public class CollectionLogApiClient
 			.build();
 
 		return new GsonBuilder()
-				.registerTypeAdapter(CollectionLog.class, new CollectionLogDeserilizer())
-				.create()
-				.fromJson(getRequest(url), CollectionLog.class);
+			.registerTypeAdapter(CollectionLog.class, new CollectionLogDeserializer())
+			.create()
+			.fromJson(getRequest(url), CollectionLog.class);
 	}
 
 	private JsonObject getRequest(HttpUrl url) throws IOException

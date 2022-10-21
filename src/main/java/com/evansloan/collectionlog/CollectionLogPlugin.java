@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.inject.Provides;
@@ -13,9 +14,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -72,6 +70,7 @@ import net.runelite.client.util.ImageUtil;
 public class CollectionLogPlugin extends Plugin
 {
 	private static final String CONFIG_GROUP = "collectionlog";
+	private static final String CONFIG_SHOW_PANEL = "show_collection_log_panel";
 
 	private static final int COLLECTION_LOG_CONTAINER = 1;
 	private static final int COLLECTION_LOG_DRAW_LIST_SCRIPT_ID = 2730;
@@ -108,8 +107,6 @@ public class CollectionLogPlugin extends Plugin
 
 	@Getter
 	private JsonObject collectionLogTemplate;
-
-	private String userHash;
 
 	@Inject
 	private Client client;
@@ -164,38 +161,33 @@ public class CollectionLogPlugin extends Plugin
 			configManager.unsetConfiguration(CONFIG_GROUP, "total_items");
 		}
 
-
 		if (config.showCollectionLogSidePanel())
 		{
-			createUIIfNotCreatedBefore();
-			clientToolbar.addNavigation(navigationButton);
-
-			if (client.getGameState() == GameState.LOGGED_IN)
-			{
-				collectionLogPanel.loadLoggedInState();
-			}
-			else
-			{
-				collectionLogPanel.loadLoggedOutState();
-			}
+			initPanel();
 		}
 		loadedCollectionLogIcons = new HashMap<>();
 		chatCommandManager.registerCommandAsync(COLLECTION_LOG_COMMAND_STRING, this::collectionLogLookup);
 	}
 	
-	private void createUIIfNotCreatedBefore() {
-		if(collectionLogPanel == null) {
+	private void initPanel() {
+		if (collectionLogPanel == null)
+		{
 			collectionLogPanel = new CollectionLogPanel(this);
 		}
-		if(navigationButton == null) {
-			final BufferedImage toolbarIcon = Icon.COLLECTION_LOG_TOOLBAR.getImage();
+
+		if (navigationButton == null)
+		{
+			final BufferedImage navigationButtonIcon = Icon.COLLECTION_LOG_TOOLBAR.getImage();
 			navigationButton = NavigationButton.builder()
-				.tooltip("Collection Log")
-				.icon(toolbarIcon)
+				.tooltip(COLLECTION_LOG_TITLE)
+				.icon(navigationButtonIcon)
 				.panel(collectionLogPanel)
 				.priority(10)
 				.build();
 		}
+
+		clientToolbar.addNavigation(navigationButton);
+		SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedInState());
 	}
 
 	@Override
@@ -218,25 +210,16 @@ public class CollectionLogPlugin extends Plugin
 		{
 			return;
 		}
-		if(collectionLogPanel != null) {
-			if (configChanged.getKey().equals("upload_collection_log"))
-			{
-				collectionLogPanel.loadLoggedInState();
-			}
-		}
 
-		if (configChanged.getKey().equals("show_collection_log_panel"))
+		if (configChanged.getKey().equals(CONFIG_SHOW_PANEL))
 		{
-			if (configChanged.getNewValue().equals("false") && navigationButton != null)
+			if (configChanged.getNewValue().equals("true"))
 			{
-				clientToolbar.removeNavigation(navigationButton);
+				initPanel();
+				return;
 			}
-			else
-			{	if(navigationButton == null) {
-					createUIIfNotCreatedBefore();
-				}
-				clientToolbar.addNavigation(navigationButton);
-			}
+
+			clientToolbar.removeNavigation(navigationButton);
 		}
 	}
 
@@ -248,21 +231,15 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		if (gameStateChanged.getGameState() == GameState.LOGGING_IN)
-		{
-			userHash = getUserHash();
-			if(collectionLogPanel != null) {
-				SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedInState());
-			}
-		}
-
 		if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN ||
 			gameStateChanged.getGameState() == GameState.HOPPING)
 		{
 			saveCollectionLogData();
 			collectionLogData = null;
-			if(collectionLogPanel != null) {
-				SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedOutState());
+
+			if (config.showCollectionLogSidePanel())
+			{
+				SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedInState());
 			}
 		}
 	}
@@ -406,7 +383,6 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		recalculateTotalCounts();
-
 		saveCollectionLogDataToFile(false);
 
 		if (config.allowApiConnections())
@@ -473,11 +449,18 @@ public class CollectionLogPlugin extends Plugin
 		JsonArray items = new JsonArray();
 		for (Widget widgetItem : widgetItems)
 		{
+			boolean isObtained = widgetItem.getOpacity() == 0;
+			if (isObtained && config.showQuantityForAllObtainedItems())
+			{
+				widgetItem.setItemQuantityMode(1);
+				widgetItem.revalidate();
+			}
+
 			JsonObject item = new JsonObject();
 			item.addProperty("id", widgetItem.getItemId());
 			item.addProperty("name", itemManager.getItemComposition(widgetItem.getItemId()).getName());
-			item.addProperty("quantity", widgetItem.getOpacity() == 0 ? widgetItem.getItemQuantity() : 0);
-			item.addProperty("obtained", widgetItem.getOpacity() == 0);
+			item.addProperty("quantity", isObtained ? widgetItem.getItemQuantity() : 0);
+			item.addProperty("obtained", isObtained);
 			items.add(item);
 		}
 
@@ -787,7 +770,7 @@ public class CollectionLogPlugin extends Plugin
 			reader.close();
 			collectionLogTemplate = apiClient.getCollectionLogTemplate();
 		}
-		catch (IOException e)
+		catch (IOException | JsonParseException e)
 		{
 			collectionLogData = new JsonObject();
 			collectionLogData.addProperty(COLLECTION_LOG_TOTAL_OBTAINED_KEY, 0);

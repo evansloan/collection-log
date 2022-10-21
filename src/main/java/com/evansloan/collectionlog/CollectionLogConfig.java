@@ -89,13 +89,24 @@ public interface CollectionLogConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "show_collection_log_panel",
-			name = "Show the collection log side panel",
-			description = "Show the collection log side panel",
-			position = 8
+		keyName = "show_collection_log_panel",
+		name = "Show the collection log side panel",
+		description = "Show the collection log side panel",
+		position = 8
 	)
 	default boolean showCollectionLogSidePanel()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+		keyName = "show_quantity_for_all_obtained_items",
+		name = "Show quantity for all obtained items",
+		description = "Show the quantity of items where only one has been obtained",
+		position = 9
+	)
+	default boolean showQuantityForAllObtainedItems()
+	{
+		return false;
 	}
 }

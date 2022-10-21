@@ -103,21 +103,6 @@ public class CollectionLogPanel extends PluginPanel
 		add(missingEntriesPanel, BorderLayout.CENTER);
 	}
 
-	public void loadLoggedOutState()
-	{
-		missingEntriesPanel.removeAll();
-
-		JTextArea logInMessage = createTextArea("Log in to view collection log information");
-		missingEntriesPanel.add(logInMessage, BorderLayout.NORTH);
-
-		missingEntriesPanel.repaint();
-		missingEntriesPanel.revalidate();
-
-		utilityBtnPanel.removeAll();
-		utilityBtnPanel.repaint();
-		utilityBtnPanel.revalidate();
-	}
-
 	public void loadLoggedInState()
 	{
 		missingEntriesPanel.removeAll();
@@ -137,7 +122,7 @@ public class CollectionLogPanel extends PluginPanel
 	{
 		missingEntriesPanel.removeAll();
 
-		JTextArea instructions = createTextArea("Click through each entry in the collection log to save your current progress.");
+		JTextArea instructions = createTextArea("Click through each page in the collection log to save your current progress.");
 		missingEntriesPanel.add(instructions, BorderLayout.NORTH);
 
 		loadMissingEntries();

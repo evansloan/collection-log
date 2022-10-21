@@ -12,13 +12,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CollectionLogDeserilizer implements JsonDeserializer<CollectionLog>
+public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog>
 {
     @Override
     public CollectionLog deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
     {
         Gson gson = new Gson();
-        JsonObject jsonObjectLog = json.getAsJsonObject().get("collection_log").getAsJsonObject();
+        JsonObject jsonObjectLog = json.getAsJsonObject().get("collectionLog").getAsJsonObject();
         JsonObject jsonObjectTabs  = jsonObjectLog.get("tabs").getAsJsonObject();
 
         Map<String, CollectionLogTab> newTabs = new HashMap<>();
@@ -39,10 +39,15 @@ public class CollectionLogDeserilizer implements JsonDeserializer<CollectionLog>
                 }
 
                 List<CollectionLogKillCount> newKillCounts = new ArrayList<>();
-                for (JsonElement killCount : page.get("kill_count").getAsJsonArray())
+                JsonElement pageKillCounts = page.get("killCount");
+
+                if (pageKillCounts != null)
                 {
-                    CollectionLogKillCount newKillCount = gson.fromJson(killCount, CollectionLogKillCount.class);
-                    newKillCounts.add(newKillCount);
+                    for (JsonElement killCount : pageKillCounts.getAsJsonArray())
+                    {
+                        CollectionLogKillCount newKillCount = gson.fromJson(killCount, CollectionLogKillCount.class);
+                        newKillCounts.add(newKillCount);
+                    }
                 }
                 CollectionLogPage newPage = new CollectionLogPage(pageKey, newItems, newKillCounts);
                 newPages.put(pageKey, newPage);
@@ -51,11 +56,12 @@ public class CollectionLogDeserilizer implements JsonDeserializer<CollectionLog>
             newTabs.put(tabKey, newTab);
         }
         return new CollectionLog(
-                jsonObjectLog.get("username").getAsString(),
-                jsonObjectLog.get("total_obtained").getAsInt(),
-                jsonObjectLog.get("total_items").getAsInt(),
-                jsonObjectLog.get("unique_obtained").getAsInt(),
-                jsonObjectLog.get("unique_items").getAsInt(),
-                newTabs);
+            jsonObjectLog.get("username").getAsString(),
+            jsonObjectLog.get("totalObtained").getAsInt(),
+            jsonObjectLog.get("totalItems").getAsInt(),
+            jsonObjectLog.get("uniqueObtained").getAsInt(),
+            jsonObjectLog.get("uniqueItems").getAsInt(),
+            newTabs
+        );
     }
 }
