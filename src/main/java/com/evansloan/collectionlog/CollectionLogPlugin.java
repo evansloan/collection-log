@@ -71,6 +71,7 @@ public class CollectionLogPlugin extends Plugin
 {
 	private static final String CONFIG_GROUP = "collectionlog";
 	private static final String CONFIG_SHOW_PANEL = "show_collection_log_panel";
+	private static final String CONFIG_API_CONNECTIONS = "upload_collection_log";
 
 	private static final int COLLECTION_LOG_CONTAINER = 1;
 	private static final int COLLECTION_LOG_DRAW_LIST_SCRIPT_ID = 2730;
@@ -209,6 +210,14 @@ public class CollectionLogPlugin extends Plugin
 		if (!configChanged.getGroup().equals(CONFIG_GROUP))
 		{
 			return;
+		}
+
+		if (configChanged.getKey().equals(CONFIG_API_CONNECTIONS))
+		{
+			if (config.showCollectionLogSidePanel())
+			{
+				SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedInState());
+			}
 		}
 
 		if (configChanged.getKey().equals(CONFIG_SHOW_PANEL))
