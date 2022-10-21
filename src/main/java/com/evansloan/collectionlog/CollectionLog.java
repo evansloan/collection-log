@@ -37,7 +37,7 @@ public class CollectionLog
         {
             for (CollectionLogPage page : tab.getPages().values())
             {
-                if (pageName.equals(page.getName()))
+                if (pageName.equalsIgnoreCase(page.getName()))
                 {
                     return page;
                 }
