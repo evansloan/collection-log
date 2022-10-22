@@ -627,7 +627,10 @@ public class CollectionLogPlugin extends Plugin
 		StringBuilder titleBuilder = new StringBuilder(COLLECTION_LOG_TITLE);
 		List<String> titleSections = new ArrayList<>();
 
-		if (config.displayUniqueItems())
+		boolean displayUnique = config.displayUniqueItems();
+		boolean displayTotal = config.displayTotalItems();
+
+		if (displayUnique)
 		{
 			Widget collLogContainer = client.getWidget(WidgetID.COLLECTION_LOG_ID, COLLECTION_LOG_CONTAINER);
 
@@ -645,20 +648,21 @@ public class CollectionLogPlugin extends Plugin
 			}
 
 			String uniqueTitle = "";
+			String prefix = displayTotal ? "U: " : "";
 
 			if (m.group(1) != null && m.group(2) != null)
 			{
 
 				int uniqueObtained = Integer.parseInt(m.group(1));
 				int uniqueTotal = Integer.parseInt(m.group(2));
-				uniqueTitle = String.format("U: %d/%d", uniqueObtained, uniqueTotal);
+				uniqueTitle = String.format("%s%d/%d", prefix, uniqueObtained, uniqueTotal);
 			}
 
 			if (config.displayAsPercentage())
 			{
 				if (m.group(3) != null)
 				{
-					uniqueTitle = String.format("U: %s", m.group(3));
+					uniqueTitle = String.format("%s%s", prefix, m.group(3));
 				}
 				else
 				{
@@ -674,11 +678,13 @@ public class CollectionLogPlugin extends Plugin
 		{
 			int totalItemsObtained = collectionLogData.get(COLLECTION_LOG_TOTAL_OBTAINED_KEY).getAsInt();
 			int totalItems = collectionLogData.get(COLLECTION_LOG_TOTAL_ITEMS_KEY).getAsInt();
-			String totalTitle = String.format("T: %d/%d", totalItemsObtained, totalItems);
+
+			String prefix = displayUnique ? "T: " : "";
+			String totalTitle = String.format("%s%d/%d", prefix, totalItemsObtained, totalItems);
 
 			if (config.displayAsPercentage())
 			{
-				totalTitle = String.format("T: %.2f%%", ((double) totalItemsObtained / totalItems) * 100);
+				totalTitle = String.format("%s%.2f%%", prefix, ((double) totalItemsObtained / totalItems) * 100);
 			}
 
 			titleSections.add(totalTitle);
@@ -702,7 +708,8 @@ public class CollectionLogPlugin extends Plugin
 		setCollectionLogTitle();
 		highlightEntries();
 		
-		if(collectionLogPanel != null) {
+		if (config.showCollectionLogSidePanel())
+		{
 			SwingUtilities.invokeLater(() -> collectionLogPanel.updateMissingEntriesList());
 		}
 	}
