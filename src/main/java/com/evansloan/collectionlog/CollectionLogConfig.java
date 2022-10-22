@@ -132,38 +132,4 @@ public interface CollectionLogConfig extends Config
 	{
 		return true;
 	}
-
-	@ConfigItem(
-		keyName = "upload_collection_log",
-		name = "Allow collectionlog.net connections",
-		description = "Allows collection log data to upload on log out and the chat command to pull data",
-		position = 7,
-		warning = "Enabling this option submits your IP address and hashed login name to a 3rd party website not controlled or verified by the RuneLite Developers."
-	)
-	default boolean allowApiConnections()
-	{
-		return false;
-	}
-
-	@ConfigItem(
-		keyName = "show_collection_log_panel",
-		name = "Show the collection log side panel",
-		description = "Show the collection log side panel",
-		position = 8
-	)
-	default boolean showCollectionLogSidePanel()
-	{
-		return true;
-	}
-
-	@ConfigItem(
-		keyName = "show_quantity_for_all_obtained_items",
-		name = "Show quantity for all obtained items",
-		description = "Show the quantity of items where only one has been obtained",
-		position = 9
-	)
-	default boolean showQuantityForAllObtainedItems()
-	{
-		return false;
-	}
 }
