@@ -79,7 +79,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final int COLLECTION_LOG_ACTIVE_TAB_SPRITE_ID = 2283;
 
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
-	private static final Pattern COLLECTION_LOG_TITLE_REGEX = Pattern.compile("Collection Log - (?:U: )?(?:(\\d+)/(\\d+)|([\\d\\.%]+))(?: T: \\d+/\\d+)?");
+	private static final Pattern COLLECTION_LOG_TITLE_REGEX = Pattern.compile("Collection Log - (\\d+)/(\\d+)");
 	private static final String COLLECTION_LOG_TARGET = "Collection log";
 	private static final String COLLECTION_LOG_EXPORT = "Export";
 	private static final File COLLECTION_LOG_SAVE_DATA_DIR = new File(RUNELITE_DIR, "collectionlog");
@@ -526,9 +526,12 @@ public class CollectionLogPlugin extends Plugin
 			loadCollectionLogData();
 		}
 		
-		if(collectionLogPanel != null) {
+		if (collectionLogPanel != null)
+		{
 			SwingUtilities.invokeLater(() -> collectionLogPanel.loadLogOpenedState());
 		}
+
+		updateUniqueItems();
 
 		String activeTabName = getActiveTabName();
 		if (activeTabName == null)
@@ -656,19 +659,10 @@ public class CollectionLogPlugin extends Plugin
 				int uniqueObtained = Integer.parseInt(m.group(1));
 				int uniqueTotal = Integer.parseInt(m.group(2));
 				uniqueTitle = String.format("%s%d/%d", prefix, uniqueObtained, uniqueTotal);
-			}
 
-			if (config.displayAsPercentage())
-			{
-				if (m.group(3) != null)
+				if (config.displayAsPercentage())
 				{
-					uniqueTitle = String.format("%s%s", prefix, m.group(3));
-				}
-				else
-				{
-					int uniqueObtained = Integer.parseInt(m.group(1));
-					int uniqueTotal = Integer.parseInt(m.group(2));
-					uniqueTitle = String.format("U: %.2f%%", ((double) uniqueObtained / uniqueTotal) * 100);
+					uniqueTitle = String.format("%s%.2f%%", prefix, ((double) uniqueObtained / uniqueTotal) * 100);
 				}
 			}
 			titleSections.add(uniqueTitle);
@@ -727,16 +721,12 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private void setCollectionLogTitle(String title)
 	{
-		Widget collLogContainer = client.getWidget(WidgetID.COLLECTION_LOG_ID, COLLECTION_LOG_CONTAINER);
-
-		if (collLogContainer == null)
+		Widget collectionLogTitleWidget = getCollectionLogTitle();
+		if (collectionLogTitleWidget == null)
 		{
 			return;
 		}
-
-		Widget collLogTitle = collLogContainer.getDynamicChildren()[1];
-		updateUniqueItems(collLogTitle.getText());
-		collLogTitle.setText(title);
+		collectionLogTitleWidget.setText(title);
 	}
 
 	/**
@@ -825,8 +815,15 @@ public class CollectionLogPlugin extends Plugin
 	 * Updates the count of unique items in the collection log
 	 * Parses item counts from collection log title
 	 */
-	private void updateUniqueItems(String collectionLogTitle)
+	private void updateUniqueItems()
 	{
+		Widget collectionLogTitleWidget = getCollectionLogTitle();
+		if (collectionLogTitleWidget == null)
+		{
+			return;
+		}
+
+		String collectionLogTitle = collectionLogTitleWidget.getText();
 		Matcher m = COLLECTION_LOG_TITLE_REGEX.matcher(collectionLogTitle);
 
 		if (!m.find())
@@ -1175,5 +1172,17 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		return missingEntries;
+	}
+
+	private Widget getCollectionLogTitle()
+	{
+		Widget collLogContainer = client.getWidget(WidgetID.COLLECTION_LOG_ID, COLLECTION_LOG_CONTAINER);
+
+		if (collLogContainer == null)
+		{
+			return null;
+		}
+
+		return collLogContainer.getDynamicChildren()[1];
 	}
 }
