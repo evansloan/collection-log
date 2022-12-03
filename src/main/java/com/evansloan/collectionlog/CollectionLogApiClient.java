@@ -1,5 +1,6 @@
 package com.evansloan.collectionlog;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -36,6 +37,9 @@ public class CollectionLogApiClient
 
 	@Inject
 	private OkHttpClient okHttpClient;
+
+	@Inject
+	private Gson gson;
 
 	public void createUser(String username, String accountType, String accountHash, boolean isFemale) throws IOException
 	{
@@ -130,7 +134,7 @@ public class CollectionLogApiClient
 			.addEncodedPathSegment(username)
 			.build();
 
-		return new GsonBuilder()
+		return gson.newBuilder()
 			.registerTypeAdapter(CollectionLog.class, new CollectionLogDeserializer())
 			.create()
 			.fromJson(getRequest(url), CollectionLog.class);

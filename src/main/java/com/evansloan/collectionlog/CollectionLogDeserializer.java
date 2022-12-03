@@ -6,6 +6,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import javax.inject.Inject;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,10 +15,12 @@ import java.util.Map;
 
 public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog>
 {
+    @Inject
+    private Gson gson;
+
     @Override
     public CollectionLog deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
     {
-        Gson gson = new Gson();
         JsonObject jsonObjectLog = json.getAsJsonObject().get("collectionLog").getAsJsonObject();
         JsonObject jsonObjectTabs  = jsonObjectLog.get("tabs").getAsJsonObject();
 
