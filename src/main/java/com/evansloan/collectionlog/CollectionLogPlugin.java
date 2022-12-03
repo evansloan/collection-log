@@ -89,7 +89,6 @@ public class CollectionLogPlugin extends Plugin
 
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
 	private static final Pattern COLLECTION_LOG_TITLE_REGEX = Pattern.compile("Collection Log - (\\d+)/(\\d+)");
-	private static final Pattern COLLECTION_LOG_MODIFIED_TITLE_REGEX = Pattern.compile("([\\d.%]+)/?([\\d.%]+)(?: [UT:]* ([\\d.%]+)/?([\\d.%]+))?");
 	private static final Pattern COLLECTION_LOG_ITEM_REGEX = Pattern.compile("New item added to your collection log: (.*)");
 	private static final String COLLECTION_LOG_TARGET = "Collection log";
 	private static final String COLLECTION_LOG_EXPORT = "Export";
@@ -765,35 +764,15 @@ public class CollectionLogPlugin extends Plugin
 
 		if (displayUnique)
 		{
-			Widget collLogContainer = client.getWidget(WidgetID.COLLECTION_LOG_ID, COLLECTION_LOG_CONTAINER);
+			int uniqueObtained = collectionLogData.get(COLLECTION_LOG_UNIQUE_OBTAINED_KEY).getAsInt();
+			int uniqueTotal = collectionLogData.get(COLLECTION_LOG_UNIQUE_ITEMS_KEY).getAsInt();
 
-			if (collLogContainer == null)
-			{
-				return COLLECTION_LOG_TITLE;
-			}
-
-			String collLogTitle = collLogContainer.getDynamicChildren()[1].getText();
-			Matcher m = COLLECTION_LOG_MODIFIED_TITLE_REGEX.matcher(collLogTitle);
-
-			if (!m.find())
-			{
-				return COLLECTION_LOG_TITLE;
-			}
-
-			String uniqueTitle = "";
 			String prefix = displayTotal ? "U: " : "";
+			String uniqueTitle = String.format("%s%d/%d", prefix, uniqueObtained, uniqueTotal);
 
-			if (m.group(1) != null && m.group(2) != null)
+			if (config.displayAsPercentage())
 			{
-
-				int uniqueObtained = Integer.parseInt(m.group(1));
-				int uniqueTotal = Integer.parseInt(m.group(2));
-				uniqueTitle = String.format("%s%d/%d", prefix, uniqueObtained, uniqueTotal);
-
-				if (config.displayAsPercentage())
-				{
-					uniqueTitle = String.format("%s%.2f%%", prefix, ((double) uniqueObtained / uniqueTotal) * 100);
-				}
+				uniqueTitle = String.format("%s%.2f%%", prefix, ((double) uniqueObtained / uniqueTotal) * 100);
 			}
 			titleSections.add(uniqueTitle);
 		}
