@@ -1,12 +1,10 @@
 package com.evansloan.collectionlog;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import javax.inject.Inject;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,9 +13,6 @@ import java.util.Map;
 
 public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog>
 {
-    @Inject
-    private Gson gson;
-
     @Override
     public CollectionLog deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
     {
@@ -37,7 +32,7 @@ public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog
 
                 for (JsonElement item : page.get("items").getAsJsonArray())
                 {
-                    CollectionLogItem newItem = gson.fromJson(item, CollectionLogItem.class);
+                    CollectionLogItem newItem = context.deserialize(item, CollectionLogItem.class);
                     newItems.add(newItem);
                 }
 
@@ -48,7 +43,7 @@ public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog
                 {
                     for (JsonElement killCount : pageKillCounts.getAsJsonArray())
                     {
-                        CollectionLogKillCount newKillCount = gson.fromJson(killCount, CollectionLogKillCount.class);
+                        CollectionLogKillCount newKillCount = context.deserialize(killCount, CollectionLogKillCount.class);
                         newKillCounts.add(newKillCount);
                     }
                 }
