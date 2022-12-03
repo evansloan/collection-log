@@ -1,6 +1,9 @@
 package com.evansloan.collectionlog;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -27,8 +30,10 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.ItemComposition;
+import net.runelite.api.ItemContainer;
 import net.runelite.api.GameState;
 import net.runelite.api.IndexedSprite;
+import net.runelite.api.InventoryID;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.Player;
@@ -36,6 +41,7 @@ import net.runelite.api.ScriptID;
 import net.runelite.api.WorldType;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.WidgetLoaded;
@@ -55,11 +61,14 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.ItemStack;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.loottracker.LootReceived;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.Text;
 
 @Slf4j
 @PluginDescriptor(
@@ -100,7 +109,8 @@ public class CollectionLogPlugin extends Plugin
 	private NavigationButton navigationButton;
 
 	private boolean isPohOwner = false;
-
+	private String obtainedItemName;
+	private Multiset<Integer> inventoryItems;
 	private Map<Integer, Integer> loadedCollectionLogIcons;
 
 	@Getter
@@ -310,6 +320,126 @@ public class CollectionLogPlugin extends Plugin
 				}
 			});
 		}
+
+		if (widgetLoaded.getGroupId() == WidgetID.COLLECTION_LOG_ID)
+		{
+			updateUniqueItems();
+		}
+	}
+
+	@Subscribe
+	public void onLootReceived(LootReceived lootReceived)
+	{
+		if (obtainedItemName == null)
+		{
+			inventoryItems = null;
+			return;
+		}
+
+		ItemStack obtainedItem = null;
+		Collection<ItemStack> items = lootReceived.getItems();
+		for (ItemStack item : items)
+		{
+			ItemComposition itemComp = itemManager.getItemComposition(item.getId());
+			if (itemComp.getName().equals(obtainedItemName))
+			{
+				obtainedItem = item;
+			}
+		}
+
+		if (obtainedItem == null)
+		{
+			obtainedItemName = null;
+			inventoryItems = null;
+			return;
+		}
+
+		updateObtainedItem(obtainedItem);
+	}
+
+	@Subscribe
+	public void onChatMessage(ChatMessage chatMessage)
+	{
+		if (chatMessage.getType() != ChatMessageType.GAMEMESSAGE)
+		{
+			return;
+		}
+
+		Matcher m = COLLECTION_LOG_ITEM_REGEX.matcher(chatMessage.getMessage());
+		if (!m.matches())
+		{
+			return;
+		}
+
+		obtainedItemName = Text.removeTags(m.group(1));
+
+		ItemContainer inventory = client.getItemContainer(InventoryID.INVENTORY);
+		if (inventory == null)
+		{
+			obtainedItemName = null;
+			inventoryItems = null;
+			return;
+		}
+
+		// Get inventory prior to onItemContainerChanged event
+		Arrays.stream(inventory.getItems())
+			.forEach(item -> inventoryItems.add(item.getId(), item.getQuantity()));
+
+		// Defer to onItemContainerChanged or onLootReceived
+	}
+
+	@Subscribe
+	private void onItemContainerChanged(ItemContainerChanged itemContainerChanged)
+	{
+		if (itemContainerChanged.getContainerId() != InventoryID.INVENTORY.getId())
+		{
+			return;
+		}
+
+		if (obtainedItemName == null)
+		{
+			inventoryItems = HashMultiset.create();
+			return;
+		}
+
+		if (inventoryItems == null)
+		{
+			inventoryItems = HashMultiset.create();
+		}
+
+		// Need to build a diff of inventory items prior to item appearing in inventory and current inventory items
+		// Necessary to find item that may have non-unique name (Ancient page, decorative armor) that
+		// may already be in inventory
+		ItemContainer inventory = itemContainerChanged.getItemContainer();
+		Multiset<Integer> currentInventoryItems = HashMultiset.create();
+		Arrays.stream(inventory.getItems())
+			.forEach(item -> currentInventoryItems.add(item.getId(), item.getQuantity()));
+		Multiset<Integer> invDiff = Multisets.difference(currentInventoryItems, inventoryItems);
+
+		ItemStack obtainedItemStack = null;
+		for (Multiset.Entry<Integer> item : invDiff.entrySet())
+		{
+			ItemComposition itemComp = itemManager.getItemComposition(item.getElement());
+			if (itemComp.getName().equals(obtainedItemName))
+			{
+				obtainedItemStack = new ItemStack(
+					item.getElement(),
+					item.getCount(),
+					client.getLocalPlayer().getLocalLocation()
+				);
+
+				break;
+			}
+		}
+
+		if (obtainedItemStack == null)
+		{
+			obtainedItemName = null;
+			inventoryItems = HashMultiset.create();
+			return;
+		}
+
+		updateObtainedItem(obtainedItemStack);
 	}
 
 	/**
@@ -408,7 +538,7 @@ public class CollectionLogPlugin extends Plugin
 			String accountType = client.getAccountType().toString();
 
 			// Used to display proper farming outfit on site
-			boolean isFemale = localPlayer.getPlayerComposition().isFemale();
+			boolean isFemale = localPlayer.getPlayerComposition().getGender() == 1;
 
 			// Copy data to prevent sending null on logout
 			JsonObject saveData = collectionLogData;
@@ -530,8 +660,6 @@ public class CollectionLogPlugin extends Plugin
 		{
 			SwingUtilities.invokeLater(() -> collectionLogPanel.loadLogOpenedState());
 		}
-
-		updateUniqueItems();
 
 		String activeTabName = getActiveTabName();
 		if (activeTabName == null)
@@ -717,7 +845,7 @@ public class CollectionLogPlugin extends Plugin
 	/**
 	 * Updates the collection log title with updated counts
 	 *
-	 * @param title
+	 * @param title New collection log title value
 	 */
 	private void setCollectionLogTitle(String title)
 	{
@@ -1184,5 +1312,48 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		return collLogContainer.getDynamicChildren()[1];
+	}
+
+	private void updateObtainedItem(ItemStack itemStack)
+	{
+		if (collectionLogData == null)
+		{
+			loadCollectionLogData();
+		}
+
+		boolean itemFound = false;
+		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
+		for (Map.Entry<String, JsonElement> tab : collectionLogTabs.entrySet())
+		{
+			for (Map.Entry<String, JsonElement> entry : tab.getValue().getAsJsonObject().entrySet())
+			{
+				JsonArray items = entry.getValue()
+					.getAsJsonObject()
+					.getAsJsonArray(COLLECTION_LOG_ITEMS_KEY);
+
+				for (JsonElement item : items)
+				{
+					JsonObject existingItem = item.getAsJsonObject();
+					if (existingItem.get("id").getAsInt() == itemStack.getId())
+					{
+						itemFound = true;
+						existingItem.addProperty("obtained", true);
+						existingItem.addProperty("quantity", existingItem.get("quantity").getAsInt() + itemStack.getQuantity());
+
+						int totalObtained = collectionLogData.get(COLLECTION_LOG_TOTAL_OBTAINED_KEY).getAsInt();
+						collectionLogData.addProperty(COLLECTION_LOG_TOTAL_OBTAINED_KEY, totalObtained + 1);
+					}
+				}
+			}
+		}
+
+		if (itemFound)
+		{
+			int uniqueObtained = collectionLogData.get(COLLECTION_LOG_UNIQUE_OBTAINED_KEY).getAsInt();
+			collectionLogData.addProperty(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, uniqueObtained + 1);
+		}
+
+		obtainedItemName = null;
+		inventoryItems = HashMultiset.create();
 	}
 }
