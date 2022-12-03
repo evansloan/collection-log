@@ -89,6 +89,8 @@ public class CollectionLogPlugin extends Plugin
 
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
 	private static final Pattern COLLECTION_LOG_TITLE_REGEX = Pattern.compile("Collection Log - (\\d+)/(\\d+)");
+	private static final Pattern COLLECTION_LOG_MODIFIED_TITLE_REGEX = Pattern.compile("([\\d.%]+)/?([\\d.%]+)(?: [UT:]* ([\\d.%]+)/?([\\d.%]+))?");
+	private static final Pattern COLLECTION_LOG_ITEM_REGEX = Pattern.compile("New item added to your collection log: (.*)");
 	private static final String COLLECTION_LOG_TARGET = "Collection log";
 	private static final String COLLECTION_LOG_EXPORT = "Export";
 	private static final File COLLECTION_LOG_SAVE_DATA_DIR = new File(RUNELITE_DIR, "collectionlog");
@@ -771,7 +773,7 @@ public class CollectionLogPlugin extends Plugin
 			}
 
 			String collLogTitle = collLogContainer.getDynamicChildren()[1].getText();
-			Matcher m = COLLECTION_LOG_TITLE_REGEX.matcher(collLogTitle);
+			Matcher m = COLLECTION_LOG_MODIFIED_TITLE_REGEX.matcher(collLogTitle);
 
 			if (!m.find())
 			{
