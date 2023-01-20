@@ -104,6 +104,11 @@ public class CollectionLogPage
                 return "The Nightmare";
             case "hill giant":
                 return "Obor";
+            case "mus":
+            case "muspah":
+            case "pm":
+            case "the grumbler":
+                return "Phantom Muspah";
             case "saracha":
             case "sarac":
             case "saracnis":
