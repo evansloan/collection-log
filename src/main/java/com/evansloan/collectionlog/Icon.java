@@ -35,10 +35,14 @@ import net.runelite.client.util.ImageUtil;
 
 public enum Icon
 {
+	ACCOUNT("/account.png"),
 	COLLECTION_LOG("/collection_log.png"),
 	COLLECTION_LOG_TOOLBAR("/collection_log_toolbar.png"),
 	DISCORD("/discord.png"),
 	GITHUB("/github.png"),
+	HELP("/help.png"),
+	INFO("/info.png"),
+	SETTINGS("/settings.png"),
 	;
 
 	private final String file;

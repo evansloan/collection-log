@@ -4,13 +4,13 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
+import com.google.inject.Inject;
 import com.google.inject.Provides;
+
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -22,29 +22,11 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-import javax.inject.Inject;
-import javax.swing.SwingUtilities;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ChatMessageType;
-import net.runelite.api.Client;
-import net.runelite.api.ItemComposition;
-import net.runelite.api.ItemContainer;
-import net.runelite.api.GameState;
-import net.runelite.api.IndexedSprite;
-import net.runelite.api.InventoryID;
-import net.runelite.api.MenuAction;
-import net.runelite.api.MenuEntry;
-import net.runelite.api.Player;
-import net.runelite.api.ScriptID;
-import net.runelite.api.WorldType;
-import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.ItemContainerChanged;
-import net.runelite.api.events.MenuOpened;
-import net.runelite.api.events.ScriptPostFired;
-import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.*;
+import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
@@ -58,6 +40,7 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.ChatCommandManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
@@ -123,7 +106,6 @@ public class CollectionLogPlugin extends Plugin
 	@Inject
 	private Client client;
 
-	@Getter
 	@Inject
 	private ClientThread clientThread;
 
@@ -142,7 +124,6 @@ public class CollectionLogPlugin extends Plugin
 	@Inject
 	private ConfigManager configManager;
 
-	@Getter
 	@Inject
 	private CollectionLogConfig config;
 
@@ -151,6 +132,12 @@ public class CollectionLogPlugin extends Plugin
 
 	@Inject
 	private CollectionLogApiClient apiClient;
+
+	@Inject
+	private EventBus eventBus;
+
+	@Inject
+	private CollectionLogManager collectionLogManager;
 
 	@Provides
 	CollectionLogConfig provideConfig(ConfigManager configManager)
@@ -182,10 +169,8 @@ public class CollectionLogPlugin extends Plugin
 	}
 	
 	private void initPanel() {
-		if (collectionLogPanel == null)
-		{
-			collectionLogPanel = new CollectionLogPanel(this);
-		}
+		collectionLogPanel = injector.getInstance(CollectionLogPanel.class);
+		collectionLogPanel.create();
 
 		if (navigationButton == null)
 		{
@@ -199,7 +184,6 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		clientToolbar.addNavigation(navigationButton);
-		SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedInState());
 	}
 
 	@Override
@@ -223,23 +207,18 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		if (configChanged.getKey().equals(CONFIG_API_CONNECTIONS))
+		if (configChanged.getKey().equals(CONFIG_SHOW_PANEL))
 		{
 			if (config.showCollectionLogSidePanel())
 			{
-				SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedInState());
-			}
-		}
-
-		if (configChanged.getKey().equals(CONFIG_SHOW_PANEL))
-		{
-			if (configChanged.getNewValue().equals("true"))
-			{
 				initPanel();
-				return;
+			}
+			else
+			{
+				collectionLogPanel.destroy();
+				clientToolbar.removeNavigation(navigationButton);
 			}
 
-			clientToolbar.removeNavigation(navigationButton);
 		}
 	}
 
@@ -255,12 +234,7 @@ public class CollectionLogPlugin extends Plugin
 			gameStateChanged.getGameState() == GameState.HOPPING)
 		{
 			saveCollectionLogData();
-			collectionLogData = null;
-
-			if (config.showCollectionLogSidePanel())
-			{
-				SwingUtilities.invokeLater(() -> collectionLogPanel.loadLoggedInState());
-			}
+			collectionLogManager.clearCollectionLog();
 		}
 	}
 
@@ -435,6 +409,13 @@ public class CollectionLogPlugin extends Plugin
 
 		if (obtainedItemStack == null)
 		{
+			// Opening clue casket triggers onItemContainerChanged event before clue items
+			// appear in inventory. Fall through to onLootReceived to find obtained item(s)
+			if (client.getWidget(WidgetInfo.CLUE_SCROLL_REWARD_ITEM_CONTAINER) != null)
+			{
+				return;
+			}
+
 			obtainedItemName = null;
 			inventoryItems = HashMultiset.create();
 			return;
@@ -522,7 +503,6 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		recalculateTotalCounts();
 		saveCollectionLogDataToFile(false);
 
 		if (config.allowApiConnections())
@@ -574,65 +554,40 @@ public class CollectionLogPlugin extends Plugin
 	/**
 	 * Retrieves and updates all items in the given entry
 	 *
-	 * @param collectionLogEntry Collection log entry to update
+	 * @param pageHead Collection log entry to update
 	 */
-	private void updateEntryItems(JsonObject collectionLogEntry)
+	private void updatePage(Widget pageHead, CollectionLogPage pageToUpdate)
 	{
 		Widget itemsContainer = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_ITEMS);
-
 		if (itemsContainer == null)
 		{
 			return;
 		}
-
 		Widget[] widgetItems = itemsContainer.getDynamicChildren();
-		JsonArray items = new JsonArray();
+
+		Map<String, Widget> itemsToUpdate = new HashMap<>();
 		for (Widget widgetItem : widgetItems)
 		{
-			boolean isObtained = widgetItem.getOpacity() == 0;
-			if (isObtained && config.showQuantityForAllObtainedItems())
-			{
-				widgetItem.setItemQuantityMode(1);
-				widgetItem.revalidate();
-			}
-
-			JsonObject item = new JsonObject();
-			item.addProperty("id", widgetItem.getItemId());
-			item.addProperty("name", itemManager.getItemComposition(widgetItem.getItemId()).getName());
-			item.addProperty("quantity", isObtained ? widgetItem.getItemQuantity() : 0);
-			item.addProperty("obtained", isObtained);
-			items.add(item);
+			String itemName = itemManager.getItemComposition(widgetItem.getItemId())
+				.getMembersName();
+			itemsToUpdate.put(itemName, widgetItem);
 		}
+		pageToUpdate.updateItems(itemsToUpdate);
 
-		collectionLogEntry.add(COLLECTION_LOG_ITEMS_KEY, items);
-	}
-
-	/**
-	 * Retrieves and updates kill counts found in the given collection log entry
-	 *
-	 * @param categoryHead Widget containing kill count information
-	 * @param collectionLogEntry Collection log entry to update
-	 */
-	private void updateEntryKillCounts(Widget categoryHead, JsonObject collectionLogEntry)
-	{
-		Widget[] children = categoryHead.getDynamicChildren();
+		Widget[] children = pageHead.getDynamicChildren();
 		if (children.length < 3)
 		{
+			pageToUpdate.setUpdated(true);
 			return;
 		}
 
-		JsonArray killCounts = new JsonArray();
 		Widget[] killCountWidgets = Arrays.copyOfRange(children, 2, children.length);
-		for (Widget killCountWidget : killCountWidgets)
-		{
-			String[] killCountText = killCountWidget.getText().split(": ");
-			String killCountName = killCountText[0];
-			String killCountAmount = killCountText[1].split(">")[1]
-				.split("<")[0]
-				.replace(",", "");
-			killCounts.add(String.format("%s: %s", killCountName, killCountAmount));
-		}
-		collectionLogEntry.add("kill_count", killCounts);
+		List<String> killCountStrings = Arrays.stream(killCountWidgets)
+			.map(Widget::getText)
+			.collect(Collectors.toList());
+		pageToUpdate.updateKillCounts(killCountStrings);
+
+		pageToUpdate.setUpdated(true);
 	}
 
 	/**
@@ -652,15 +607,12 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		if (collectionLogData == null)
+		if (collectionLogManager.getCollectionLog() == null)
 		{
-			loadCollectionLogData();
+			collectionLogManager.initCollectionLog();
 		}
-		
-		if (collectionLogPanel != null)
-		{
-			SwingUtilities.invokeLater(() -> collectionLogPanel.loadLogOpenedState());
-		}
+
+		CollectionLog collectionLog = collectionLogManager.getCollectionLog();
 
 		String activeTabName = getActiveTabName();
 		if (activeTabName == null)
@@ -668,30 +620,37 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		Widget entryHead = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_HEADER);
-
-		if (entryHead == null)
+		CollectionLogTab collectionLogTab = collectionLog.getTabs().get(activeTabName);
+		if (collectionLogTab == null)
 		{
 			return;
 		}
 
-		String entryTitle = entryHead.getDynamicChildren()[0].getText();
-
-		if (!entryExistsInActiveTab(activeTabName, entryTitle))
+		Widget pageHead = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_HEADER);
+		if (pageHead == null)
 		{
 			return;
 		}
 
-		int prevObtainedItemCount = getEntryItemCount(activeTabName, entryTitle);
+		String pageTitle = pageHead.getDynamicChildren()[0].getText();
+		if (!collectionLogTab.containsPage(pageTitle))
+		{
+			return;
+		}
 
-		JsonObject collectionLogEntry = new JsonObject();
-		updateEntryItems(collectionLogEntry);
-		updateEntryKillCounts(entryHead, collectionLogEntry);
+		CollectionLogPage pageToUpdate = collectionLog.searchForPage(pageTitle);
+		if (pageToUpdate == null)
+		{
+			return;
+		}
 
-		int newObtainedItemCount = getEntryItemCount(collectionLogEntry);
+		int prevObtainedItemCount = pageToUpdate.getObtainedItemCount();
 
-		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
-		if (collectionLogTabs.has(activeTabName))
+		updatePage(pageHead, pageToUpdate);
+
+		int newObtainedItemCount = pageToUpdate.getObtainedItemCount();
+
+		if (collectionLog.getTabs().containsKey(activeTabName))
 		{
 			// Can happen when entries are opened in quick succession
 			// Item data in the widget doesn't load properly and obtained count shows as 0
@@ -699,15 +658,6 @@ public class CollectionLogPlugin extends Plugin
 			{
 				return;
 			}
-
-			JsonObject collectionLogTab = collectionLogTabs.getAsJsonObject(activeTabName);
-			collectionLogTab.add(entryTitle, collectionLogEntry);
-		}
-		else
-		{
-			JsonObject collectionLogTab = new JsonObject();
-			collectionLogTab.add(entryTitle, collectionLogEntry);
-			collectionLogTabs.add(activeTabName, collectionLogTab);
 		}
 
 		if (prevObtainedItemCount == newObtainedItemCount)
@@ -716,9 +666,9 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		int prevTotalObtained = collectionLogData.get(COLLECTION_LOG_TOTAL_OBTAINED_KEY).getAsInt();
+		int prevTotalObtained = collectionLog.getTotalObtained();
 		int newTotalObtained = prevTotalObtained + (newObtainedItemCount - prevObtainedItemCount);
-		collectionLogData.addProperty(COLLECTION_LOG_TOTAL_OBTAINED_KEY, newTotalObtained);
+		collectionLog.setTotalObtained(newTotalObtained);
 
 		update();
 	}
@@ -726,26 +676,77 @@ public class CollectionLogPlugin extends Plugin
 	/**
 	 * Update completed collection log entries with user specified color
 	 */
-	private void highlightEntries()
+	private void highlightPages()
 	{
-		for (CollectionLogList listType : CollectionLogList.values())
+		Widget pageList = getActivePageList();
+		Widget[] pageNameWidgets = pageList.getDynamicChildren();
+		for (Widget pageNameWidget : pageNameWidgets)
 		{
-			Widget entryList = client.getWidget(WidgetID.COLLECTION_LOG_ID, listType.getListIndex());
+			String pageName = pageNameWidget.getText()
+				.replace(" *", "");
+			CollectionLogPage collectionLogPage = collectionLogManager.getCollectionLog()
+				.searchForPage(pageName);
 
-			if (entryList == null)
+			if (!collectionLogPage.isUpdated())
 			{
-				continue;
+				pageNameWidget.setText(pageName + " *");
 			}
 
-			Widget[] names = entryList.getDynamicChildren();
-			for (Widget name : names)
-			{
-				if (name.getTextColor() == COLLECTION_LOG_DEFAULT_HIGHLIGHT)
-				{
-					name.setTextColor(config.highlightColor().getRGB());
-				}
-			}
+			Color pageNameColor = getPageNameColor(collectionLogPage);
+			pageNameWidget.setTextColor(pageNameColor.getRGB());
 		}
+	}
+
+	private void updatePageHighlight()
+	{
+		Widget pageList = getActivePageList();
+		int pageIndex = client.getVarbitValue(6906);
+		Widget pageNameWidget = pageList.getDynamicChildren()[pageIndex];
+
+		String pageName = pageNameWidget.getText()
+			.replace(" *", "");
+		CollectionLogPage collectionLogPage = collectionLogManager.getCollectionLog()
+			.searchForPage(pageName);
+
+		Color pageNameColor = getPageNameColor(collectionLogPage);
+		pageNameWidget.setTextColor(pageNameColor.getRGB());
+		pageNameWidget.setText(pageName);
+	}
+
+	private Widget getActivePageList()
+	{
+		Widget tabsWidget = client.getWidget(WidgetID.COLLECTION_LOG_ID, 3);
+		if (tabsWidget == null)
+		{
+			return null;
+		}
+
+		int tabIndex = client.getVarbitValue(6905);
+		Widget tab = tabsWidget.getStaticChildren()[tabIndex];
+		if (tab == null)
+		{
+			return null;
+		}
+
+		String tabName = Text.removeTags(tab.getName());
+		int listIndex = CollectionLogList.valueOf(tabName.toUpperCase()).getListIndex();
+		return client.getWidget(WidgetID.COLLECTION_LOG_ID, listIndex);
+	}
+
+	private Color getPageNameColor(CollectionLogPage collectionLogPage)
+	{
+		Color pageNameColor = config.emptyHighlightColor();
+		int obtainedItemCount = collectionLogPage.getObtainedItemCount();
+		if (obtainedItemCount != 0 && obtainedItemCount < collectionLogPage.getItems().size())
+		{
+			pageNameColor = config.inProgressHighlightColor();
+		}
+		if (obtainedItemCount == collectionLogPage.getItems().size())
+		{
+			pageNameColor = config.highlightColor();
+		}
+
+		return pageNameColor;
 	}
 
 	/**
@@ -762,10 +763,16 @@ public class CollectionLogPlugin extends Plugin
 		boolean displayUnique = config.displayUniqueItems();
 		boolean displayTotal = config.displayTotalItems();
 
+		CollectionLog collectionLog = collectionLogManager.getCollectionLog();
+		if (collectionLog == null)
+		{
+			return "";
+		}
+
 		if (displayUnique)
 		{
-			int uniqueObtained = collectionLogData.get(COLLECTION_LOG_UNIQUE_OBTAINED_KEY).getAsInt();
-			int uniqueTotal = collectionLogData.get(COLLECTION_LOG_UNIQUE_ITEMS_KEY).getAsInt();
+			int uniqueObtained = collectionLog.getUniqueObtained();
+			int uniqueTotal = collectionLog.getUniqueItems();
 
 			String prefix = displayTotal ? "U: " : "";
 			String uniqueTitle = String.format("%s%d/%d", prefix, uniqueObtained, uniqueTotal);
@@ -779,8 +786,8 @@ public class CollectionLogPlugin extends Plugin
 
 		if (config.displayTotalItems())
 		{
-			int totalItemsObtained = collectionLogData.get(COLLECTION_LOG_TOTAL_OBTAINED_KEY).getAsInt();
-			int totalItems = collectionLogData.get(COLLECTION_LOG_TOTAL_ITEMS_KEY).getAsInt();
+			int totalItemsObtained = collectionLog.getTotalObtained();
+			int totalItems =collectionLog.getTotalItems();
 
 			String prefix = displayUnique ? "T: " : "";
 			String totalTitle = String.format("%s%d/%d", prefix, totalItemsObtained, totalItems);
@@ -807,14 +814,11 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private void update()
 	{
-		updateTotalItems();
+		collectionLogManager.updateTotalItems();
 		setCollectionLogTitle();
-		highlightEntries();
-		
-		if (config.showCollectionLogSidePanel())
-		{
-			SwingUtilities.invokeLater(() -> collectionLogPanel.updateMissingEntriesList());
-		}
+
+		highlightPages();
+		updatePageHighlight();
 	}
 
 	private void setCollectionLogTitle()
@@ -836,39 +840,6 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 		collectionLogTitleWidget.setText(title);
-	}
-
-	/**
-	 * Get the number of obtained items in the provided entry
-	 *
-	 * @param activeTabName Current collection log tab
-	 * @param entryTitle Current collection log entry
-	 * @return Number of obtained items
-	 */
-	private int getEntryItemCount(String activeTabName, String entryTitle)
-	{
-		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
-		if (!collectionLogTabs.has(activeTabName))
-		{
-			return 0;
-		}
-
-		JsonObject collectionLogTabData = collectionLogTabs.getAsJsonObject(activeTabName);
-		if (!collectionLogTabData.has(entryTitle))
-		{
-			return 0;
-		}
-
-		JsonObject collectionLogEntry = collectionLogTabData.getAsJsonObject(entryTitle);
-		return getEntryItemCount(collectionLogEntry);
-	}
-
-	private int getEntryItemCount(JsonObject collectionLogEntry)
-	{
-		JsonArray items = collectionLogEntry.getAsJsonArray(COLLECTION_LOG_ITEMS_KEY);
-		return StreamSupport.stream(items.spliterator(), false).filter(item -> {
-			return item.getAsJsonObject().get("obtained").getAsBoolean();
-		}).toArray().length;
 	}
 
 	/**
@@ -897,56 +868,17 @@ public class CollectionLogPlugin extends Plugin
 	}
 
 	/**
-	 * Updates the total amount of items in the collection log
-	 */
-	private void updateTotalItems()
-	{
-		int newTotal = 0;
-		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
-		for (Map.Entry<String, JsonElement> tab : collectionLogTabs.entrySet())
-		{
-			for (Map.Entry<String, JsonElement> entry : tab.getValue().getAsJsonObject().entrySet())
-			{
-				JsonArray items = entry.getValue()
-					.getAsJsonObject()
-					.getAsJsonArray(COLLECTION_LOG_ITEMS_KEY);
-				newTotal += items.size();
-			}
-		}
-
-		if (newTotal > collectionLogData.get(COLLECTION_LOG_TOTAL_ITEMS_KEY).getAsInt())
-		{
-			collectionLogData.addProperty(COLLECTION_LOG_TOTAL_ITEMS_KEY, newTotal);
-		}
-	}
-
-	/**
 	 * Updates the count of unique items in the collection log
 	 * Parses item counts from collection log title
 	 */
 	private void updateUniqueItems()
 	{
-		Widget collectionLogTitleWidget = getCollectionLogTitle();
-		if (collectionLogTitleWidget == null)
+		if (collectionLogManager.getCollectionLog() == null)
 		{
-			return;
+			collectionLogManager.initCollectionLog();
 		}
 
-		String collectionLogTitle = collectionLogTitleWidget.getText();
-		Matcher m = COLLECTION_LOG_TITLE_REGEX.matcher(collectionLogTitle);
-
-		if (!m.find())
-		{
-			return;
-		}
-
-		if (m.group(1) != null && m.group(2) != null)
-		{
-			int uniqueObtained = Integer.parseInt(m.group(1));
-			int uniqueTotal = Integer.parseInt(m.group(2));
-			collectionLogData.addProperty(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, uniqueObtained);
-			collectionLogData.addProperty(COLLECTION_LOG_UNIQUE_ITEMS_KEY, uniqueTotal);
-		}
+		collectionLogManager.updateUniqueCounts();
 	}
 
 	/**
@@ -969,9 +901,7 @@ public class CollectionLogPlugin extends Plugin
 
 			if (subTab.getSpriteId() == COLLECTION_LOG_ACTIVE_TAB_SPRITE_ID)
 			{
-				return tab.getName()
-					.split(">")[1]
-					.split("<")[0];
+				return Text.removeTags(tab.getName());
 			}
 		}
 
@@ -1115,9 +1045,9 @@ public class CollectionLogPlugin extends Plugin
 	private void loadPageIcons(List<CollectionLogItem> collectionLogItems)
 	{
 		List<CollectionLogItem> itemsToLoad = collectionLogItems
-				.stream()
-				.filter(item -> !loadedCollectionLogIcons.containsKey(item.getId()))
-				.collect(Collectors.toList());
+			.stream()
+			.filter(item -> !loadedCollectionLogIcons.containsKey(item.getId()))
+			.collect(Collectors.toList());
 
 		final IndexedSprite[] modIcons = client.getModIcons();
 
@@ -1190,99 +1120,6 @@ public class CollectionLogPlugin extends Plugin
 		collectionLogData = null;
 	}
 
-	/**
-	 * Recalculate obtained and total item counts based on saved
-	 * collection log data for the current user
-	 */
-	public void recalculateTotalCounts()
-	{
-		if (collectionLogTemplate == null)
-		{
-			return;
-		}
-
-		int newObtained = 0;
-		int newTotal = 0;
-		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
-		for (Map.Entry<String, JsonElement> tab : collectionLogTabs.entrySet())
-		{
-			JsonArray tabEntries = collectionLogTemplate.getAsJsonArray(tab.getKey());
-			for (Map.Entry<String, JsonElement> entry : tab.getValue().getAsJsonObject().entrySet())
-			{
-				if (!tabEntries.contains(new JsonPrimitive(entry.getKey())))
-				{
-					tab.getValue().getAsJsonObject().remove(entry.getKey());
-					continue;
-				}
-
-				JsonArray items = entry.getValue()
-					.getAsJsonObject()
-					.getAsJsonArray(COLLECTION_LOG_ITEMS_KEY);
-
-				newObtained += StreamSupport.stream(items.spliterator(), false).filter(item -> {
-					return item.getAsJsonObject().get("obtained").getAsBoolean();
-				}).toArray().length;
-				newTotal += items.size();
-			}
-		}
-
-		collectionLogData.addProperty(COLLECTION_LOG_TOTAL_OBTAINED_KEY, newObtained);
-		collectionLogData.addProperty(COLLECTION_LOG_TOTAL_ITEMS_KEY, newTotal);
-
-		setCollectionLogTitle();
-	}
-
-	/**
-	 * Find entries not loaded into collectionLogData
-	 *
-	 * @return List of missing entries
-	 */
-	public List<String> findMissingEntries()
-	{
-		if (collectionLogTemplate == null)
-		{
-			try
-			{
-				collectionLogTemplate = apiClient.getCollectionLogTemplate();
-			}
-			catch (IOException e)
-			{
-				return null;
-			}
-		}
-
-		List<String> missingEntries = new ArrayList<>();
-
-		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
-
-		for (Map.Entry<String, JsonElement> tab : collectionLogTemplate.entrySet())
-		{
-			JsonObject existingTab = collectionLogTabs.getAsJsonObject(tab.getKey());
-			if (existingTab == null)
-			{
-				StreamSupport.stream(tab.getValue().getAsJsonArray().spliterator(), false).forEach(entry -> {
-					missingEntries.add(entry.getAsString());
-				});
-				continue;
-			}
-
-			JsonArray entries = tab.getValue().getAsJsonArray();
-			for (JsonElement entryName : entries)
-			{
-
-				JsonObject existingEntry = collectionLogTabs.getAsJsonObject(tab.getKey())
-					.getAsJsonObject(entryName.getAsString());
-
-				if (existingEntry == null)
-				{
-					missingEntries.add(entryName.getAsString());
-				}
-			}
-		}
-
-		return missingEntries;
-	}
-
 	private Widget getCollectionLogTitle()
 	{
 		Widget collLogContainer = client.getWidget(WidgetID.COLLECTION_LOG_ID, COLLECTION_LOG_CONTAINER);
@@ -1302,36 +1139,34 @@ public class CollectionLogPlugin extends Plugin
 			loadCollectionLogData();
 		}
 
-		boolean itemFound = false;
-		JsonObject collectionLogTabs = collectionLogData.getAsJsonObject(COLLECTION_LOG_TABS_KEY);
-		for (Map.Entry<String, JsonElement> tab : collectionLogTabs.entrySet())
+		CollectionLog collectionLog = collectionLogManager.getCollectionLog();
+		if (collectionLog == null)
 		{
-			for (Map.Entry<String, JsonElement> entry : tab.getValue().getAsJsonObject().entrySet())
+			collectionLogManager.initCollectionLog();
+		}
+
+		boolean itemFound = false;
+		for (CollectionLogTab tab : collectionLog.getTabs().values())
+		{
+			for (CollectionLogPage page : tab.getPages().values())
 			{
-				JsonArray items = entry.getValue()
-					.getAsJsonObject()
-					.getAsJsonArray(COLLECTION_LOG_ITEMS_KEY);
-
-				for (JsonElement item : items)
+				CollectionLogItem existingItem = page.getItemById(itemStack.getId());
+				if (existingItem == null)
 				{
-					JsonObject existingItem = item.getAsJsonObject();
-					if (existingItem.get("id").getAsInt() == itemStack.getId())
-					{
-						itemFound = true;
-						existingItem.addProperty("obtained", true);
-						existingItem.addProperty("quantity", existingItem.get("quantity").getAsInt() + itemStack.getQuantity());
-
-						int totalObtained = collectionLogData.get(COLLECTION_LOG_TOTAL_OBTAINED_KEY).getAsInt();
-						collectionLogData.addProperty(COLLECTION_LOG_TOTAL_OBTAINED_KEY, totalObtained + 1);
-					}
+					continue;
 				}
+
+				itemFound = true;
+				existingItem.setQuantity(existingItem.getQuantity() + itemStack.getQuantity());
+				existingItem.setObtained(true);
+
+				collectionLog.setTotalObtained(collectionLog.getTotalObtained() + 1);
 			}
 		}
 
 		if (itemFound)
 		{
-			int uniqueObtained = collectionLogData.get(COLLECTION_LOG_UNIQUE_OBTAINED_KEY).getAsInt();
-			collectionLogData.addProperty(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, uniqueObtained + 1);
+			collectionLog.setUniqueObtained(collectionLog.getUniqueObtained() + 1);
 		}
 
 		obtainedItemName = null;

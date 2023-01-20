@@ -1,20 +1,29 @@
 package com.evansloan.collectionlog;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import net.runelite.api.widgets.Widget;
+import net.runelite.client.util.Text;
 import java.util.List;
+import java.util.Map;
 
-@AllArgsConstructor
+@Getter
+@RequiredArgsConstructor
 public class CollectionLogPage
 {
-    @Getter
+    @NonNull
     private final String name;
 
-    @Getter
-    private final List<CollectionLogItem> items;
+    @NonNull
+    private List<CollectionLogItem> items;
 
-    @Getter
+    @NonNull
     private final List<CollectionLogKillCount> killCounts;
+
+    @Setter
+    private transient boolean isUpdated = false;
 
     public static String aliasPageName(String pageName)
     {
@@ -421,5 +430,57 @@ public class CollectionLogPage
             default:
                 return pageName;
         }
+    }
+
+    public int getObtainedItemCount()
+    {
+        return (int) items.stream()
+            .filter(CollectionLogItem::isObtained)
+            .count();
+    }
+
+    public void updateItems(Map<String, Widget> itemsToUpdate)
+    {
+        items.clear();
+
+        for (Map.Entry<String, Widget> itemToUpdate : itemsToUpdate.entrySet())
+        {
+            String itemName = itemToUpdate.getKey();
+            Widget item = itemToUpdate.getValue();
+            boolean isObtained = item.getOpacity() == 0;
+
+            items.add(new CollectionLogItem(
+                item.getItemId(),
+                itemName,
+                item.getItemQuantity(),
+                isObtained,
+                items.size()
+            ));
+        }
+    }
+
+    public void updateKillCounts(List<String> killCountStrings)
+    {
+        killCounts.clear();
+        for (String killCountString : killCountStrings)
+        {
+            String[] killCountSplit = killCountString.split(": ");
+            String name = killCountSplit[0];
+            String amount = Text.removeTags(killCountSplit[1])
+                .replace(",", "");
+            killCounts.add(new CollectionLogKillCount(name, Integer.parseInt(amount)));
+        }
+    }
+
+    public CollectionLogItem getItemById(int itemId)
+    {
+        for (CollectionLogItem item : getItems())
+        {
+            if (item.getId() == itemId)
+            {
+                return item;
+            }
+        }
+        return null;
     }
 }

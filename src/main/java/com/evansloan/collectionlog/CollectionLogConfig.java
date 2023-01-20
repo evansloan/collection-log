@@ -77,12 +77,24 @@ public interface CollectionLogConfig extends Config
 		return false;
 	}
 
+	@ConfigItem(
+		keyName = "highlight_incomplete_pages",
+		name = "Highlight incomplete pages",
+		description = "Highlight incomplete page titles",
+		position = 4,
+		section = appearanceSection
+	)
+	default boolean highlightIncompletePages()
+	{
+		return false;
+	}
+
 	@Alpha
 	@ConfigItem(
 		keyName = "highlight_color",
-		name = "Completed entry highlight color",
-		description = "Sets the highlight color of completed entries",
-		position = 4,
+		name = "Completed page highlight color",
+		description = "Sets the highlight color of completed pages",
+		position = 5,
 		section = appearanceSection
 	)
 	default Color highlightColor()
@@ -90,11 +102,37 @@ public interface CollectionLogConfig extends Config
 		return new Color(13, 193, 13);
 	}
 
+	@Alpha
+	@ConfigItem(
+		keyName = "in_progress_highlight_color",
+		name = "In progress page highlight color",
+		description = "Sets the highlight color of page titles with at least one item obtained",
+		position = 6,
+		section = appearanceSection
+	)
+	default Color inProgressHighlightColor()
+	{
+		return new Color(231, 228, 4);
+	}
+
+	@Alpha
+	@ConfigItem(
+		keyName = "empty_highlight_color",
+		name = "Empty page highlight color",
+		description = "Sets the highlight color of page titles with no items obtained",
+		position = 7,
+		section = appearanceSection
+	)
+	default Color emptyHighlightColor()
+	{
+		return new Color(204, 44, 44);
+	}
+
 	@ConfigItem(
 		keyName = "show_quantity_for_all_obtained_items",
 		name = "Show quantity for all obtained items",
 		description = "Show the quantity of items where only one has been obtained",
-		position = 5,
+		position = 8,
 		section = appearanceSection
 	)
 	default boolean showQuantityForAllObtainedItems()

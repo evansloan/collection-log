@@ -13,11 +13,57 @@ import java.util.Map;
 
 public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog>
 {
+    private final String COLLECTION_LOG_KEY = "collectionLog";
+    private final String COLLECTION_LOG_ITEMS_KEY = "items";
+    private final String COLLECTION_LOG_KILL_COUNTS_KEY = "killCounts";
+    private final String COLLECTION_LOG_TABS_KEY = "tabs";
+    private final String COLLECTION_LOG_TOTAL_OBTAINED_KEY = "totalObtained";
+    private final String COLLECTION_LOG_TOTAL_ITEMS_KEY = "totalItems";
+    private final String COLLECTION_LOG_UNIQUE_OBTAINED_KEY = "uniqueObtained";
+    private final String COLLECTION_LOG_UNIQUE_ITEMS_KEY = "uniqueItems";
+    private final String COLLECTION_LOG_USERNAME_KEY = "username";
+
+    private final boolean isFileDeserialize;
+
+    private final Map<String, String> keyMap = new HashMap<String, String>() {
+        {
+            put(COLLECTION_LOG_KEY, COLLECTION_LOG_KEY);
+            put(COLLECTION_LOG_KILL_COUNTS_KEY, COLLECTION_LOG_KILL_COUNTS_KEY);
+            put(COLLECTION_LOG_TOTAL_OBTAINED_KEY, COLLECTION_LOG_TOTAL_OBTAINED_KEY);
+            put(COLLECTION_LOG_TOTAL_ITEMS_KEY, COLLECTION_LOG_TOTAL_ITEMS_KEY);
+            put(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, COLLECTION_LOG_UNIQUE_OBTAINED_KEY);
+            put(COLLECTION_LOG_UNIQUE_ITEMS_KEY, COLLECTION_LOG_UNIQUE_ITEMS_KEY);
+        }
+    };
+
+    CollectionLogDeserializer(boolean isFileDeserialize)
+    {
+        this.isFileDeserialize = isFileDeserialize;
+        if (isFileDeserialize)
+        {
+            keyMap.put(COLLECTION_LOG_KEY, "collection_log");
+            keyMap.put(COLLECTION_LOG_KILL_COUNTS_KEY, "kill_count");
+            keyMap.put(COLLECTION_LOG_TOTAL_OBTAINED_KEY, "total_obtained");
+            keyMap.put(COLLECTION_LOG_TOTAL_ITEMS_KEY, "total_items");
+            keyMap.put(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, "unique_obtained");
+            keyMap.put(COLLECTION_LOG_UNIQUE_ITEMS_KEY, "unique_items");
+        }
+    }
+
     @Override
     public CollectionLog deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
     {
-        JsonObject jsonObjectLog = json.getAsJsonObject().get("collectionLog").getAsJsonObject();
-        JsonObject jsonObjectTabs  = jsonObjectLog.get("tabs").getAsJsonObject();
+        JsonObject jsonObjectLog;
+        if (isFileDeserialize)
+        {
+            jsonObjectLog = json.getAsJsonObject();
+        }
+        else
+        {
+            jsonObjectLog = json.getAsJsonObject().get(keyMap.get(COLLECTION_LOG_KEY)).getAsJsonObject();
+        }
+
+        JsonObject jsonObjectTabs = jsonObjectLog.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
 
         Map<String, CollectionLogTab> newTabs = new HashMap<>();
         for (String tabKey : jsonObjectTabs.keySet())
@@ -30,20 +76,31 @@ public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog
                 JsonObject page = tab.get(pageKey).getAsJsonObject();
                 List<CollectionLogItem> newItems = new ArrayList<>();
 
-                for (JsonElement item : page.get("items").getAsJsonArray())
+                for (JsonElement item : page.get(COLLECTION_LOG_ITEMS_KEY).getAsJsonArray())
                 {
                     CollectionLogItem newItem = context.deserialize(item, CollectionLogItem.class);
                     newItems.add(newItem);
                 }
 
                 List<CollectionLogKillCount> newKillCounts = new ArrayList<>();
-                JsonElement pageKillCounts = page.get("killCount");
+                JsonElement pageKillCounts = page.get(keyMap.get(COLLECTION_LOG_KILL_COUNTS_KEY));
 
                 if (pageKillCounts != null)
                 {
                     for (JsonElement killCount : pageKillCounts.getAsJsonArray())
                     {
-                        CollectionLogKillCount newKillCount = context.deserialize(killCount, CollectionLogKillCount.class);
+                        CollectionLogKillCount newKillCount;
+                        if (isFileDeserialize)
+                        {
+                            String killCountString = killCount.getAsString();
+                            String killCountName = killCountString.split(": ")[0];
+                            int killCountAmount = Integer.parseInt(killCountString.split(": ")[1]);
+                            newKillCount = new CollectionLogKillCount(killCountName, killCountAmount);
+                        }
+                        else
+                        {
+                            newKillCount = context.deserialize(killCount, CollectionLogKillCount.class);
+                        }
                         newKillCounts.add(newKillCount);
                     }
                 }
@@ -54,11 +111,11 @@ public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog
             newTabs.put(tabKey, newTab);
         }
         return new CollectionLog(
-            jsonObjectLog.get("username").getAsString(),
-            jsonObjectLog.get("totalObtained").getAsInt(),
-            jsonObjectLog.get("totalItems").getAsInt(),
-            jsonObjectLog.get("uniqueObtained").getAsInt(),
-            jsonObjectLog.get("uniqueItems").getAsInt(),
+            "",
+            jsonObjectLog.get(keyMap.get(COLLECTION_LOG_TOTAL_OBTAINED_KEY)).getAsInt(),
+            jsonObjectLog.get(keyMap.get(COLLECTION_LOG_TOTAL_ITEMS_KEY)).getAsInt(),
+            jsonObjectLog.get(keyMap.get(COLLECTION_LOG_UNIQUE_OBTAINED_KEY)).getAsInt(),
+            jsonObjectLog.get(keyMap.get(COLLECTION_LOG_UNIQUE_ITEMS_KEY)).getAsInt(),
             newTabs
         );
     }

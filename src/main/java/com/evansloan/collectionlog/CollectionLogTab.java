@@ -12,4 +12,9 @@ public class CollectionLogTab
 
     @Getter
     private final Map<String, CollectionLogPage> pages;
+
+    public boolean containsPage(String pageName)
+    {
+        return pages.containsKey(pageName);
+    }
 }

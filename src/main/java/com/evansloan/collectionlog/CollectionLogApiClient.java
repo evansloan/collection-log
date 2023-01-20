@@ -135,7 +135,7 @@ public class CollectionLogApiClient
 			.build();
 
 		return gson.newBuilder()
-			.registerTypeAdapter(CollectionLog.class, new CollectionLogDeserializer())
+			.registerTypeAdapter(CollectionLog.class, new CollectionLogDeserializer(false))
 			.create()
 			.fromJson(getRequest(url), CollectionLog.class);
 	}
