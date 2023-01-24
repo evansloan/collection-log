@@ -926,6 +926,11 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private void updateUniqueItems()
 	{
+		if (collectionLogData == null)
+		{
+			loadCollectionLogData();
+		}
+
 		Widget collectionLogTitleWidget = getCollectionLogTitle();
 		if (collectionLogTitleWidget == null)
 		{

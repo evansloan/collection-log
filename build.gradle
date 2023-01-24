@@ -24,7 +24,7 @@ dependencies {
 }
 
 group = 'com.evansloan.collectionlog'
-version = '2.3.1'
+version = '2.3.2'
 sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
