@@ -29,8 +29,11 @@ public class CollectionLogPage
                 return "Bryophyta";
             case "barrows":
                 return "Barrows Chests";
+            case "artio":
+            case "art":
             case "cal":
-                return "Callisto";
+            case "callisto":
+                return "Callisto and Artio";
             case "cerb":
                 return "Cerberus";
             case "chaos ele":
@@ -127,12 +130,20 @@ public class CollectionLogPage
             case "thermy":
             case "thermey":
                 return "Thermonuclear Smoke Devil";
+            case "spin":
+            case "spindel":
             case "vene":
-                return "Venenatis";
+            case "venenatis":
+                return "Venenatis and Spindel";
+            case "calv":
+            case "calvarion":
+            case "calvar ion":
+            case "calvar'ion":
             case "vetion":
             case "vet ion":
+            case "vet'ion":
             case "veti":
-                return "Vet'ion";
+                return "Vet'ion and Calvar'ion";
             case "vork":
             case "vorki":
                 return "Vorkath";
