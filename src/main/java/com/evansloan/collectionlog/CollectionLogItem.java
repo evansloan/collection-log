@@ -10,7 +10,8 @@ import net.runelite.api.ItemComposition;
 public class CollectionLogItem
 {
 
-    private final int id;
+	@Setter
+    private int id;
 
     private final String name;
 
@@ -21,17 +22,6 @@ public class CollectionLogItem
     private boolean obtained;
 
     private final int sequence;
-
-    public CollectionLogItem merge(CollectionLogItem itemToMerge)
-    {
-        return new CollectionLogItem(
-            id,
-            name,
-            quantity + itemToMerge.quantity,
-            obtained || itemToMerge.obtained,
-            sequence
-        );
-    }
 
     public static CollectionLogItem fromItemComposition(ItemComposition itemComposition, Integer sequence)
     {
