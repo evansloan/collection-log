@@ -11,19 +11,6 @@ import net.runelite.client.config.ConfigSection;
 public interface CollectionLogConfig extends Config
 {
 	@ConfigItem(
-		keyName = "upload_collection_log",
-		name = "Allow collectionlog.net connections",
-		description = "Allows collection log data to upload on log out and the chat command to pull data",
-		position = 1,
-		section = exportingSection,
-		warning = "Enabling this option submits your IP address and account hash to a 3rd party website not controlled or verified by the RuneLite Developers."
-	)
-	default boolean allowApiConnections()
-	{
-		return false;
-	}
-
-	@ConfigItem(
 		keyName = "show_collection_log_panel",
 		name = "Show the collection log side panel",
 		description = "Show the collection log side panel",
@@ -112,7 +99,7 @@ public interface CollectionLogConfig extends Config
 	)
 	default Color inProgressHighlightColor()
 	{
-		return new Color(231, 228, 4);
+		return new Color(255, 152, 31);
 	}
 
 	@Alpha
@@ -148,15 +135,16 @@ public interface CollectionLogConfig extends Config
 	String exportingSection = "exporting";
 
 	@ConfigItem(
-		keyName = "notify_on_export",
-		name = "Notify on export",
-		description = "Send a notification on collection log export",
+		keyName = "upload_collection_log",
+		name = "Allow collectionlog.net connections",
+		description = "Allows collection log data to upload on log out and the chat command to pull data",
 		position = 1,
-		section = exportingSection
+		section = exportingSection,
+		warning = "Enabling this option submits your IP address and account hash to a 3rd party website not controlled or verified by the RuneLite Developers."
 	)
-	default boolean notifyOnExport()
+	default boolean allowApiConnections()
 	{
-		return true;
+		return false;
 	}
 
 	@ConfigItem(
