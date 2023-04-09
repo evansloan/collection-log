@@ -1,5 +1,10 @@
-package com.evansloan.collectionlog;
+package com.evansloan.collectionlog.util;
 
+import com.evansloan.collectionlog.CollectionLog;
+import com.evansloan.collectionlog.CollectionLogItem;
+import com.evansloan.collectionlog.CollectionLogKillCount;
+import com.evansloan.collectionlog.CollectionLogPage;
+import com.evansloan.collectionlog.CollectionLogTab;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -13,54 +18,51 @@ import java.util.Map;
 
 public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog>
 {
-    private final String COLLECTION_LOG_KEY = "collectionLog";
-    private final String COLLECTION_LOG_ITEMS_KEY = "items";
-    private final String COLLECTION_LOG_KILL_COUNTS_KEY = "killCounts";
-    private final String COLLECTION_LOG_TABS_KEY = "tabs";
-    private final String COLLECTION_LOG_TOTAL_OBTAINED_KEY = "totalObtained";
-    private final String COLLECTION_LOG_TOTAL_ITEMS_KEY = "totalItems";
-    private final String COLLECTION_LOG_UNIQUE_OBTAINED_KEY = "uniqueObtained";
-    private final String COLLECTION_LOG_UNIQUE_ITEMS_KEY = "uniqueItems";
-    private final String COLLECTION_LOG_USERNAME_KEY = "username";
+    private static final String COLLECTION_LOG_ITEMS_KEY = "items";
+    private static final String COLLECTION_LOG_KILL_COUNTS_KEY = "killCounts";
+    private static final String COLLECTION_LOG_TABS_KEY = "tabs";
+    private static final String COLLECTION_LOG_TOTAL_OBTAINED_KEY = "totalObtained";
+    private static final String COLLECTION_LOG_TOTAL_ITEMS_KEY = "totalItems";
+    private static final String COLLECTION_LOG_UNIQUE_OBTAINED_KEY = "uniqueObtained";
+    private static final String COLLECTION_LOG_UNIQUE_ITEMS_KEY = "uniqueItems";
+	private static final String COLLECTION_LOG_IS_UPDATED_KEY = "isUpdated";
 
-    private final boolean isFileDeserialize;
+    private final Map<String, String> keyMap = new HashMap<String, String>()
+	{
+		{
+			put(COLLECTION_LOG_KILL_COUNTS_KEY, COLLECTION_LOG_KILL_COUNTS_KEY);
+			put(COLLECTION_LOG_TOTAL_OBTAINED_KEY, COLLECTION_LOG_TOTAL_OBTAINED_KEY);
+			put(COLLECTION_LOG_TOTAL_ITEMS_KEY, COLLECTION_LOG_TOTAL_ITEMS_KEY);
+			put(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, COLLECTION_LOG_UNIQUE_OBTAINED_KEY);
+			put(COLLECTION_LOG_UNIQUE_ITEMS_KEY, COLLECTION_LOG_UNIQUE_ITEMS_KEY);
+		}
+	};
 
-    private final Map<String, String> keyMap = new HashMap<String, String>() {
-        {
-            put(COLLECTION_LOG_KEY, COLLECTION_LOG_KEY);
-            put(COLLECTION_LOG_KILL_COUNTS_KEY, COLLECTION_LOG_KILL_COUNTS_KEY);
-            put(COLLECTION_LOG_TOTAL_OBTAINED_KEY, COLLECTION_LOG_TOTAL_OBTAINED_KEY);
-            put(COLLECTION_LOG_TOTAL_ITEMS_KEY, COLLECTION_LOG_TOTAL_ITEMS_KEY);
-            put(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, COLLECTION_LOG_UNIQUE_OBTAINED_KEY);
-            put(COLLECTION_LOG_UNIQUE_ITEMS_KEY, COLLECTION_LOG_UNIQUE_ITEMS_KEY);
-        }
-    };
+	private boolean isOldFileFormat = false;
 
-    CollectionLogDeserializer(boolean isFileDeserialize)
+	public CollectionLogDeserializer()
+	{
+		super();
+	}
+
+	public CollectionLogDeserializer(boolean isOldSaveFormat)
+	{
+		super();
+		this.isOldFileFormat = isOldSaveFormat;
+	}
+
+    @Override
+    public CollectionLog deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) throws JsonParseException
     {
-        this.isFileDeserialize = isFileDeserialize;
-        if (isFileDeserialize)
+        JsonObject jsonObjectLog = jsonElement.getAsJsonObject();
+        if (isOldFileFormat)
         {
-            keyMap.put(COLLECTION_LOG_KEY, "collection_log");
+            // Old file format uses snake cased keys
             keyMap.put(COLLECTION_LOG_KILL_COUNTS_KEY, "kill_count");
             keyMap.put(COLLECTION_LOG_TOTAL_OBTAINED_KEY, "total_obtained");
             keyMap.put(COLLECTION_LOG_TOTAL_ITEMS_KEY, "total_items");
             keyMap.put(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, "unique_obtained");
             keyMap.put(COLLECTION_LOG_UNIQUE_ITEMS_KEY, "unique_items");
-        }
-    }
-
-    @Override
-    public CollectionLog deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
-    {
-        JsonObject jsonObjectLog;
-        if (isFileDeserialize)
-        {
-            jsonObjectLog = json.getAsJsonObject();
-        }
-        else
-        {
-            jsonObjectLog = json.getAsJsonObject().get(keyMap.get(COLLECTION_LOG_KEY)).getAsJsonObject();
         }
 
         JsonObject jsonObjectTabs = jsonObjectLog.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
@@ -90,12 +92,10 @@ public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog
                     for (JsonElement killCount : pageKillCounts.getAsJsonArray())
                     {
                         CollectionLogKillCount newKillCount;
-                        if (isFileDeserialize)
+                        if (isOldFileFormat)
                         {
                             String killCountString = killCount.getAsString();
-                            String killCountName = killCountString.split(": ")[0];
-                            int killCountAmount = Integer.parseInt(killCountString.split(": ")[1]);
-                            newKillCount = new CollectionLogKillCount(killCountName, killCountAmount);
+							newKillCount = CollectionLogKillCount.fromString(killCountString, newKillCounts.size());
                         }
                         else
                         {
@@ -104,7 +104,11 @@ public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog
                         newKillCounts.add(newKillCount);
                     }
                 }
-                CollectionLogPage newPage = new CollectionLogPage(pageKey, newItems, newKillCounts);
+
+                boolean isUpdated = page.get(COLLECTION_LOG_IS_UPDATED_KEY) != null
+					&& page.get(COLLECTION_LOG_IS_UPDATED_KEY).getAsBoolean();
+
+                CollectionLogPage newPage = new CollectionLogPage(pageKey, newItems, newKillCounts, isUpdated);
                 newPages.put(pageKey, newPage);
             }
             CollectionLogTab newTab = new CollectionLogTab(tabKey, newPages);
