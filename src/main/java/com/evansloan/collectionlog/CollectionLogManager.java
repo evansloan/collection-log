@@ -1,43 +1,84 @@
 package com.evansloan.collectionlog;
 
+import com.evansloan.collectionlog.util.CollectionLogDeserializer;
+import com.evansloan.collectionlog.util.CollectionLogSerializer;
+import com.evansloan.collectionlog.util.JsonUtils;
+import com.evansloan.collectionlog.util.UserSettingsDeserializer;
 import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.EnumComposition;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.StructComposition;
-import net.runelite.client.game.ItemManager;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.*;
-
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
+import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.ItemStack;
 
 @Slf4j
 @Singleton
 public class CollectionLogManager
 {
-	private static final List<Integer> COLLECTION_LOG_TAB_STRUCT_IDS = ImmutableList.of(471, 472, 473, 474, 475);
+	private static final List<Integer> COLLECTION_LOG_TAB_STRUCT_IDS = ImmutableList.of(
+		471, // Bosses
+		472, // Raids
+		473, // Clues
+		474, // Minigames
+		475  // Other
+	);
 	private static final List<Integer> COLLECTION_LOG_TAB_ENUM_IDS = ImmutableList.of(2103, 2104, 2105, 2106, 2107);
-	private static final int COLLECTION_LOG_TAB_NAME_STRUCT_PARAM_ID = 682;
+	private static final int COLLECTION_LOG_TAB_NAME_PARAM_ID = 682;
 	private static final int COLLECTION_LOG_TAB_ENUM_PARAM_ID = 683;
 	private static final int COLLECTION_LOG_PAGE_NAME_PARAM_ID = 689;
 	private static final int COLLECTION_LOG_PAGE_ITEMS_ENUM_PARAM_ID = 690;
+	private static final int COLLECTION_LOG_KILL_COUNT_SCRIPT_ID = 2735;
 
 	private static final int COLLECTION_LOG_UNIQUE_OBTAINED_VARP_ID = 2943;
 	private static final int COLLECTION_LOG_UNIQUE_ITEMS_VARP_ID = 2944;
 
-	private static final File COLLECTION_LOG_SAVE_DATA_DIR = new File(RUNELITE_DIR, "collectionlog");
+	private static final File COLLECTION_LOG_DIR = new File(RUNELITE_DIR, "collectionlog");
+	private static final File COLLECTION_LOG_SAVE_DATA_DIR = new File(COLLECTION_LOG_DIR, "data");
 	private static final File COLLECTION_LOG_EXPORT_DIR = new File(COLLECTION_LOG_SAVE_DATA_DIR, "exports");
+
+	private static final Pattern COLLECTION_LOG_FILE_PATTERN = Pattern.compile("collectionlog-([\\w\\s-]+).json");
+
+	/*
+	 * Map of item IDs that differ in page items struct vs ID on item widget in the collection log
+	 * Both IDs are valid, but causes duplicates on site
+	 *
+	 * Key: Page struct item ID
+	 * Value: Item widget item ID
+	 */
+	private static final Map<Integer, Integer> ITEM_ID_MAP = new ImmutableMap.Builder<Integer, Integer>()
+		.put(10859, 25617) // Tea flask
+		.put(10877, 25618) // Red satchel
+		.put(10878, 25619) // Green satchel
+		.put(10879, 25620) // Red satchel
+		.put(10880, 25621) // Black satchel
+		.put(10881, 25622) // Gold satchel
+		.put(10882, 25623) // Rune satchel
+		.put(13273, 25624) // Unsired
+		.put(12019, 25627) // Coal bag
+		.put(12020, 25628) // Gem bag
+		.put(12854, 25630) // Flamtaer bag
+		.build();
 
 	@Inject
 	private Client client;
@@ -46,31 +87,41 @@ public class CollectionLogManager
 	private ItemManager itemManager;
 
 	@Inject
-	private Gson gson;
+	private JsonUtils jsonUtils;
+
+	@Getter
+	private boolean isInitialized;
 
 	@Getter
 	private CollectionLog collectionLog;
 
+	@Getter
+	@Setter
+	private UserSettings userSettings = new UserSettings();
+
+	private final Map<String, CollectionLog> loadedCollectionLogs = new HashMap<>();
+
 	/**
-	 * Init CollectionLog object with all items in the collection log.
-	 * Does not include obtained/quantity information.
+	 * Init CollectionLog object with all items in the collection log, does not include quantity or obtained status.
+	 * Based off cs2 scripts 2731 proc_collection_draw_list and 2732 proc_collection_draw_log
+	 *
+	 * If a user has previously clicked through the collection log with the plugin installed,
+	 * obtained and quantity will be set for each item if item exists in local save file.
 	 */
 	public void initCollectionLog()
 	{
-		boolean saveDataExists = true;
-		CollectionLog saveFileCollectionLog = loadFromSaveFile();
-		if (saveFileCollectionLog == null)
-		{
-			saveDataExists = false;
-		}
+		String username = client.getLocalPlayer().getName();
+		CollectionLog saveFileCollectionLog = loadedCollectionLogs.get(username);
+		boolean saveDataExists = saveFileCollectionLog != null;
 
 		int totalObtained = 0;
 		int totalItems = 0;
 		Map<String, CollectionLogTab> collectionLogTabs = new HashMap<>();
+
 		for (Integer structId : COLLECTION_LOG_TAB_STRUCT_IDS)
 		{
 			StructComposition tabStruct = client.getStructComposition(structId);
-			String tabName = tabStruct.getStringValue(COLLECTION_LOG_TAB_NAME_STRUCT_PARAM_ID);
+			String tabName = tabStruct.getStringValue(COLLECTION_LOG_TAB_NAME_PARAM_ID);
 			int tabEnumId = tabStruct.getIntValue(COLLECTION_LOG_TAB_ENUM_PARAM_ID);
 			EnumComposition tabEnum = client.getEnum(tabEnumId);
 
@@ -89,12 +140,18 @@ public class CollectionLogManager
 				if (saveDataExists)
 				{
 					saveFilePage = saveFileCollectionLog.searchForPage(pageName);
+
 				}
 
 				for (Integer pageItemId : pageItemsEnum.getIntVals())
 				{
 					ItemComposition itemComposition = itemManager.getItemComposition(pageItemId);
 					CollectionLogItem item = CollectionLogItem.fromItemComposition(itemComposition, pageItems.size());
+
+					if (ITEM_ID_MAP.containsKey(item.getId()))
+					{
+						item.setId(ITEM_ID_MAP.get(item.getId()));
+					}
 
 					if (saveDataExists && saveFilePage != null)
 					{
@@ -105,6 +162,7 @@ public class CollectionLogManager
 							item.setObtained(saveFileItem.isObtained());
 						}
 					}
+
 					pageItems.add(item);
 					totalItems += 1;
 					if (item.isObtained())
@@ -113,11 +171,26 @@ public class CollectionLogManager
 					}
 				}
 
-				CollectionLogPage collectionLogPage = new CollectionLogPage(pageName, pageItems, pageKillCounts);
-				if (saveFilePage != null)
+				// Run script to get kill counts for current page, pushes 3 (possibly empty) strings onto stack
+				client.runScript(COLLECTION_LOG_KILL_COUNT_SCRIPT_ID, pageStruct.getId());
+				List<String> killCountStrings = new ArrayList<>(
+					Arrays.asList(Arrays.copyOfRange(client.getStringStack(), 0, 3))
+				);
+				Collections.reverse(killCountStrings);
+
+				for (String killCountString : killCountStrings)
 				{
-					collectionLogPage.setUpdated(true);
+					if (killCountString.isEmpty())
+					{
+						continue;
+					}
+					CollectionLogKillCount killCount = CollectionLogKillCount.fromString(killCountString, pageKillCounts.size());
+					pageKillCounts.add(killCount);
 				}
+
+				boolean isUpdated = saveFilePage != null && saveFilePage.isUpdated();
+				CollectionLogPage collectionLogPage = new CollectionLogPage(pageName, pageItems, pageKillCounts, isUpdated);
+
 				collectionLogPages.put(pageName, collectionLogPage);
 			}
 
@@ -125,43 +198,137 @@ public class CollectionLogManager
 		}
 
 		collectionLog = new CollectionLog(
-			client.getLocalPlayer().getName(),
+			username,
 			totalObtained,
 			totalItems,
 			client.getVarpValue(COLLECTION_LOG_UNIQUE_OBTAINED_VARP_ID),
 			client.getVarpValue(COLLECTION_LOG_UNIQUE_ITEMS_VARP_ID),
 			collectionLogTabs
 		);
+
+		isInitialized = true;
+	}
+
+	private String getDataFilePath(String fileName, String username)
+	{
+		File directory = new File(COLLECTION_LOG_SAVE_DATA_DIR + File.separator + username);
+		directory.mkdirs();
+		return directory + File.separator + fileName;
+	}
+
+	public String getCollectionLogFilePath()
+	{
+		String username = client.getLocalPlayer().getName();
+		String fileName = "collectionlog-" + username + ".json";
+		return getDataFilePath(fileName, username);
+	}
+
+	public String getUserSettingsFilePath()
+	{
+		String username = client.getLocalPlayer().getName();
+		String fileName = "settings-" + username + ".json";
+		return getDataFilePath(fileName, username);
+	}
+
+	public String getExportFilePath()
+	{
+		File directory = COLLECTION_LOG_EXPORT_DIR;
+		String exportDate = new SimpleDateFormat("yyyyMMdd'T'HHmmss").format(new Date());
+		String fileName = exportDate + "-collectionlog-" + client.getLocalPlayer().getName() + ".json";
+
+		directory.mkdir();
+		return directory + File.separator + fileName;
+	}
+
+	public void loadCollectionLogFiles(File directory)
+	{
+		if (!directory.exists())
+		{
+			return;
+		}
+
+		File[] files = directory.listFiles();
+		if (files == null)
+		{
+			return;
+		}
+
+		boolean isOldFileFormat = directory == COLLECTION_LOG_DIR;
+
+		for (File file : files)
+		{
+			if (file.isDirectory())
+			{
+				if (!isOldFileFormat)
+				{
+					loadCollectionLogFiles(file);
+				}
+				continue;
+			}
+
+			Matcher matcher = COLLECTION_LOG_FILE_PATTERN.matcher(file.getName());
+			if (!matcher.matches())
+			{
+				continue;
+			}
+
+			String fileUsername = matcher.group(1);
+			CollectionLog loadedCollectionLog = jsonUtils.readJsonFile(file.getPath(), CollectionLog.class, new CollectionLogDeserializer(isOldFileFormat));
+			loadedCollectionLogs.put(fileUsername, loadedCollectionLog);
+		}
+	}
+
+	public void loadCollectionLogFiles()
+	{
+		// Old save files
+		loadCollectionLogFiles(COLLECTION_LOG_DIR);
+		// New save files
+		loadCollectionLogFiles(COLLECTION_LOG_SAVE_DATA_DIR);
+	}
+
+
+	public UserSettings loadUserSettingsFile()
+	{
+		return jsonUtils.readJsonFile(getUserSettingsFilePath(), UserSettings.class, new UserSettingsDeserializer());
+	}
+
+	public boolean saveCollectionLogFile(boolean isExport)
+	{
+		String filePath = getCollectionLogFilePath();
+		if (isExport)
+		{
+			filePath = getExportFilePath();
+		}
+		return jsonUtils.writeJsonFile(filePath, collectionLog, new CollectionLogSerializer());
+	}
+
+	public boolean saveUserSettingsFile()
+	{
+		return jsonUtils.writeJsonFile(getUserSettingsFilePath(), userSettings);
 	}
 
 	/**
-	 * TODO: Move file loading logic into init
-	 * Pull items based off page name
+	 * Deletes saved collection log data for the current user
 	 */
-	private CollectionLog loadFromSaveFile()
+	public void deleteSaveFile()
 	{
-		try
+		String filePath = getCollectionLogFilePath();
+		File savedData = new File(filePath);
+		if (!savedData.delete())
 		{
-			String fileName = "collectionlog-" + client.getLocalPlayer().getName() + ".json";
-			FileReader reader = new FileReader(COLLECTION_LOG_SAVE_DATA_DIR + File.separator + fileName);
-			JsonObject collectionLogSaveData = new JsonParser().parse(reader).getAsJsonObject();
-			reader.close();
+			log.error("Unable to delete collection log save file: " + filePath);
+			return;
+		}
 
-			return gson.newBuilder()
-				.registerTypeAdapter(CollectionLog.class, new CollectionLogDeserializer(true))
-				.create()
-				.fromJson(collectionLogSaveData, CollectionLog.class);
-		}
-		catch (IOException | JsonParseException e)
-		{
-			log.info("Unable to load collection log data from save file: " + e.getMessage());
-			return null;
-		}
+		isInitialized = false;
+		collectionLog = null;
 	}
 
-	public void clearCollectionLog()
+	public void reset()
 	{
 		collectionLog = null;
+		isInitialized = false;
+		userSettings = new UserSettings();
 	}
 
 	public void updateUniqueCounts()
@@ -169,7 +336,6 @@ public class CollectionLogManager
 		collectionLog.setUniqueObtained(client.getVarpValue(COLLECTION_LOG_UNIQUE_OBTAINED_VARP_ID));
 		collectionLog.setUniqueItems(client.getVarpValue(COLLECTION_LOG_UNIQUE_ITEMS_VARP_ID));
 	}
-
 
 	/**
 	 * Updates the total amount of items in the collection log
@@ -187,5 +353,59 @@ public class CollectionLogManager
 		{
 			collectionLog.setTotalItems(newTotal);
 		}
+	}
+
+	public CollectionLogTab getTabByName(String tabName)
+	{
+		return collectionLog.getTabs().get(tabName);
+	}
+
+	public CollectionLogPage getPageByName(String pageName)
+	{
+		return collectionLog.searchForPage(pageName);
+	}
+
+	public boolean updateObtainedItem(ItemStack itemStack)
+	{
+		if (!isInitialized)
+		{
+			return false;
+		}
+
+		boolean itemUpdated = false;
+		for (CollectionLogTab tab : collectionLog.getTabs().values())
+		{
+			for (CollectionLogPage page : tab.getPages().values())
+			{
+				CollectionLogItem existingItem = page.getItemById(itemStack.getId());
+				if (existingItem == null)
+				{
+					continue;
+				}
+
+				itemUpdated = true;
+				existingItem.setQuantity(existingItem.getQuantity() + itemStack.getQuantity());
+				existingItem.setObtained(true);
+
+				collectionLog.setTotalObtained(collectionLog.getTotalObtained() + 1);
+			}
+		}
+
+		if (itemUpdated)
+		{
+			collectionLog.setUniqueObtained(collectionLog.getUniqueObtained() + 1);
+		}
+
+		return false;
+	}
+
+	public JsonObject getCollectionLogJsonObject()
+	{
+		return jsonUtils.toJsonObject(collectionLog, new CollectionLogSerializer());
+	}
+
+	public JsonObject getUserSettingsJsonObject()
+	{
+		return jsonUtils.toJsonObject(userSettings);
 	}
 }
