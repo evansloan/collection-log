@@ -1,4 +1,4 @@
-package com.evansloan.collectionlog;
+package com.evansloan.collectionlog.ui;
 
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
