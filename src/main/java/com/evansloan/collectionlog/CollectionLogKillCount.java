@@ -2,17 +2,23 @@ package com.evansloan.collectionlog;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import net.runelite.client.util.Text;
 
+@Getter
 @AllArgsConstructor
 public class CollectionLogKillCount
 {
-    @Getter
     private final String name;
-    @Getter
     private final int amount;
+    private final int sequence;
 
-    public CollectionLogKillCount merge(CollectionLogKillCount killCountToMerge)
-    {
-        return new CollectionLogKillCount(name, amount + killCountToMerge.amount);
-    }
+	public static CollectionLogKillCount fromString(String killCountString, int sequence)
+	{
+		String[] killCountSplit = killCountString.split(": ");
+		String name = killCountSplit[0];
+		String amount = Text.removeTags(killCountSplit[1])
+			.replace(",", "");
+
+		return new CollectionLogKillCount(name, Integer.parseInt(amount), sequence);
+	}
 }
