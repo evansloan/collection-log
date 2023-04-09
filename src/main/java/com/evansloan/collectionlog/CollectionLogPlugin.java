@@ -85,6 +85,8 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_UNIQUE_OBTAINED_KEY = "unique_obtained";
 	private static final String COLLECTION_LOG_UNIQUE_ITEMS_KEY = "unique_items";
 	private static final String COLLECTION_LOG_COMMAND_STRING = "!log";
+	private static final List<String> COLLECTION_LOG_COMMAND_FILTERS = ImmutableList.of("missing", "obtained", "dupes");
+	private static final Pattern COLLECTION_LOG_COMMAND_PATTERN = Pattern.compile("!log\\s*(" + String.join("|", COLLECTION_LOG_COMMAND_FILTERS) + ")?\\s*([\\w\\s]+)?", Pattern.CASE_INSENSITIVE);
 
 	private static final int ADVENTURE_LOG_COLLECTION_LOG_SELECTED_VARBIT_ID = 12061;
 	private static final Pattern ADVENTURE_LOG_TITLE_PATTERN = Pattern.compile("The Exploits of (.+)");
@@ -999,18 +1001,26 @@ public class CollectionLogPlugin extends Plugin
 		{
 			String replacementMessage;
 
-			String[] commands = message.split("\\s+", 2);
+			Matcher commandMatcher = COLLECTION_LOG_COMMAND_PATTERN.matcher(message);
+			if (!commandMatcher.matches())
+			{
+				return;
+			}
+
+			String commandFilter = commandMatcher.group(1);
+			String commandPage = commandMatcher.group(2);
+
 			if (collectionLog == null)
 			{
 				replacementMessage = "No Collection Log data found for user.";
 			}
-			else if (commands.length == 1)
+			else if (commandPage == null)
 			{
 				replacementMessage = "Collection Log: " + collectionLog.getUniqueObtained() + "/" + collectionLog.getUniqueItems();
 			}
 			else
 			{
-				String pageArgument = CollectionLogPage.aliasPageName(commands[1]);
+				String pageArgument = CollectionLogPage.aliasPageName(commandPage);
 				CollectionLogPage collectionLogPage;
 				if (pageArgument.equals("any"))
 				{
@@ -1028,7 +1038,7 @@ public class CollectionLogPlugin extends Plugin
 				else
 				{
 					loadPageIcons(collectionLogPage.getItems());
-					replacementMessage = buildMessageReplacement(collectionLogPage);
+					replacementMessage = buildMessageReplacement(collectionLogPage, commandFilter);
 				}
 			}
 
@@ -1075,18 +1085,18 @@ public class CollectionLogPlugin extends Plugin
 	 * @param collectionLogPage Page to format into a chat message
 	 * @return Replacement message
 	 */
-	private String buildMessageReplacement(CollectionLogPage collectionLogPage)
+	private String buildMessageReplacement(CollectionLogPage collectionLogPage, String commandFilter)
 	{
-		StringBuilder itemBuilder = new StringBuilder();
-		int obtained = 0;
-		for (CollectionLogItem item : collectionLogPage.getItems())
-		{
-			if (!item.isObtained())
-			{
-				continue;
-			}
-			obtained++;
 
+		if (commandFilter == null)
+		{
+			commandFilter = "obtained";
+		}
+
+		List<CollectionLogItem> items = collectionLogPage.applyItemFilter(commandFilter.toLowerCase());
+		StringBuilder itemBuilder = new StringBuilder();
+		for (CollectionLogItem item : items)
+		{
 			String itemString = "<img=" + loadedCollectionLogIcons.get(item.getId()) + ">";
 			if (item.getQuantity() > 1)
 			{
@@ -1096,7 +1106,7 @@ public class CollectionLogPlugin extends Plugin
 			itemBuilder.append(itemString);
 		}
 
-		String replacementMessage = collectionLogPage.getName() + ": " + obtained + "/" + collectionLogPage.getItems().size() + " ";
+		String replacementMessage = collectionLogPage.getName() + " (" + commandFilter + "): " + items.size() + "/" + collectionLogPage.getItems().size() + " ";
 		replacementMessage += itemBuilder.toString();
 
 		return replacementMessage;

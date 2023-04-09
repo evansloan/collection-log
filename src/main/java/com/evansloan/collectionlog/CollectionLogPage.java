@@ -13,6 +13,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CollectionLogPage
 {
+	private static final Map<String, Predicate<CollectionLogItem>> ITEM_FILTERS = new ImmutableMap.Builder<String, Predicate<CollectionLogItem>>()
+		.put("obtained", CollectionLogItem::isObtained)
+		.put("missing", (item) -> !item.isObtained())
+		.put("dupes", (item) -> item.getQuantity() > 1)
+		.build();
+
     @NonNull
     private final String name;
 
@@ -483,4 +489,15 @@ public class CollectionLogPage
         }
         return null;
     }
+
+	public List<CollectionLogItem> applyItemFilter(String filterString)
+	{
+		Predicate<CollectionLogItem> filter = ITEM_FILTERS.get(filterString);
+		if (filter == null)
+		{
+			return items;
+		}
+
+		return items.stream().filter(filter).collect(Collectors.toList());
+	}
 }
