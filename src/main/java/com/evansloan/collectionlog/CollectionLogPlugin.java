@@ -169,10 +169,19 @@ public class CollectionLogPlugin extends Plugin
 		loadedCollectionLogIcons = new HashMap<>();
 		chatCommandManager.registerCommandAsync(COLLECTION_LOG_COMMAND_STRING, this::collectionLogLookup);
 	}
-	
-	private void initPanel() {
-		collectionLogPanel = injector.getInstance(CollectionLogPanel.class);
-		collectionLogPanel.create();
+
+	@Override
+	protected void shutDown()
+	{
+		destroyPanel();
+		chatCommandManager.unregisterCommand(COLLECTION_LOG_COMMAND_STRING);
+		loadedCollectionLogIcons.clear();
+	}
+
+	private void initPanel()
+	{
+		collectionLogPanel = new CollectionLogPanel(this, collectionLogManager, clientThread, config);
+		collectionLogPanel.create(client.getGameState());
 
 		if (navigationButton == null)
 		{
@@ -188,17 +197,10 @@ public class CollectionLogPlugin extends Plugin
 		clientToolbar.addNavigation(navigationButton);
 	}
 
-	@Override
-	protected void shutDown()
+	private void destroyPanel()
 	{
-		if (client.getGameState() == GameState.LOGGED_IN)
-		{
-			setCollectionLogTitle(COLLECTION_LOG_TITLE);
-		}
-
+		collectionLogPanel = null;
 		clientToolbar.removeNavigation(navigationButton);
-		chatCommandManager.unregisterCommand(COLLECTION_LOG_COMMAND_STRING);
-		loadedCollectionLogIcons.clear();
 	}
 
 	@Subscribe
@@ -217,10 +219,13 @@ public class CollectionLogPlugin extends Plugin
 			}
 			else
 			{
-				collectionLogPanel.destroy();
-				clientToolbar.removeNavigation(navigationButton);
+				destroyPanel();
 			}
+		}
 
+		if (collectionLogPanel != null)
+		{
+			collectionLogPanel.onConfigChanged(configChanged);
 		}
 	}
 
