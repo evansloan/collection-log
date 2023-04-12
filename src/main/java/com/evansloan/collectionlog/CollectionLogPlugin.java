@@ -152,14 +152,8 @@ public class CollectionLogPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			// Remove old configs
-			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "completed_categories");
-			configManager.unsetConfiguration(CONFIG_GROUP, "highlight_completed");
-			configManager.unsetConfiguration(CONFIG_GROUP, "new_item_chat_message");
-			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "obtained_counts");
-			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "obtained_items");
-			configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "kill_counts");
-			configManager.unsetConfiguration(CONFIG_GROUP, "total_items");
+			isUserLoggedIn = true;
+			unsetOldConfigs();
 		}
 
 		if (config.showCollectionLogSidePanel())
@@ -243,6 +237,31 @@ public class CollectionLogPlugin extends Plugin
 			saveCollectionLogData();
 			collectionLogManager.clearCollectionLog();
 		}
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick gameTick)
+	{
+		if (userSettingsLoaded)
+		{
+			return;
+		}
+
+		if (!isUserLoggedIn)
+		{
+			return;
+		}
+
+		// TODO: Load userSettings on executor thread
+		UserSettings userSettings = collectionLogManager.loadUserSettingsFile();
+		if (userSettings == null)
+		{
+			userSettings = new UserSettings();
+		}
+		collectionLogManager.setUserSettings(userSettings);
+		collectionLogPanel.setUserSettings(userSettings);
+
+		userSettingsLoaded = true;
 	}
 
 	@Subscribe
@@ -505,12 +524,35 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	public void saveCollectionLogData()
 	{
-		if (collectionLogData == null || !isValidWorldType())
+		if (!collectionLogManager.isInitialized())
+		{
+			collectionLogPanel.setStatus(
+				"Unable to save collection log, please open the collection log in game and try again.",
+				true,
+				true
+			);
+			return;
+		}
+
+		if (!isValidWorldType())
+		{
+			collectionLogPanel.setStatus(
+				"Unable to save collection log, please log in to a normal free to play or members world and try again",
+				true,
+				true
+			);
+			return;
+		}
+
+		if (isCollectionLogDeleted)
 		{
 			return;
 		}
 
-		saveCollectionLogDataToFile(false);
+		boolean isSaved = collectionLogManager.saveCollectionLogFile(false);
+		isSaved = isSaved && collectionLogManager.saveUserSettingsFile();
+		String statusMessage = isSaved ? null : "Unable to save collection log data. Check Runelite logs for full error.";
+		collectionLogPanel.setStatus(statusMessage, isSaved, !config.allowApiConnections());
 
 		if (config.allowApiConnections())
 		{
@@ -529,7 +571,8 @@ public class CollectionLogPlugin extends Plugin
 			boolean isFemale = localPlayer.getPlayerComposition().getGender() == 1;
 
 			// Copy data to prevent sending null on logout
-			JsonObject saveData = collectionLogData;
+			JsonObject collectionLogJson = collectionLogManager.getCollectionLogJsonObject();
+			JsonObject userSettingsJson = collectionLogManager.getUserSettingsJsonObject();
 
 			new Thread(() -> {
 				try
@@ -538,16 +581,67 @@ public class CollectionLogPlugin extends Plugin
 						username,
 						accountType,
 						accountHash,
-						isFemale
+						isFemale,
+						userSettingsJson
 					);
 
 					if (!collectionLogExists(accountHash))
 					{
-						apiClient.createCollectionLog(saveData, accountHash);
+						apiClient.createCollectionLog(collectionLogJson, accountHash, new Callback()
+						{
+							@Override
+							public void onFailure(@NonNull Call call, @NonNull IOException e)
+							{
+								log.error("Unable to create collectionlog.net profile: " + e.getMessage());
+								collectionLogPanel.setStatus(
+									"Error creating collectionlog.net profile. Check Runelite logs for full error.",
+									true,
+									true
+								);
+							}
+
+							@Override
+							public void onResponse(@NonNull Call call, @NonNull Response response)
+							{
+								response.close();
+								if (!response.isSuccessful())
+								{
+									return;
+								}
+								collectionLogPanel.setStatus(
+									"Collection log successfully uploaded to collectionlog.net",
+									false,
+									true
+								);
+							}
+						});
 					}
 					else
 					{
-						apiClient.updateCollectionLog(saveData, accountHash);
+						apiClient.updateCollectionLog(collectionLogJson, accountHash, new Callback()
+						{
+							@Override
+							public void onFailure(@NonNull Call call, @NonNull IOException e)
+							{
+								log.error("Unable to upload data to collectionilog.net: " + e.getMessage());
+								collectionLogPanel.setStatus(
+									"Error uploading data to collectionlog.net. Check Runelite logs for full error.",
+									true,
+									true
+								);
+							}
+
+							@Override
+							public void onResponse(@NonNull Call call, @NonNull Response response)
+							{
+								response.close();
+								collectionLogPanel.setStatus(
+									"Collection log successfully uploaded to collectionlog.net",
+									false,
+									true
+								);
+							}
+						});
 					}
 				}
 				catch (IOException e)
@@ -1186,5 +1280,59 @@ public class CollectionLogPlugin extends Plugin
 
 		obtainedItemName = null;
 		inventoryItems = HashMultiset.create();
+	}
+
+	/**
+	 * Delete profile from collectionlog.net
+	 */
+	public void deleteCollectionLog()
+	{
+		String username = client.getLocalPlayer().getName();
+		String accountHash = String.valueOf(client.getAccountHash());
+		apiClient.deleteCollectionLog(username, accountHash, new Callback()
+		{
+			@Override
+			public void onFailure(@NonNull Call call, @NonNull IOException e)
+			{
+				log.error("Unable to delete collectionlog.net profile: " + e.getMessage());
+				collectionLogPanel.setStatus(
+					"Error deleting collectionlog.net profile. Check Runelite logs for full error.",
+					true,
+					true
+				);
+				isCollectionLogDeleted = false;
+			}
+
+			@Override
+			public void onResponse(@NonNull Call call, @NonNull Response response)
+			{
+				response.close();
+				collectionLogPanel.setStatus(
+					"collectionlog.net profile successfully deleted.",
+					false,
+					true
+				);
+				isCollectionLogDeleted = true;
+			}
+		});
+	}
+
+	private void unsetOldConfigs()
+	{
+		// Remove old configs
+		configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "completed_categories");
+		configManager.unsetConfiguration(CONFIG_GROUP, "highlight_completed");
+		configManager.unsetConfiguration(CONFIG_GROUP, "new_item_chat_message");
+		configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "obtained_counts");
+		configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "obtained_items");
+		configManager.unsetRSProfileConfiguration(CONFIG_GROUP, "kill_counts");
+		configManager.unsetConfiguration(CONFIG_GROUP, "total_items");
+	}
+
+	private void resetFlags()
+	{
+		isUserLoggedIn = false;
+		isCollectionLogDeleted = false;
+		userSettingsLoaded = false;
 	}
 }
