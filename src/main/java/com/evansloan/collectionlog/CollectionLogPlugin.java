@@ -44,6 +44,7 @@ import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.widgets.ItemQuantityMode;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
@@ -666,6 +667,11 @@ public class CollectionLogPlugin extends Plugin
 				isObtained,
 				items.size()
 			));
+
+			if (config.showQuantityForAllObtainedItems())
+			{
+				widgetItem.setItemQuantityMode(ItemQuantityMode.ALWAYS);
+			}
 		}
 
 		Widget[] children = pageHead.getDynamicChildren();
