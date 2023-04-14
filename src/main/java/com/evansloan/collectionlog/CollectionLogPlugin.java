@@ -659,16 +659,17 @@ public class CollectionLogPlugin extends Plugin
 		{
 			String itemName = itemManager.getItemComposition(widgetItem.getItemId()).getMembersName();
 			boolean isObtained = widgetItem.getOpacity() == 0;
+			int quantity = isObtained ? widgetItem.getItemQuantity() : 0;
 
 			items.add(new CollectionLogItem(
 				widgetItem.getItemId(),
 				itemName,
-				isObtained ? widgetItem.getItemQuantity() : 0,
+				quantity,
 				isObtained,
 				items.size()
 			));
 
-			if (config.showQuantityForAllObtainedItems())
+			if (config.showQuantityForAllObtainedItems() && quantity > 0)
 			{
 				widgetItem.setItemQuantityMode(ItemQuantityMode.ALWAYS);
 			}
