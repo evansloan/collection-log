@@ -10,6 +10,12 @@ import net.runelite.client.config.ConfigSection;
 @ConfigGroup("collectionlog")
 public interface CollectionLogConfig extends Config
 {
+	String PLUGIN_VERSION = "2.4.0";
+
+	Color DEFAULT_GREEN = new Color(13, 193, 13);
+	Color DEFAULT_ORANGE = new Color(255, 152, 31);
+	Color DEFAULT_RED = new Color(204, 44, 44);
+
 	@ConfigItem(
 		keyName = "show_collection_log_panel",
 		name = "Show the collection log side panel",
@@ -86,7 +92,7 @@ public interface CollectionLogConfig extends Config
 	)
 	default Color highlightColor()
 	{
-		return new Color(13, 193, 13);
+		return DEFAULT_GREEN;
 	}
 
 	@Alpha
@@ -99,7 +105,7 @@ public interface CollectionLogConfig extends Config
 	)
 	default Color inProgressHighlightColor()
 	{
-		return new Color(255, 152, 31);
+		return DEFAULT_ORANGE;
 	}
 
 	@Alpha
@@ -112,7 +118,7 @@ public interface CollectionLogConfig extends Config
 	)
 	default Color emptyHighlightColor()
 	{
-		return new Color(204, 44, 44);
+		return DEFAULT_RED;
 	}
 
 	@ConfigItem(

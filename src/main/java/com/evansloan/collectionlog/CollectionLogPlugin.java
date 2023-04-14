@@ -78,8 +78,6 @@ import okhttp3.Response;
 )
 public class CollectionLogPlugin extends Plugin
 {
-	public static final String PLUGIN_VERSION = "2.4.0";
-
 	private static final String CONFIG_GROUP = "collectionlog";
 	private static final String CONFIG_SHOW_PANEL = "show_collection_log_panel";
 
@@ -862,8 +860,7 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private Color getPageNameColor(CollectionLogPage collectionLogPage)
 	{
-		// TODO: Move this somewhere else
-		Color pageNameColor = new Color(255, 152, 31);
+		Color pageNameColor = CollectionLogConfig.DEFAULT_ORANGE;
 		int obtainedItemCount = collectionLogPage.getObtainedItemCount();
 
 		if (obtainedItemCount == 0 && config.highlightIncompletePages())

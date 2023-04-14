@@ -191,7 +191,7 @@ public class CollectionLogPanel extends PluginPanel
 		pluginInfoPanel.setBorder(DEFAULT_BORDER);
 		infoPanel.add(pluginInfoPanel);
 
-		JLabel versionLabel = createKeyValueLabel("Version: ", CollectionLogPlugin.PLUGIN_VERSION);
+		JLabel versionLabel = createKeyValueLabel("Version: ", CollectionLogConfig.PLUGIN_VERSION);
 		clnEnabledLabel = createKeyValueLabel(
 			"collectionlog.net uploads: ",
 			config.allowApiConnections() ? "Enabled" : "Disabled"
@@ -200,7 +200,7 @@ public class CollectionLogPanel extends PluginPanel
 		pluginInfoPanel.add(clnEnabledLabel);
 
 		JPanel changeLogContent = createTabContentPanel();
-		String changeLogText = "v" + CollectionLogPlugin.PLUGIN_VERSION + "\n\n" +
+		String changeLogText = "v" + CollectionLogConfig.PLUGIN_VERSION + "\n\n" +
 			"* Side panel redesign\n" +
 			"  - Add quick start guide\n" +
 			"  - Add collectionlog.net account settings tab\n" +
