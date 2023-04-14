@@ -167,7 +167,7 @@ public class CollectionLogPlugin extends Plugin
 			initPanel();
 		}
 
-		// Load all save files up front to mitigate lag on login/collection log open
+		// Load all save files up front on executor thread to mitigate lag on log open
 		executor.submit(() -> collectionLogManager.loadCollectionLogFiles());
 
 		loadedCollectionLogIcons = new HashMap<>();
@@ -280,14 +280,15 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		// TODO: Load userSettings on executor thread
-		UserSettings userSettings = collectionLogManager.loadUserSettingsFile();
-		if (userSettings == null)
-		{
-			userSettings = new UserSettings();
-		}
-		collectionLogManager.setUserSettings(userSettings);
-		collectionLogPanel.setUserSettings(userSettings);
+		executor.execute(() -> {
+			UserSettings userSettings = collectionLogManager.loadUserSettingsFile();
+			if (userSettings == null)
+			{
+				userSettings = new UserSettings();
+			}
+			collectionLogManager.setUserSettings(userSettings);
+			collectionLogPanel.setUserSettings(userSettings);
+		});
 
 		userSettingsLoaded = true;
 	}
