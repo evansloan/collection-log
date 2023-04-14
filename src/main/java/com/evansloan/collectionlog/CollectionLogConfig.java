@@ -20,7 +20,7 @@ public interface CollectionLogConfig extends Config
 		keyName = "show_collection_log_panel",
 		name = "Show the collection log side panel",
 		description = "Show the collection log side panel",
-		position = 2
+		position = 1
 	)
 	default boolean showCollectionLogSidePanel()
 	{
@@ -30,7 +30,7 @@ public interface CollectionLogConfig extends Config
 	@ConfigSection(
 		name = "Appearance",
 		description = "Modify the appearance of the collection log",
-		position = 3
+		position = 2
 	)
 	String appearanceSection = "appearance";
 
