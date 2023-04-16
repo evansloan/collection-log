@@ -560,75 +560,12 @@ public class CollectionLogPlugin extends Plugin
 			JsonObject collectionLogJson = collectionLogManager.getCollectionLogJsonObject();
 			JsonObject userSettingsJson = collectionLogManager.getUserSettingsJsonObject();
 
+			// TODO: make updateUser async
 			new Thread(() -> {
 				try
 				{
-					apiClient.createUser(
-						username,
-						accountType,
-						accountHash,
-						isFemale,
-						userSettingsJson
-					);
-
-					if (!collectionLogExists(accountHash))
-					{
-						apiClient.createCollectionLog(collectionLogJson, accountHash, new Callback()
-						{
-							@Override
-							public void onFailure(@NonNull Call call, @NonNull IOException e)
-							{
-								log.error("Unable to create collectionlog.net profile: " + e.getMessage());
-								collectionLogPanel.setStatus(
-									"Error creating collectionlog.net profile. Check Runelite logs for full error.",
-									true,
-									true
-								);
-							}
-
-							@Override
-							public void onResponse(@NonNull Call call, @NonNull Response response)
-							{
-								response.close();
-								if (!response.isSuccessful())
-								{
-									return;
-								}
-								collectionLogPanel.setStatus(
-									"Collection log successfully uploaded to collectionlog.net",
-									false,
-									true
-								);
-							}
-						});
-					}
-					else
-					{
-						apiClient.updateCollectionLog(collectionLogJson, accountHash, new Callback()
-						{
-							@Override
-							public void onFailure(@NonNull Call call, @NonNull IOException e)
-							{
-								log.error("Unable to upload data to collectionilog.net: " + e.getMessage());
-								collectionLogPanel.setStatus(
-									"Error uploading data to collectionlog.net. Check Runelite logs for full error.",
-									true,
-									true
-								);
-							}
-
-							@Override
-							public void onResponse(@NonNull Call call, @NonNull Response response)
-							{
-								response.close();
-								collectionLogPanel.setStatus(
-									"Collection log successfully uploaded to collectionlog.net",
-									false,
-									true
-								);
-							}
-						});
-					}
+					apiClient.updateUser(username, accountType, accountHash, isFemale, userSettingsJson);
+					apiClient.updateCollectionLog(collectionLogJson, accountHash, uploadCollectionLogCallback());
 				}
 				catch (IOException e)
 				{
@@ -1250,5 +1187,43 @@ public class CollectionLogPlugin extends Plugin
 		isUserLoggedIn = false;
 		isCollectionLogDeleted = false;
 		userSettingsLoaded = false;
+	}
+
+	private Callback uploadCollectionLogCallback()
+	{
+		return new Callback()
+		{
+			@Override
+			public void onFailure(@NonNull Call call, @NonNull IOException e)
+			{
+				log.error("Unable to upload data to collectionlog.net: " + e.getMessage());
+				collectionLogPanel.setStatus(
+					"Error uploading data to collectionlog.net. Check Runelite logs for full error.",
+					true,
+					true
+				);
+			}
+
+			@Override
+			public void onResponse(@NonNull Call call, @NonNull Response response)
+			{
+				response.close();
+
+				boolean isError = false;
+				String status = "Collection log successfully uploaded to collectionlog.net";
+				if (!response.isSuccessful())
+				{
+					isError = true;
+					status = "Error uploading data to collectionLog.net. Check Runelite logs for full error.";
+					log.error("Unable to upload data to collectionlog.net: " + response.message());
+				}
+
+				collectionLogPanel.setStatus(
+					status,
+					isError,
+					true
+				);
+			}
+		};
 	}
 }

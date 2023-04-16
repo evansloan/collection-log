@@ -28,7 +28,7 @@ public class CollectionLogApiClient
 	private static final String COLLECTION_LOG_USER_PATH = "user";
 	private static final String COLLECTION_LOG_LOG_PATH = "collectionlog";
 	private static final String COLLECTION_LOG_JSON_KEY = "collectionLog";
-	private static final String COLLECTION_LOG_USER_AGENT = "Runelite collection-log/" + CollectionLogPlugin.PLUGIN_VERSION;
+	private static final String COLLECTION_LOG_USER_AGENT = "Runelite collection-log/" + CollectionLogConfig.PLUGIN_VERSION;
 
 	@Inject
 	private CollectionLogConfig config;
@@ -39,7 +39,7 @@ public class CollectionLogApiClient
 	@Inject
 	private Gson gson;
 
-	public void createUser(String username, String accountType, String accountHash, boolean isFemale, JsonObject userSettings) throws IOException
+	public void updateUser(String username, String accountType, String accountHash, boolean isFemale, JsonObject userSettings) throws IOException
 	{
 		HttpUrl url = new HttpUrl.Builder()
 			.scheme(COLLECTION_LOG_API_SCHEME)
@@ -156,7 +156,7 @@ public class CollectionLogApiClient
 	private JsonObject getRequest(HttpUrl url) throws IOException
 	{
 		Request request = buildGetRequest(url);
-		return apiRequest(request); 
+		return apiRequest(request);
 	}
 
 	private void getRequest(HttpUrl url, Callback callback)
