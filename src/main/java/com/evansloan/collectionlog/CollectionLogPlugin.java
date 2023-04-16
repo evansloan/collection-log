@@ -917,25 +917,6 @@ public class CollectionLogPlugin extends Plugin
 		collectionLogTitleWidget.setText(title);
 	}
 
-	/**
-	 * Check if a collection log exists for the current user on collectionlog.net
-	 *
-	 * @return collectionlog.net collection log exists
-	 */
-	private boolean collectionLogExists(String accountHash)
-	{
-		try
-		{
-			return apiClient.getCollectionLogExists(accountHash);
-		}
-		catch (IOException e)
-		{
-			log.warn("Unable to get existing collection log from collectionlog.net");
-		}
-
-		return false;
-	}
-
 	private boolean isValidWorldType()
 	{
 		List<WorldType> invalidTypes = ImmutableList.of(
