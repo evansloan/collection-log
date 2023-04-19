@@ -56,7 +56,6 @@ public class CollectionLogManager
 	private static final File COLLECTION_LOG_DIR = new File(RUNELITE_DIR, "collectionlog");
 	private static final File COLLECTION_LOG_SAVE_DATA_DIR = new File(COLLECTION_LOG_DIR, "data");
 	private static final File COLLECTION_LOG_EXPORT_DIR = new File(COLLECTION_LOG_SAVE_DATA_DIR, "exports");
-
 	private static final Pattern COLLECTION_LOG_FILE_PATTERN = Pattern.compile("collectionlog-([\\w\\s-]+).json");
 
 	/*
@@ -99,18 +98,22 @@ public class CollectionLogManager
 	@Setter
 	private UserSettings userSettings = new UserSettings();
 
+	private String username;
+
 	private final Map<String, CollectionLog> loadedCollectionLogs = new HashMap<>();
 
 	/**
-	 * Init CollectionLog object with all items in the collection log, does not include quantity or obtained status.
-	 * Based off cs2 scripts 2731 proc_collection_draw_list and 2732 proc_collection_draw_log
-	 *
+	 * Init CollectionLog object with all items in the collection log. Does not include quantity or obtained status.
+	 * Based off cs2 scripts
+	 * <a href="https://github.com/Joshua-F/cs2-scripts/blob/master/scripts/%5Bproc,collection_draw_list%5D.cs2">2731 proc_collection_draw_list</a>
+	 * and
+	 * <a href="https://github.com/Joshua-F/cs2-scripts/blob/master/scripts/%5Bproc,collection_draw_log%5D.cs2">2732 proc_collection_draw_log</a>
 	 * If a user has previously clicked through the collection log with the plugin installed,
 	 * obtained and quantity will be set for each item if item exists in local save file.
 	 */
 	public void initCollectionLog()
 	{
-		String username = client.getLocalPlayer().getName();
+		username = client.getLocalPlayer().getName();
 		CollectionLog saveFileCollectionLog = loadedCollectionLogs.get(username);
 		boolean saveDataExists = saveFileCollectionLog != null;
 
@@ -218,14 +221,12 @@ public class CollectionLogManager
 
 	public String getCollectionLogFilePath()
 	{
-		String username = client.getLocalPlayer().getName();
 		String fileName = "collectionlog-" + username + ".json";
 		return getDataFilePath(fileName, username);
 	}
 
 	public String getUserSettingsFilePath()
 	{
-		String username = client.getLocalPlayer().getName();
 		String fileName = "settings-" + username + ".json";
 		return getDataFilePath(fileName, username);
 	}
@@ -234,7 +235,7 @@ public class CollectionLogManager
 	{
 		File directory = COLLECTION_LOG_EXPORT_DIR;
 		String exportDate = new SimpleDateFormat("yyyyMMdd'T'HHmmss").format(new Date());
-		String fileName = exportDate + "-collectionlog-" + client.getLocalPlayer().getName() + ".json";
+		String fileName = exportDate + "-collectionlog-" + username + ".json";
 
 		directory.mkdir();
 		return directory + File.separator + fileName;
@@ -299,7 +300,14 @@ public class CollectionLogManager
 		{
 			filePath = getExportFilePath();
 		}
-		return jsonUtils.writeJsonFile(filePath, collectionLog, new CollectionLogSerializer());
+
+		boolean isSaved = jsonUtils.writeJsonFile(filePath, collectionLog, new CollectionLogSerializer());
+		if (isSaved)
+		{
+			loadedCollectionLogs.put(username, collectionLog);
+		}
+
+		return isSaved;
 	}
 
 	public boolean saveUserSettingsFile()
@@ -328,6 +336,7 @@ public class CollectionLogManager
 	{
 		collectionLog = null;
 		isInitialized = false;
+		username = null;
 		userSettings = new UserSettings();
 	}
 
