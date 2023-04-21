@@ -76,17 +76,14 @@ public class CollectionLogManager
 		.put(13273, 25624) // Unsired
 		.put(12019, 25627) // Coal bag
 		.put(12020, 25628) // Gem bag
+		.put(24882, 25629) // Plank sack
 		.put(12854, 25630) // Flamtaer bag
 		.build();
 
-	@Inject
-	private Client client;
+	private final Map<String, CollectionLog> loadedCollectionLogs = new HashMap<>();
 
-	@Inject
-	private ItemManager itemManager;
-
-	@Inject
-	private JsonUtils jsonUtils;
+	@Setter
+	private String username;
 
 	@Getter
 	private boolean isInitialized;
@@ -98,9 +95,15 @@ public class CollectionLogManager
 	@Setter
 	private UserSettings userSettings = new UserSettings();
 
-	private String username;
+	@Inject
+	private Client client;
 
-	private final Map<String, CollectionLog> loadedCollectionLogs = new HashMap<>();
+	@Inject
+	private ItemManager itemManager;
+
+	@Inject
+	private JsonUtils jsonUtils;
+
 
 	/**
 	 * Init CollectionLog object with all items in the collection log. Does not include quantity or obtained status.
@@ -113,7 +116,6 @@ public class CollectionLogManager
 	 */
 	public void initCollectionLog()
 	{
-		username = client.getLocalPlayer().getName();
 		CollectionLog saveFileCollectionLog = loadedCollectionLogs.get(username);
 		boolean saveDataExists = saveFileCollectionLog != null;
 
@@ -158,7 +160,7 @@ public class CollectionLogManager
 
 					if (saveDataExists && saveFilePage != null)
 					{
-						CollectionLogItem saveFileItem = saveFilePage.getItemById(itemComposition.getId());
+						CollectionLogItem saveFileItem = saveFilePage.getItemById(item.getId());
 						if (saveFileItem != null)
 						{
 							item.setQuantity(saveFileItem.getQuantity());
@@ -212,7 +214,7 @@ public class CollectionLogManager
 		isInitialized = true;
 	}
 
-	private String getDataFilePath(String fileName, String username)
+	private String getDataFilePath(String fileName)
 	{
 		File directory = new File(COLLECTION_LOG_SAVE_DATA_DIR + File.separator + username);
 		directory.mkdirs();
@@ -222,13 +224,13 @@ public class CollectionLogManager
 	public String getCollectionLogFilePath()
 	{
 		String fileName = "collectionlog-" + username + ".json";
-		return getDataFilePath(fileName, username);
+		return getDataFilePath(fileName);
 	}
 
 	public String getUserSettingsFilePath()
 	{
-		String fileName = "settings-" + username + ".json";
-		return getDataFilePath(fileName, username);
+		String fileName = "settings-" + username + ".json"; // TODO: Username is null here
+		return getDataFilePath(fileName);
 	}
 
 	public String getExportFilePath()
