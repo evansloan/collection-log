@@ -39,7 +39,7 @@ public class CollectionLogApiClient
 	@Inject
 	private Gson gson;
 
-	public void updateUser(String username, String accountType, String accountHash, boolean isFemale, JsonObject userSettings) throws IOException
+	public void updateUser(String username, String accountType, String accountHash, boolean isFemale, JsonObject userSettings, Callback callback)
 	{
 		HttpUrl url = new HttpUrl.Builder()
 			.scheme(COLLECTION_LOG_API_SCHEME)
@@ -54,43 +54,10 @@ public class CollectionLogApiClient
 		jsonObject.addProperty("isFemale", isFemale);
 		jsonObject.add("userSettings", userSettings);
 
-		postRequest(url, jsonObject);
+		postRequest(url, jsonObject, callback);
 	}
 
-	public boolean getCollectionLogExists(String accountHash) throws IOException
-	{
-		HttpUrl url = new HttpUrl.Builder()
-			.scheme(COLLECTION_LOG_API_SCHEME)
-			.host(COLLECTION_LOG_API_BASE)
-			.addPathSegment(COLLECTION_LOG_LOG_PATH)
-			.addPathSegment("exists")
-			.addPathSegment(accountHash)
-			.build();
-
-		JsonObject response = getRequest(url);
-		if (response == null)
-		{
-			return false;
-		}
-		return response.get("exists").getAsBoolean();
-	}
-
-	public void createCollectionLog(JsonObject collectionLogData, String accountHash, Callback callback) throws IOException
-	{
-		HttpUrl url = new HttpUrl.Builder()
-			.scheme(COLLECTION_LOG_API_SCHEME)
-			.host(COLLECTION_LOG_API_BASE)
-			.addPathSegment(COLLECTION_LOG_LOG_PATH)
-			.build();
-
-		JsonObject newCollectionLog = new JsonObject();
-		newCollectionLog.add(COLLECTION_LOG_JSON_KEY, collectionLogData);
-		newCollectionLog.addProperty("accountHash", accountHash);
-
-		postRequest(url, newCollectionLog, callback);
-	}
-
-	public void updateCollectionLog(JsonObject collectionLogData, String accountHash, Callback callback) throws IOException
+	public void updateCollectionLog(JsonObject collectionLogData, String accountHash, Callback callback)
 	{
 		HttpUrl url = new HttpUrl.Builder()
 			.scheme(COLLECTION_LOG_API_SCHEME)
@@ -159,18 +126,6 @@ public class CollectionLogApiClient
 		return apiRequest(request);
 	}
 
-	private void getRequest(HttpUrl url, Callback callback)
-	{
-		if (callback == null)
-		{
-			String errorMessage = "Unable to execute get request: {}";
-			callback = requestCallback(errorMessage);
-		}
-
-		Request request = buildGetRequest(url);
-		apiRequest(request, callback);
-	}
-
 	private Request buildPostRequest(HttpUrl url, JsonObject postData)
 	{
 		MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
@@ -178,12 +133,6 @@ public class CollectionLogApiClient
 		return createRequestBuilder(url)
 			.post(body)
 			.build();
-	}
-
-	private JsonObject postRequest(HttpUrl url, JsonObject postData) throws IOException
-	{
-		Request request = buildPostRequest(url, postData);
-		return apiRequest(request);
 	}
 
 	private void postRequest(HttpUrl url, JsonObject postData, Callback callback)

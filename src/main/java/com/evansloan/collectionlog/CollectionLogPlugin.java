@@ -540,39 +540,28 @@ public class CollectionLogPlugin extends Plugin
 		String statusMessage = isSaved ? null : "Unable to save collection log data. Check Runelite logs for full error.";
 		collectionLogPanel.setStatus(statusMessage, isSaved, !config.allowApiConnections());
 
-		if (config.allowApiConnections())
+		if (!config.allowApiConnections() || !isSaved)
 		{
-			if (client.getAccountHash() == -1)
-			{
-				return;
-			}
-
-			Player localPlayer = client.getLocalPlayer();
-			String username = localPlayer.getName();
-
-			String accountHash = String.valueOf(client.getAccountHash());
-			String accountType = client.getAccountType().toString();
-
-			// Used to display proper farming outfit on site
-			boolean isFemale = localPlayer.getPlayerComposition().getGender() == 1;
-
-			// Copy data to prevent sending null on logout
-			JsonObject collectionLogJson = collectionLogManager.getCollectionLogJsonObject();
-			JsonObject userSettingsJson = collectionLogManager.getUserSettingsJsonObject();
-
-			// TODO: make updateUser async
-			new Thread(() -> {
-				try
-				{
-					apiClient.updateUser(username, accountType, accountHash, isFemale, userSettingsJson);
-					apiClient.updateCollectionLog(collectionLogJson, accountHash, uploadCollectionLogCallback());
-				}
-				catch (IOException e)
-				{
-					log.warn("Unable to save collection log data to collectionlog.net: " + e.getMessage());
-				}
-			}).start();
+			return;
 		}
+
+		if (client.getAccountHash() == -1)
+		{
+			return;
+		}
+
+		Player localPlayer = client.getLocalPlayer();
+		String username = localPlayer.getName();
+		String accountHash = String.valueOf(client.getAccountHash());
+		String accountType = client.getAccountType().toString();
+
+		// Used to display proper farming outfit on site
+		boolean isFemale = localPlayer.getPlayerComposition().getGender() == 1;
+
+		JsonObject collectionLogJson = collectionLogManager.getCollectionLogJsonObject();
+		JsonObject userSettingsJson = collectionLogManager.getUserSettingsJsonObject();
+
+		uploadCollectionLog(username, accountType, accountHash, isFemale, userSettingsJson, collectionLogJson);
 	}
 
 	/**
@@ -1170,16 +1159,25 @@ public class CollectionLogPlugin extends Plugin
 		userSettingsLoaded = false;
 	}
 
-	private Callback uploadCollectionLogCallback()
+	private void uploadCollectionLog(String username, String accountType, String accountHash, boolean isFemale, JsonObject userSettings, JsonObject collectionLog)
 	{
+		apiClient.updateUser(username, accountType, accountHash, isFemale, userSettings, uploadCollectionLogCallback(() -> {
+			apiClient.updateCollectionLog(collectionLog, accountHash, uploadCollectionLogCallback(null));
+		}));
+	}
+
+	private Callback uploadCollectionLogCallback(Runnable onSuccess)
+	{
+		String errorDisplay = "Error uploading data to collectionlog.net. Check Runelite logs for full error.";
+		String errorLog = "Unable to upload data to collectionlog.net: ";
 		return new Callback()
 		{
 			@Override
 			public void onFailure(@NonNull Call call, @NonNull IOException e)
 			{
-				log.error("Unable to upload data to collectionlog.net: " + e.getMessage());
+				log.error(errorLog + e.getMessage());
 				collectionLogPanel.setStatus(
-					"Error uploading data to collectionlog.net. Check Runelite logs for full error.",
+					errorDisplay,
 					true,
 					true
 				);
@@ -1190,20 +1188,16 @@ public class CollectionLogPlugin extends Plugin
 			{
 				response.close();
 
-				boolean isError = false;
-				String status = "Collection log successfully uploaded to collectionlog.net";
-				if (!response.isSuccessful())
-				{
-					isError = true;
-					status = "Error uploading data to collectionLog.net. Check Runelite logs for full error.";
-					log.error("Unable to upload data to collectionlog.net: " + response.message());
-				}
-
 				collectionLogPanel.setStatus(
-					status,
-					isError,
+					"Collection log successfully uploaded to collectionlog.net",
+					false,
 					true
 				);
+
+				if (onSuccess != null)
+				{
+					onSuccess.run();
+				}
 			}
 		};
 	}
