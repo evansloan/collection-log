@@ -101,11 +101,12 @@ public class CollectionLogPlugin extends Plugin
 	private CollectionLogPanel collectionLogPanel;
 	private NavigationButton navigationButton;
 
-	private boolean isUserLoggedIn = false;
-	private boolean userSettingsLoaded = false;
 	@Setter
 	private boolean isCollectionLogDeleted = false;
+	private boolean isUserLoggedIn = false;
+	private boolean userSettingsLoaded = false;
 	private boolean isPohOwner = false;
+
 	private String obtainedItemName;
 	private Multiset<Integer> inventoryItems;
 	private Map<Integer, Integer> loadedCollectionLogIcons;
@@ -138,11 +139,9 @@ public class CollectionLogPlugin extends Plugin
 	@Inject
 	private ItemManager itemManager;
 
-	@Getter
 	@Inject
 	private CollectionLogApiClient apiClient;
 
-	@Getter
 	@Inject
 	private CollectionLogManager collectionLogManager;
 
