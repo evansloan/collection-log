@@ -278,6 +278,8 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
+		collectionLogManager.setUsername(client.getLocalPlayer().getName());
+
 		executor.execute(() -> {
 			UserSettings userSettings = collectionLogManager.loadUserSettingsFile();
 			if (userSettings == null)
