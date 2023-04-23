@@ -330,6 +330,7 @@ public class CollectionLogManager
 			return;
 		}
 
+		loadedCollectionLogs.remove(username);
 		isInitialized = false;
 		collectionLog = null;
 	}

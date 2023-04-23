@@ -1,6 +1,8 @@
 package com.evansloan.collectionlog;
 
 import com.evansloan.collectionlog.ui.Icon;
+import com.evansloan.collectionlog.util.CollectionLogDeserializer;
+import com.evansloan.collectionlog.util.JsonUtils;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
@@ -66,7 +68,6 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
-import static net.runelite.client.util.Text.sanitize;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -144,6 +145,9 @@ public class CollectionLogPlugin extends Plugin
 
 	@Inject
 	private CollectionLogManager collectionLogManager;
+
+	@Inject
+	private JsonUtils jsonUtils;
 
 	@Provides
 	CollectionLogConfig provideConfig(ConfigManager configManager)
@@ -942,63 +946,85 @@ public class CollectionLogPlugin extends Plugin
 			username = localPlayer.getName();
 		}
 
-		CollectionLog collectionLog;
 		try
 		{
-			collectionLog = apiClient.getCollectionLog(sanitize(username));
+			apiClient.getCollectionLog(Text.sanitize(username), new Callback()
+			{
+				@Override
+				public void onFailure(@NonNull Call call, @NonNull IOException e)
+				{
+					log.error("Unable to resolve !log command: " + e.getMessage());
+					clientThread.invoke(() -> getCommandOutput(chatMessage, message, null));
+				}
+
+				@Override
+				public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException
+				{
+					JsonObject collectionLogJson = apiClient.processResponse(response);
+					CollectionLog collectionLog = jsonUtils.fromJsonObject(
+						collectionLogJson.getAsJsonObject("collectionLog"),
+						CollectionLog.class,
+						new CollectionLogDeserializer()
+					);
+					clientThread.invoke(() -> getCommandOutput(chatMessage, message, collectionLog));
+
+					response.close();
+				}
+			});
 		}
 		catch (IOException e)
 		{
+			log.error("Unable to resolve !log command: " + e.getMessage());
+		}
+	}
+
+	private void getCommandOutput(ChatMessage chatMessage, String message, CollectionLog collectionLog)
+	{
+		String replacementMessage;
+
+		Matcher commandMatcher = COLLECTION_LOG_COMMAND_PATTERN.matcher(message);
+		if (!commandMatcher.matches())
+		{
 			return;
 		}
-		clientThread.invoke(() ->
+
+		String commandFilter = commandMatcher.group(1);
+		String commandPage = commandMatcher.group(2);
+
+		if (collectionLog == null)
 		{
-			String replacementMessage;
-
-			Matcher commandMatcher = COLLECTION_LOG_COMMAND_PATTERN.matcher(message);
-			if (!commandMatcher.matches())
+			replacementMessage = "No Collection Log data found for user.";
+		}
+		else if (commandPage == null)
+		{
+			replacementMessage = "Collection Log: " + collectionLog.getUniqueObtained() + "/" + collectionLog.getUniqueItems();
+		}
+		else
+		{
+			String pageArgument = CollectionLogPage.aliasPageName(commandPage);
+			CollectionLogPage collectionLogPage;
+			if (pageArgument.equals("any"))
 			{
-				return;
-			}
-
-			String commandFilter = commandMatcher.group(1);
-			String commandPage = commandMatcher.group(2);
-
-			if (collectionLog == null)
-			{
-				replacementMessage = "No Collection Log data found for user.";
-			}
-			else if (commandPage == null)
-			{
-				replacementMessage = "Collection Log: " + collectionLog.getUniqueObtained() + "/" + collectionLog.getUniqueItems();
+				collectionLogPage = collectionLog.randomPage();
 			}
 			else
 			{
-				String pageArgument = CollectionLogPage.aliasPageName(commandPage);
-				CollectionLogPage collectionLogPage;
-				if (pageArgument.equals("any"))
-				{
-					collectionLogPage = collectionLog.randomPage();
-				}
-				else
-				{
-					collectionLogPage = collectionLog.searchForPage(pageArgument);
-				}
-
-				if (collectionLogPage == null)
-				{
-					replacementMessage = "No Collection Log page found.";
-				}
-				else
-				{
-					loadPageIcons(collectionLogPage.getItems());
-					replacementMessage = buildMessageReplacement(collectionLogPage, commandFilter);
-				}
+				collectionLogPage = collectionLog.searchForPage(pageArgument);
 			}
 
-			chatMessage.getMessageNode().setValue(replacementMessage);
-			client.runScript(ScriptID.BUILD_CHATBOX);
-		});
+			if (collectionLogPage == null)
+			{
+				replacementMessage = "No Collection Log page found.";
+			}
+			else
+			{
+				loadPageIcons(collectionLogPage.getItems());
+				replacementMessage = buildMessageReplacement(collectionLogPage, commandFilter);
+			}
+		}
+
+		chatMessage.getMessageNode().setValue(replacementMessage);
+		client.runScript(ScriptID.BUILD_CHATBOX);
 	}
 
 	/**

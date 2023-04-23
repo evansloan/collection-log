@@ -1,15 +1,11 @@
 package com.evansloan.collectionlog;
 
-import com.evansloan.collectionlog.util.CollectionLogDeserializer;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -29,6 +25,7 @@ public class CollectionLogApiClient
 	private static final String COLLECTION_LOG_LOG_PATH = "collectionlog";
 	private static final String COLLECTION_LOG_JSON_KEY = "collectionLog";
 	private static final String COLLECTION_LOG_USER_AGENT = "Runelite collection-log/" + CollectionLogConfig.PLUGIN_VERSION;
+	private static final MediaType COLLECTION_LOG_MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");;
 
 	@Inject
 	private CollectionLogConfig config;
@@ -72,7 +69,7 @@ public class CollectionLogApiClient
 		putRequest(url, logData, callback);
 	}
 
-	public CollectionLog getCollectionLog(String username) throws IOException
+	public void getCollectionLog(String username, Callback callback) throws IOException
 	{
 		HttpUrl url = new HttpUrl.Builder()
 			.scheme(COLLECTION_LOG_API_SCHEME)
@@ -82,12 +79,7 @@ public class CollectionLogApiClient
 			.addEncodedPathSegment(username)
 			.build();
 
-		JsonObject responseData = getRequest(url);
-
-		return gson.newBuilder()
-			.registerTypeAdapter(CollectionLog.class, new CollectionLogDeserializer())
-			.create()
-			.fromJson(responseData.get(COLLECTION_LOG_JSON_KEY), CollectionLog.class);
+		getRequest(url, callback);
 	}
 
 	public void deleteCollectionLog(String username, String accountHash, Callback callback)
@@ -113,91 +105,39 @@ public class CollectionLogApiClient
 			.url(url);
 	}
 
-	private Request buildGetRequest(HttpUrl url)
+	private void getRequest(HttpUrl url, Callback callback)
 	{
-		return createRequestBuilder(url)
+		Request request = createRequestBuilder(url)
 			.get()
 			.build();
-	}
-
-	private JsonObject getRequest(HttpUrl url) throws IOException
-	{
-		Request request = buildGetRequest(url);
-		return apiRequest(request);
-	}
-
-	private Request buildPostRequest(HttpUrl url, JsonObject postData)
-	{
-		MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
-		RequestBody body = RequestBody.create(mediaType, postData.toString());
-		return createRequestBuilder(url)
-			.post(body)
-			.build();
+		apiRequest(request, callback);
 	}
 
 	private void postRequest(HttpUrl url, JsonObject postData, Callback callback)
 	{
-		if (callback == null)
-		{
-			String errorMessage = "Unable to execute post request: {}";
-			callback = requestCallback(errorMessage);
-		}
-
-		Request request = buildPostRequest(url, postData);
-		apiRequest(request, callback);
-	}
-
-	private Request buildPutRequest(HttpUrl url, JsonObject putData)
-	{
-		MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
-		RequestBody body = RequestBody.create(mediaType, putData.toString());
-		return createRequestBuilder(url)
-			.put(body)
+		RequestBody body = RequestBody.create(COLLECTION_LOG_MEDIA_TYPE, postData.toString());
+		Request request = createRequestBuilder(url)
+			.post(body)
 			.build();
+		apiRequest(request, callback);
 	}
 
 	private void putRequest(HttpUrl url, JsonObject putData, Callback callback)
 	{
-		if (callback == null)
-		{
-			String errorMessage = "Unable to update collection log: {}";
-			callback = requestCallback(errorMessage);
-		}
-		Request request = buildPutRequest(url, putData);
-		apiRequest(request, callback);
-	}
-
-	private Request buildDeleteRequest(HttpUrl url, JsonObject deleteData)
-	{
-		MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
-		RequestBody body = RequestBody.create(mediaType, deleteData.toString());
-		return createRequestBuilder(url)
-			.delete(body)
+		RequestBody body = RequestBody.create(COLLECTION_LOG_MEDIA_TYPE, putData.toString());
+		Request request = createRequestBuilder(url)
+			.put(body)
 			.build();
+		apiRequest(request, callback);
 	}
 
 	private void deleteRequest(HttpUrl url, JsonObject deleteData, Callback callback)
 	{
-		if (callback == null)
-		{
-			String errorMessage = "Unable to delete collection log: {}";
-			callback = requestCallback(errorMessage);
-		}
-		Request request = buildDeleteRequest(url, deleteData);
+		RequestBody body = RequestBody.create(COLLECTION_LOG_MEDIA_TYPE, deleteData.toString());
+		Request request = createRequestBuilder(url)
+			.delete(body)
+			.build();
 		apiRequest(request, callback);
-	}
-
-	private JsonObject apiRequest(Request request) throws IOException
-	{
-		if (!config.allowApiConnections())
-		{
-			return null;
-		}
-
-		Response response = okHttpClient.newCall(request).execute();
-		JsonObject responseJson = processResponse(response);
-		response.close();
-		return responseJson;
 	}
 
 	private void apiRequest(Request request, Callback callback)
@@ -223,23 +163,5 @@ public class CollectionLogApiClient
 			return null;
 		}
 		return new JsonParser().parse(resBody.string()).getAsJsonObject();
-	}
-
-	private Callback requestCallback(String errorMessage)
-	{
-		return new Callback()
-		{
-			@Override
-			public void onFailure(@NonNull Call call, @NonNull IOException e)
-			{
-				log.warn(errorMessage, e.getMessage());
-			}
-
-			@Override
-			public void onResponse(@NonNull Call call, @NonNull Response response)
-			{
-				response.close();
-			}
-		};
 	}
 }

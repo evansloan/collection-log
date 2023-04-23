@@ -99,4 +99,12 @@ public class JsonUtils
 			.toJsonTree(data)
 			.getAsJsonObject();
 	}
+
+	public <T, D extends JsonDeserializer<T>> T fromJsonObject(JsonObject data, Class<T> type, D deserializer)
+	{
+		return gson.newBuilder()
+			.registerTypeAdapter(type, deserializer)
+			.create()
+			.fromJson(data, type);
+	}
 }
