@@ -145,7 +145,6 @@ public class CollectionLogManager
 				if (saveDataExists)
 				{
 					saveFilePage = saveFileCollectionLog.searchForPage(pageName);
-
 				}
 
 				for (Integer pageItemId : pageItemsEnum.getIntVals())

@@ -75,7 +75,7 @@ import okhttp3.Response;
 @Slf4j
 @PluginDescriptor(
 	name = "Collection Log",
-	description = "Add items obtained/total items to the top of the collection log",
+	description = "Share your collection log progress on collectionlog.net",
 	tags = {"collection", "log"}
 )
 public class CollectionLogPlugin extends Plugin
@@ -84,7 +84,6 @@ public class CollectionLogPlugin extends Plugin
 	private static final String CONFIG_SHOW_PANEL = "show_collection_log_panel";
 
 	private static final int COLLECTION_LOG_CONTAINER = 1;
-	private static final int COLLECTION_LOG_DRAW_LIST_SCRIPT_ID = 2730;
 	private static final int COLLECTION_LOG_ACTIVE_TAB_VARBIT_ID = 6905;
 	private static final int COLLECTION_LOG_ACTIVE_PAGE_VARBIT_ID = 6906;
 
@@ -300,7 +299,7 @@ public class CollectionLogPlugin extends Plugin
 	@Subscribe
 	public void onScriptPostFired(ScriptPostFired scriptPostFired)
 	{
-		if (scriptPostFired.getScriptId() == COLLECTION_LOG_DRAW_LIST_SCRIPT_ID)
+		if (scriptPostFired.getScriptId() == ScriptID.COLLECTION_DRAW_LIST)
 		{
 			clientThread.invokeLater(this::getPage);
 		}
@@ -629,8 +628,8 @@ public class CollectionLogPlugin extends Plugin
 	}
 
 	/**
-	 * Load the current entry being viewed in the collection log
-	 * and get/update relevant information contained in the entry
+	 * Load the current page being viewed in the collection log
+	 * and get/update relevant information contained in the page
 	 */
 	private void getPage()
 	{
@@ -733,26 +732,6 @@ public class CollectionLogPlugin extends Plugin
 			Color pageNameColor = getPageNameColor(collectionLogPage);
 			pageNameWidget.setTextColor(pageNameColor.getRGB());
 		}
-	}
-
-	private void updatePageHighlight()
-	{
-		Widget pageList = getActivePageList();
-		if (pageList == null)
-		{
-			return;
-		}
-
-		int pageIndex = client.getVarbitValue(COLLECTION_LOG_ACTIVE_PAGE_VARBIT_ID);
-		Widget pageNameWidget = pageList.getDynamicChildren()[pageIndex];
-
-		String pageName = pageNameWidget.getText()
-			.replace(" *", "");
-		CollectionLogPage collectionLogPage = collectionLogManager.getPageByName(pageName);
-
-		Color pageNameColor = getPageNameColor(collectionLogPage);
-		pageNameWidget.setTextColor(pageNameColor.getRGB());
-		pageNameWidget.setText(pageName);
 	}
 
 	/**
@@ -887,7 +866,6 @@ public class CollectionLogPlugin extends Plugin
 		setCollectionLogTitle();
 
 		highlightPages();
-		updatePageHighlight();
 	}
 
 	private void setCollectionLogTitle()
@@ -954,7 +932,7 @@ public class CollectionLogPlugin extends Plugin
 				public void onFailure(@NonNull Call call, @NonNull IOException e)
 				{
 					log.error("Unable to resolve !log command: " + e.getMessage());
-					clientThread.invoke(() -> getCommandOutput(chatMessage, message, null));
+					clientThread.invoke(() -> replaceCommandMessage(chatMessage, message, null));
 				}
 
 				@Override
@@ -966,7 +944,7 @@ public class CollectionLogPlugin extends Plugin
 						CollectionLog.class,
 						new CollectionLogDeserializer()
 					);
-					clientThread.invoke(() -> getCommandOutput(chatMessage, message, collectionLog));
+					clientThread.invoke(() -> replaceCommandMessage(chatMessage, message, collectionLog));
 
 					response.close();
 				}
@@ -978,7 +956,7 @@ public class CollectionLogPlugin extends Plugin
 		}
 	}
 
-	private void getCommandOutput(ChatMessage chatMessage, String message, CollectionLog collectionLog)
+	private void replaceCommandMessage(ChatMessage chatMessage, String message, CollectionLog collectionLog)
 	{
 		String replacementMessage;
 
