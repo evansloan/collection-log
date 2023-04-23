@@ -33,9 +33,6 @@ public class CollectionLogApiClient
 	@Inject
 	private OkHttpClient okHttpClient;
 
-	@Inject
-	private Gson gson;
-
 	public void updateUser(String username, String accountType, String accountHash, boolean isFemale, JsonObject userSettings, Callback callback)
 	{
 		HttpUrl url = new HttpUrl.Builder()
