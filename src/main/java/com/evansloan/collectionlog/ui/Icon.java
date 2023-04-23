@@ -25,8 +25,9 @@
  *
  */
 
-package com.evansloan.collectionlog;
+package com.evansloan.collectionlog.ui;
 
+import com.evansloan.collectionlog.CollectionLogPlugin;
 import java.awt.image.BufferedImage;
 import java.util.function.UnaryOperator;
 import javax.annotation.Nonnull;
@@ -35,10 +36,13 @@ import net.runelite.client.util.ImageUtil;
 
 public enum Icon
 {
+	ACCOUNT("/account.png"),
 	COLLECTION_LOG("/collection_log.png"),
 	COLLECTION_LOG_TOOLBAR("/collection_log_toolbar.png"),
 	DISCORD("/discord.png"),
 	GITHUB("/github.png"),
+	HELP("/help.png"),
+	INFO("/info.png"),
 	;
 
 	private final String file;

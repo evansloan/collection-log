@@ -2,19 +2,35 @@ package com.evansloan.collectionlog;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
+import net.runelite.api.ItemComposition;
 
-
+@Getter
 @AllArgsConstructor
 public class CollectionLogItem
 {
-    @Getter
-    private final int id;
-    @Getter
+
+	@Setter
+    private int id;
+
     private final String name;
-    @Getter
-    private final int quantity;
-    @Getter
-    private final boolean obtained;
-    @Getter
+
+    @Setter
+    private int quantity;
+
+    @Setter
+    private boolean obtained;
+
     private final int sequence;
+
+    public static CollectionLogItem fromItemComposition(ItemComposition itemComposition, Integer sequence)
+    {
+        return new CollectionLogItem(
+            itemComposition.getId(),
+            itemComposition.getMembersName(),
+            0,
+            false,
+            sequence
+        );
+    }
 }

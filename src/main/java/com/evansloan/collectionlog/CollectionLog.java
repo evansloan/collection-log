@@ -2,28 +2,28 @@ package com.evansloan.collectionlog;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 
+@Getter
 @AllArgsConstructor
 public class CollectionLog
 {
-    @Getter
     private final String username;
 
-    @Getter
-    private final int totalObtained;
+    @Setter
+    private int totalObtained;
 
-    @Getter
-    private final int totalItems;
+    @Setter
+    private int totalItems;
 
-    @Getter
-    private final int uniqueObtained;
+    @Setter
+    private int uniqueObtained;
 
-    @Getter
-    private final int uniqueItems;
+    @Setter
+    private int uniqueItems;
 
-    @Getter
     private final Map<String, CollectionLogTab> tabs;
 
     public CollectionLogPage searchForPage(String pageName)

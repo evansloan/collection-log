@@ -10,24 +10,17 @@ import net.runelite.client.config.ConfigSection;
 @ConfigGroup("collectionlog")
 public interface CollectionLogConfig extends Config
 {
-	@ConfigItem(
-		keyName = "upload_collection_log",
-		name = "Allow collectionlog.net connections",
-		description = "Allows collection log data to upload on log out and the chat command to pull data",
-		position = 1,
-		section = exportingSection,
-		warning = "Enabling this option submits your IP address and account hash to a 3rd party website not controlled or verified by the RuneLite Developers."
-	)
-	default boolean allowApiConnections()
-	{
-		return false;
-	}
+	String PLUGIN_VERSION = "3.0.0";
+
+	Color DEFAULT_GREEN = new Color(13, 193, 13);
+	Color DEFAULT_ORANGE = new Color(255, 152, 31);
+	Color DEFAULT_RED = new Color(204, 44, 44);
 
 	@ConfigItem(
 		keyName = "show_collection_log_panel",
 		name = "Show the collection log side panel",
 		description = "Show the collection log side panel",
-		position = 2
+		position = 1
 	)
 	default boolean showCollectionLogSidePanel()
 	{
@@ -37,7 +30,7 @@ public interface CollectionLogConfig extends Config
 	@ConfigSection(
 		name = "Appearance",
 		description = "Modify the appearance of the collection log",
-		position = 3
+		position = 2
 	)
 	String appearanceSection = "appearance";
 
@@ -77,24 +70,62 @@ public interface CollectionLogConfig extends Config
 		return false;
 	}
 
+	@ConfigItem(
+		keyName = "highlight_incomplete_pages",
+		name = "Highlight incomplete pages",
+		description = "Highlight incomplete page titles",
+		position = 4,
+		section = appearanceSection
+	)
+	default boolean highlightIncompletePages()
+	{
+		return false;
+	}
+
 	@Alpha
 	@ConfigItem(
 		keyName = "highlight_color",
-		name = "Completed entry highlight color",
-		description = "Sets the highlight color of completed entries",
-		position = 4,
+		name = "Completed page highlight color",
+		description = "Sets the highlight color of completed pages",
+		position = 5,
 		section = appearanceSection
 	)
 	default Color highlightColor()
 	{
-		return new Color(13, 193, 13);
+		return DEFAULT_GREEN;
+	}
+
+	@Alpha
+	@ConfigItem(
+		keyName = "in_progress_highlight_color",
+		name = "In progress page highlight color",
+		description = "Sets the highlight color of page titles with at least one item obtained",
+		position = 6,
+		section = appearanceSection
+	)
+	default Color inProgressHighlightColor()
+	{
+		return DEFAULT_ORANGE;
+	}
+
+	@Alpha
+	@ConfigItem(
+		keyName = "empty_highlight_color",
+		name = "Empty page highlight color",
+		description = "Sets the highlight color of page titles with no items obtained",
+		position = 7,
+		section = appearanceSection
+	)
+	default Color emptyHighlightColor()
+	{
+		return DEFAULT_RED;
 	}
 
 	@ConfigItem(
 		keyName = "show_quantity_for_all_obtained_items",
 		name = "Show quantity for all obtained items",
 		description = "Show the quantity of items where only one has been obtained",
-		position = 5,
+		position = 8,
 		section = appearanceSection
 	)
 	default boolean showQuantityForAllObtainedItems()
@@ -110,15 +141,16 @@ public interface CollectionLogConfig extends Config
 	String exportingSection = "exporting";
 
 	@ConfigItem(
-		keyName = "notify_on_export",
-		name = "Notify on export",
-		description = "Send a notification on collection log export",
+		keyName = "upload_collection_log",
+		name = "Allow collectionlog.net connections",
+		description = "Allows collection log data to upload on log out and the chat command to pull data",
 		position = 1,
-		section = exportingSection
+		section = exportingSection,
+		warning = "Enabling this option submits your IP address and account hash to a 3rd party website not controlled or verified by the RuneLite Developers."
 	)
-	default boolean notifyOnExport()
+	default boolean allowApiConnections()
 	{
-		return true;
+		return false;
 	}
 
 	@ConfigItem(
