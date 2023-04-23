@@ -55,7 +55,7 @@ public class CollectionLogManager
 
 	private static final File COLLECTION_LOG_DIR = new File(RUNELITE_DIR, "collectionlog");
 	private static final File COLLECTION_LOG_SAVE_DATA_DIR = new File(COLLECTION_LOG_DIR, "data");
-	private static final File COLLECTION_LOG_EXPORT_DIR = new File(COLLECTION_LOG_SAVE_DATA_DIR, "exports");
+	private static final File COLLECTION_LOG_EXPORT_DIR = new File(COLLECTION_LOG_DIR, "exports");
 	private static final Pattern COLLECTION_LOG_FILE_PATTERN = Pattern.compile("collectionlog-([\\w\\s-]+).json");
 
 	/*
