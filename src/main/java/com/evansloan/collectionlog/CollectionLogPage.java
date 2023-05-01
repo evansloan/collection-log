@@ -478,4 +478,16 @@ public class CollectionLogPage
 
 		return items.stream().filter(filter).collect(Collectors.toList());
 	}
+
+	public CollectionLogKillCount getKillCountByName(String name)
+	{
+		for (CollectionLogKillCount killCount : getKillCounts())
+		{
+			if (killCount.getName().equals(name))
+			{
+				return killCount;
+			}
+		}
+		return null;
+	}
 }
