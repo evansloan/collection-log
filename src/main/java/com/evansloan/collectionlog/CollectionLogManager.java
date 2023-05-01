@@ -199,7 +199,10 @@ public class CollectionLogManager
 					if (saveFilePage != null)
 					{
 						CollectionLogKillCount saveFileKc = saveFilePage.getKillCountByName(killCount.getName());
-						killCountAmount = saveFileKc.getAmount();
+						if (saveFileKc != null)
+						{
+							killCountAmount = saveFileKc.getAmount();
+						}
 					}
 
 					killCount.setAmount(killCountAmount);
