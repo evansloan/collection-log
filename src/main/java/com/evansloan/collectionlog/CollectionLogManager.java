@@ -255,19 +255,8 @@ public class CollectionLogManager
 			return;
 		}
 
-		boolean isOldFileFormat = directory == COLLECTION_LOG_DIR;
-
 		for (File file : files)
 		{
-			if (file.isDirectory())
-			{
-				if (!isOldFileFormat)
-				{
-					loadCollectionLogFiles(file);
-				}
-				continue;
-			}
-
 			Matcher matcher = COLLECTION_LOG_FILE_PATTERN.matcher(file.getName());
 			if (!matcher.matches())
 			{
@@ -275,19 +264,15 @@ public class CollectionLogManager
 			}
 
 			String fileUsername = matcher.group(1);
-			CollectionLog loadedCollectionLog = jsonUtils.readJsonFile(file.getPath(), CollectionLog.class, new CollectionLogDeserializer(isOldFileFormat));
+			CollectionLog loadedCollectionLog = jsonUtils.readJsonFile(file.getPath(), CollectionLog.class, new CollectionLogDeserializer());
 			loadedCollectionLogs.put(fileUsername, loadedCollectionLog);
 		}
 	}
 
 	public void loadCollectionLogFiles()
 	{
-		// Old save files
-		loadCollectionLogFiles(COLLECTION_LOG_DIR);
-		// New save files
 		loadCollectionLogFiles(COLLECTION_LOG_SAVE_DATA_DIR);
 	}
-
 
 	public UserSettings loadUserSettingsFile()
 	{
