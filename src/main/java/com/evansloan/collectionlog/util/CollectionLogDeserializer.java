@@ -38,32 +38,15 @@ public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog
 		}
 	};
 
-	private boolean isOldFileFormat = false;
-
 	public CollectionLogDeserializer()
 	{
 		super();
-	}
-
-	public CollectionLogDeserializer(boolean isOldSaveFormat)
-	{
-		super();
-		this.isOldFileFormat = isOldSaveFormat;
 	}
 
     @Override
     public CollectionLog deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) throws JsonParseException
     {
         JsonObject jsonObjectLog = jsonElement.getAsJsonObject();
-        if (isOldFileFormat)
-        {
-            // Old file format uses snake cased keys
-            keyMap.put(COLLECTION_LOG_KILL_COUNTS_KEY, "kill_count");
-            keyMap.put(COLLECTION_LOG_TOTAL_OBTAINED_KEY, "total_obtained");
-            keyMap.put(COLLECTION_LOG_TOTAL_ITEMS_KEY, "total_items");
-            keyMap.put(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, "unique_obtained");
-            keyMap.put(COLLECTION_LOG_UNIQUE_ITEMS_KEY, "unique_items");
-        }
 
         JsonObject jsonObjectTabs = jsonObjectLog.get(COLLECTION_LOG_TABS_KEY).getAsJsonObject();
 
@@ -92,15 +75,7 @@ public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog
                     for (JsonElement killCount : pageKillCounts.getAsJsonArray())
                     {
                         CollectionLogKillCount newKillCount;
-                        if (isOldFileFormat)
-                        {
-                            String killCountString = killCount.getAsString();
-							newKillCount = CollectionLogKillCount.fromString(killCountString, newKillCounts.size());
-                        }
-                        else
-                        {
-                            newKillCount = context.deserialize(killCount, CollectionLogKillCount.class);
-                        }
+                        newKillCount = context.deserialize(killCount, CollectionLogKillCount.class);
                         newKillCounts.add(newKillCount);
                     }
                 }
