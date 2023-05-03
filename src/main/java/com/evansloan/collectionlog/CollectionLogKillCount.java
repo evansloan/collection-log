@@ -2,6 +2,7 @@ package com.evansloan.collectionlog;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import net.runelite.client.util.Text;
 
 @Getter
@@ -9,7 +10,8 @@ import net.runelite.client.util.Text;
 public class CollectionLogKillCount
 {
     private final String name;
-    private final int amount;
+	@Setter
+    private int amount;
     private final int sequence;
 
 	public static CollectionLogKillCount fromString(String killCountString, int sequence)

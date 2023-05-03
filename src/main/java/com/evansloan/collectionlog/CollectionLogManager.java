@@ -175,7 +175,12 @@ public class CollectionLogManager
 					}
 				}
 
-				// Run script to get kill counts for current page, pushes 3 (possibly empty) strings onto stack
+				/*
+				 * Run script to get available kill count names. Amounts are set in var2048 which isn't set unless
+				 * pages are manually opened in-game. Override amounts with 0 or previously saved amounts.
+				 *
+				 * https://github.com/Joshua-F/cs2-scripts/blob/master/scripts/%5Bproc,collection_category_count%5D.cs2
+				 */
 				client.runScript(COLLECTION_LOG_KILL_COUNT_SCRIPT_ID, pageStruct.getId());
 				List<String> killCountStrings = new ArrayList<>(
 					Arrays.asList(Arrays.copyOfRange(client.getStringStack(), 0, 3))
@@ -189,6 +194,18 @@ public class CollectionLogManager
 						continue;
 					}
 					CollectionLogKillCount killCount = CollectionLogKillCount.fromString(killCountString, pageKillCounts.size());
+
+					int killCountAmount = 0;
+					if (saveFilePage != null)
+					{
+						CollectionLogKillCount saveFileKc = saveFilePage.getKillCountByName(killCount.getName());
+						if (saveFileKc != null)
+						{
+							killCountAmount = saveFileKc.getAmount();
+						}
+					}
+
+					killCount.setAmount(killCountAmount);
 					pageKillCounts.add(killCount);
 				}
 
