@@ -286,9 +286,21 @@ public class CollectionLogManager
 		}
 	}
 
-	public void loadCollectionLogFiles()
-	{
-		loadCollectionLogFiles(COLLECTION_LOG_SAVE_DATA_DIR);
+	public void loadCollectionLogFiles() {
+		if (!COLLECTION_LOG_SAVE_DATA_DIR.exists() || !COLLECTION_LOG_SAVE_DATA_DIR.isDirectory()) {
+			log.error("Directory: \"" + COLLECTION_LOG_DIR.getPath() + "\" does not exist");
+			return;
+		}
+
+		File[] userDirectories = COLLECTION_LOG_SAVE_DATA_DIR.listFiles();
+		if (userDirectories == null) {
+			log.warn("No collection logs have been found");
+			return;
+		}
+
+		for (File userDirectory : userDirectories) {
+			loadCollectionLogFiles(userDirectory);
+		}
 	}
 
 	public UserSettings loadUserSettingsFile()
