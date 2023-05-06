@@ -10,7 +10,7 @@ import net.runelite.client.config.ConfigSection;
 @ConfigGroup("collectionlog")
 public interface CollectionLogConfig extends Config
 {
-	String PLUGIN_VERSION = "3.0.1";
+	String PLUGIN_VERSION = "3.0.2";
 
 	Color DEFAULT_GREEN = new Color(13, 193, 13);
 	Color DEFAULT_ORANGE = new Color(255, 152, 31);
