@@ -21,7 +21,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.plaf.basic.BasicButtonUI;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -29,12 +31,14 @@ import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.ComboBoxListRenderer;
 import net.runelite.client.ui.components.materialtabs.MaterialTab;
 import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
+import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.LinkBrowser;
 import net.runelite.client.util.SwingUtil;
@@ -46,6 +50,7 @@ public class CollectionLogPanel extends PluginPanel
 	private static final ImageIcon DISCORD_ICON;
 	private static final ImageIcon GITHUB_ICON;
 	private static final ImageIcon HELP_ICON;
+	private static final ImageIcon RANDOM_ICON;
 	private static final ImageIcon INFO_ICON;
 	private static final ImageIcon WEBSITE_ICON;
 	private static final EmptyBorder DEFAULT_BORDER = new EmptyBorder(10, 10, 10, 10);
@@ -56,6 +61,7 @@ public class CollectionLogPanel extends PluginPanel
 		DISCORD_ICON = Icon.DISCORD.getIcon(img -> ImageUtil.resizeImage(img, 16, 16));
 		GITHUB_ICON = Icon.GITHUB.getIcon(img -> ImageUtil.resizeImage(img, 16, 16));
 		HELP_ICON = Icon.HELP.getIcon(img -> ImageUtil.resizeImage(img, 20, 20));
+		RANDOM_ICON = Icon.RANDOM.getIcon(img -> ImageUtil.resizeImage(img, 20, 20));
 		INFO_ICON = Icon.INFO.getIcon(img -> ImageUtil.resizeImage(img, 20, 20));
 		WEBSITE_ICON = Icon.COLLECTION_LOG.getIcon(img -> ImageUtil.resizeImage(img, 16, 16));
 	}
@@ -66,6 +72,7 @@ public class CollectionLogPanel extends PluginPanel
 	private final CollectionLogManager collectionLogManager;
 	private final ClientThread clientThread;
 	private final CollectionLogConfig config;
+	private final ItemManager itemManager;
 
 	private GameStatePanel accountPanel;
 	private JLabel clnEnabledLabel;
@@ -76,11 +83,16 @@ public class CollectionLogPanel extends PluginPanel
 	private JComboBox<DisplayRankType> displayRankComboBox;
 	private JCheckBox showQuantityCheck;
 
+	private JButton randomCollectionLogBtn;
+	private JLabel randomItemSprite;
+	private JLabel randomItemLabel;
+
 	public CollectionLogPanel(
 		CollectionLogPlugin collectionLogPlugin,
 		CollectionLogManager collectionLogManager,
 		ClientThread clientThread,
-		CollectionLogConfig config
+		CollectionLogConfig config,
+		ItemManager itemManager
 	)
 	{
 		super(false);
@@ -89,6 +101,7 @@ public class CollectionLogPanel extends PluginPanel
 		this.collectionLogManager = collectionLogManager;
 		this.clientThread = clientThread;
 		this.config = config;
+		this.itemManager = itemManager;
 	}
 
 	public void create(GameState gameState)
@@ -163,7 +176,7 @@ public class CollectionLogPanel extends PluginPanel
 		JPanel activeTabPanel = new JPanel();
 		activeTabPanel.setLayout(new BoxLayout(activeTabPanel, BoxLayout.Y_AXIS));
 		MaterialTabGroup tabGroup = new MaterialTabGroup(activeTabPanel);
-		tabGroup.setLayout(new GridLayout(1, 3, 10, 10));
+		tabGroup.setLayout(new GridLayout(1, 4, 10, 10));
 		tabGroup.setBorder(new EmptyBorder(0, 0, 10, 0));
 		tabPanel.add(tabGroup);
 		tabPanel.add(activeTabPanel);
@@ -177,6 +190,9 @@ public class CollectionLogPanel extends PluginPanel
 
 		JPanel helpPanel = createHelpPanel();
 		createTab(HELP_ICON, "Help", tabGroup, helpPanel);
+
+		JPanel randomPanel = createRandomPanel();
+		createTab(RANDOM_ICON, "Random", tabGroup, randomPanel);
 
 		return tabPanel;
 	}
@@ -401,6 +417,59 @@ public class CollectionLogPanel extends PluginPanel
 		helpPanel.add(suggestionPanel);
 
 		return helpPanel;
+	}
+
+	private JPanel createRandomPanel()
+	{
+		JPanel randomPanel = new JPanel();
+		randomPanel.setLayout(new BoxLayout(randomPanel, BoxLayout.Y_AXIS));
+
+		JPanel childPanel = createChildRandomPanel();
+		randomPanel.add(childPanel);
+		
+		return randomPanel;
+	}
+
+	private JPanel createChildRandomPanel()
+	{
+		JPanel buttonPanel = new JPanel(new GridLayout(4, 1));
+		buttonPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+
+		JLabel titleLabel = createTitleLabel("Random Collection Log Item Picker");
+		titleLabel.setVerticalAlignment(SwingConstants.CENTER);
+		titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		buttonPanel.add(titleLabel);
+
+		randomCollectionLogBtn = createButton(
+			"Roll New Item",
+			(event) -> clientThread.invokeLater(() -> {
+				CollectionLogItem item = collectionLogManager.randomCollectionLog();
+				if (item == null)
+				{
+					randomItemLabel.setText("Open Collection Log first");
+					return;
+				}
+				AsyncBufferedImage itemImage = itemManager.getImage(item.getId(), 1, false);
+				itemImage.addTo(randomItemSprite);
+				randomItemLabel.setText(item.getName());
+			})
+		);
+		buttonPanel.add(randomCollectionLogBtn);
+
+		randomItemSprite = new JLabel();
+		randomItemSprite.setVerticalAlignment(SwingConstants.CENTER);
+		randomItemSprite.setHorizontalAlignment(SwingConstants.CENTER);
+		randomItemSprite.setMinimumSize(new Dimension(36, 36));
+		randomItemSprite.setPreferredSize(new Dimension(36, 36));
+		randomItemSprite.setBorder(new LineBorder(Color.BLACK, 1));
+		buttonPanel.add(randomItemSprite);
+
+		randomItemLabel = createTitleLabel("");
+		randomItemLabel.setVerticalAlignment(SwingConstants.CENTER);
+		randomItemLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		buttonPanel.add(randomItemLabel);
+
+		return buttonPanel;
 	}
 
 	private JTextArea createTextArea(String text)

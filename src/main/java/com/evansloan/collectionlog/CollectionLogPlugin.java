@@ -185,7 +185,7 @@ public class CollectionLogPlugin extends Plugin
 
 	private void initPanel()
 	{
-		collectionLogPanel = new CollectionLogPanel(this, collectionLogManager, clientThread, config);
+		collectionLogPanel = new CollectionLogPanel(this, collectionLogManager, clientThread, config, itemManager);
 		collectionLogPanel.create(client.getGameState());
 
 		if (navigationButton == null)

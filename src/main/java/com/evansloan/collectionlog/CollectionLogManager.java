@@ -31,6 +31,7 @@ import net.runelite.api.StructComposition;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStack;
+import org.apache.commons.lang3.RandomUtils;
 
 @Slf4j
 @Singleton
@@ -432,5 +433,32 @@ public class CollectionLogManager
 	public JsonObject getUserSettingsJsonObject()
 	{
 		return jsonUtils.toJsonObject(userSettings);
+	}
+
+	public CollectionLogItem randomCollectionLog()
+	{
+		if (!isInitialized())
+		{
+			return null;
+		}
+		int totalMissing = Math.min(collectionLog.getUniqueItems() - collectionLog.getTotalObtained(), 16);
+		List<CollectionLogItem> items = new ArrayList<>(totalMissing);
+
+		for (Map.Entry<String, CollectionLogTab> entry : collectionLog.getTabs().entrySet())
+		{
+			CollectionLogTab collectionLogTab = entry.getValue();
+			for (CollectionLogPage page : collectionLogTab.getPages().values())
+			{
+				for (CollectionLogItem item : page.getItems())
+				{
+					if (item.getQuantity() <= 0)
+					{
+						items.add(item);
+					}
+				}
+			}
+		}
+		int index = RandomUtils.nextInt(0, items.size() - 1);
+		return items.get(index);
 	}
 }
