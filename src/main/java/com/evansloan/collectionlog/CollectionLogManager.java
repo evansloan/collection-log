@@ -449,13 +449,8 @@ public class CollectionLogManager
 			CollectionLogTab collectionLogTab = entry.getValue();
 			for (CollectionLogPage page : collectionLogTab.getPages().values())
 			{
-				for (CollectionLogItem item : page.getItems())
-				{
-					if (item.getQuantity() <= 0)
-					{
-						items.add(item);
-					}
-				}
+				List<CollectionLogItem> pageItems = page.applyItemFilter("missing");
+				items.addAll(pageItems);
 			}
 		}
 		int index = RandomUtils.nextInt(0, items.size() - 1);
