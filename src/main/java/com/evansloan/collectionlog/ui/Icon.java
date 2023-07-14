@@ -42,6 +42,7 @@ public enum Icon
 	DISCORD("/discord.png"),
 	GITHUB("/github.png"),
 	HELP("/help.png"),
+	RANDOM("/random.png"),
 	INFO("/info.png"),
 	;
 
