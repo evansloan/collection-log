@@ -13,10 +13,14 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CollectionLogPage
 {
+	public static final String ITEM_FILTER_DUPES = "dupes";
+	public static final String ITEM_FILTER_MISSING = "missing";
+	public static final String ITEM_FILTER_OBTAINED = "obtained";
+
 	private static final Map<String, Predicate<CollectionLogItem>> ITEM_FILTERS = new ImmutableMap.Builder<String, Predicate<CollectionLogItem>>()
-		.put("obtained", CollectionLogItem::isObtained)
-		.put("missing", (item) -> !item.isObtained())
-		.put("dupes", (item) -> item.getQuantity() > 1)
+		.put(ITEM_FILTER_OBTAINED, CollectionLogItem::isObtained)
+		.put(ITEM_FILTER_MISSING, (item) -> !item.isObtained())
+		.put(ITEM_FILTER_DUPES, (item) -> item.getQuantity() > 1)
 		.build();
 
 	private final String name;

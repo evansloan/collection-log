@@ -443,7 +443,7 @@ public class CollectionLogPanel extends PluginPanel
 		randomCollectionLogBtn = createButton(
 			"Roll New Item",
 			(event) -> clientThread.invokeLater(() -> {
-				CollectionLogItem item = collectionLogManager.randomCollectionLog();
+				CollectionLogItem item = collectionLogManager.getRandomItem();
 				if (item == null)
 				{
 					randomItemLabel.setText("Open Collection Log first");

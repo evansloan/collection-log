@@ -939,14 +939,20 @@ public class CollectionLogPlugin extends Plugin
 				public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException
 				{
 					JsonObject collectionLogJson = apiClient.processResponse(response);
+					response.close();
+
+					if (collectionLogJson == null)
+					{
+						clientThread.invoke(() -> replaceCommandMessage(chatMessage, message, null));
+						return;
+					}
+
 					CollectionLog collectionLog = jsonUtils.fromJsonObject(
 						collectionLogJson.getAsJsonObject("collectionLog"),
 						CollectionLog.class,
 						new CollectionLogDeserializer()
 					);
 					clientThread.invoke(() -> replaceCommandMessage(chatMessage, message, collectionLog));
-
-					response.close();
 				}
 			});
 		}

@@ -435,12 +435,13 @@ public class CollectionLogManager
 		return jsonUtils.toJsonObject(userSettings);
 	}
 
-	public CollectionLogItem randomCollectionLog()
+	public CollectionLogItem getRandomItem()
 	{
 		if (!isInitialized())
 		{
 			return null;
 		}
+
 		int totalMissing = Math.min(collectionLog.getUniqueItems() - collectionLog.getTotalObtained(), 16);
 		List<CollectionLogItem> items = new ArrayList<>(totalMissing);
 
@@ -449,10 +450,11 @@ public class CollectionLogManager
 			CollectionLogTab collectionLogTab = entry.getValue();
 			for (CollectionLogPage page : collectionLogTab.getPages().values())
 			{
-				List<CollectionLogItem> pageItems = page.applyItemFilter("missing");
+				List<CollectionLogItem> pageItems = page.applyItemFilter(CollectionLogPage.ITEM_FILTER_MISSING);
 				items.addAll(pageItems);
 			}
 		}
+
 		int index = RandomUtils.nextInt(0, items.size() - 1);
 		return items.get(index);
 	}
