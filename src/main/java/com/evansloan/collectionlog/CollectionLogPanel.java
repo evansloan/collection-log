@@ -217,11 +217,8 @@ public class CollectionLogPanel extends PluginPanel
 
 		JPanel changeLogContent = createTabContentPanel();
 		String changeLogText = "v" + CollectionLogConfig.PLUGIN_VERSION + "\n\n" +
-			"* Side panel redesign\n" +
-			"  - Add quick start guide\n" +
-			"  - Add collectionlog.net account settings tab\n" +
-			"  - Add FAQ tab to help with the most common questions/issues\n\n" +
-			"* Add config option to customize highlight colors for incomplete pages";
+			"* Added random collection log item button in sidebar\n" +
+			"* Fixed inconsistent page name highlighting";
 		JTextArea changeLogTextArea = createTextArea(changeLogText);
 		changeLogContent.add(changeLogTextArea);
 		ExpandablePanel changeLogPanel = new ExpandablePanel("What's new", changeLogContent);
