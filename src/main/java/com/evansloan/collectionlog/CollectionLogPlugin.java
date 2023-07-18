@@ -86,6 +86,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final int COLLECTION_LOG_CONTAINER = 1;
 	private static final int COLLECTION_LOG_ACTIVE_TAB_VARBIT_ID = 6905;
 	private static final int COLLECTION_LOG_ACTIVE_PAGE_VARBIT_ID = 6906;
+	private static final int COLLECTION_LOG_COMPLETED_PAGE_COLOR = 901389;
 
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
 	private static final Pattern COLLECTION_LOG_ITEM_REGEX = Pattern.compile("New item added to your collection log: (.*)");
@@ -729,7 +730,7 @@ public class CollectionLogPlugin extends Plugin
 				pageNameWidget.setText(pageName + " *");
 			}
 
-			Color pageNameColor = getPageNameColor(collectionLogPage);
+			Color pageNameColor = getPageNameColor(collectionLogPage, pageNameWidget);
 			pageNameWidget.setTextColor(pageNameColor.getRGB());
 		}
 	}
@@ -775,7 +776,7 @@ public class CollectionLogPlugin extends Plugin
 	 * @param collectionLogPage Page to highlight
 	 * @return Page name highlight color
 	 */
-	private Color getPageNameColor(CollectionLogPage collectionLogPage)
+	private Color getPageNameColor(CollectionLogPage collectionLogPage, Widget pageNameWidget)
 	{
 		Color pageNameColor = CollectionLogConfig.DEFAULT_ORANGE;
 		int obtainedItemCount = collectionLogPage.getObtainedItemCount();
@@ -788,7 +789,7 @@ public class CollectionLogPlugin extends Plugin
 		{
 			pageNameColor = config.inProgressHighlightColor();
 		}
-		if (obtainedItemCount == collectionLogPage.getItems().size())
+		if (pageNameWidget.getTextColor() == COLLECTION_LOG_COMPLETED_PAGE_COLOR)
 		{
 			pageNameColor = config.highlightColor();
 		}
