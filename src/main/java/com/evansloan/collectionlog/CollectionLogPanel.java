@@ -188,11 +188,11 @@ public class CollectionLogPanel extends PluginPanel
 		accountPanel = createAccountPanel(isLoggedIn);
 		createTab(ACCOUNT_ICON, "Account", tabGroup, accountPanel);
 
-		JPanel helpPanel = createHelpPanel();
-		createTab(HELP_ICON, "Help", tabGroup, helpPanel);
-
 		JPanel randomPanel = createRandomPanel();
 		createTab(RANDOM_ICON, "Random", tabGroup, randomPanel);
+
+		JPanel helpPanel = createHelpPanel();
+		createTab(HELP_ICON, "Help", tabGroup, helpPanel);
 
 		return tabPanel;
 	}
