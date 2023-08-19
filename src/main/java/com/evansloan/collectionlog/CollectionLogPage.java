@@ -63,6 +63,13 @@ public class CollectionLogPage
 				return "Crazy Archaeologist";
 			case "dks":
 				return "Dagannoth Kings";
+			case "duke":
+			case "succ":
+			case "succelus":
+			case "ugly":
+			case "succellus":
+			case "duke succellus":
+				return "Duke Succelus";
 			case "jad":
 			case "fight caves":
 			case "fc":
@@ -108,6 +115,10 @@ public class CollectionLogPage
 			case "kril":
 			case "kril trutsaroth":
 				return "K'ril Tsutsaroth";
+			case "leviathan":
+			case "levi":
+			case "lev":
+				return "The Leviathan";
 			case "nightmare":
 			case "nm":
 			case "tnm":
@@ -144,6 +155,9 @@ public class CollectionLogPage
 			case "thermy":
 			case "thermey":
 				return "Thermonuclear Smoke Devil";
+			case "vard":
+			case "vardo":
+				return "Vardorvis";
 			case "spin":
 			case "spindel":
 			case "vene":
@@ -164,6 +178,10 @@ public class CollectionLogPage
 			case "wt":
 			case "todt":
 				return "Wintertodt";
+			case "whisperer":
+			case "whisp":
+			case "wisp":
+				return "The Whisperer";
 			case "zalc":
 				return "Zalcano";
 			case "zul":
