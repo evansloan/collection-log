@@ -20,23 +20,14 @@ public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog
 {
     private static final String COLLECTION_LOG_ITEMS_KEY = "items";
     private static final String COLLECTION_LOG_KILL_COUNTS_KEY = "killCounts";
+    // The data returned by collectionlog.net has "killCount" instead of "killCounts", and also has "items.obtainedAt".
+    private static final String COLLECTION_LOG_WEBSITE_KILL_COUNTS_KEY = "killCount";
     private static final String COLLECTION_LOG_TABS_KEY = "tabs";
     private static final String COLLECTION_LOG_TOTAL_OBTAINED_KEY = "totalObtained";
     private static final String COLLECTION_LOG_TOTAL_ITEMS_KEY = "totalItems";
     private static final String COLLECTION_LOG_UNIQUE_OBTAINED_KEY = "uniqueObtained";
     private static final String COLLECTION_LOG_UNIQUE_ITEMS_KEY = "uniqueItems";
 	private static final String COLLECTION_LOG_IS_UPDATED_KEY = "isUpdated";
-
-    private final Map<String, String> keyMap = new HashMap<String, String>()
-	{
-		{
-			put(COLLECTION_LOG_KILL_COUNTS_KEY, COLLECTION_LOG_KILL_COUNTS_KEY);
-			put(COLLECTION_LOG_TOTAL_OBTAINED_KEY, COLLECTION_LOG_TOTAL_OBTAINED_KEY);
-			put(COLLECTION_LOG_TOTAL_ITEMS_KEY, COLLECTION_LOG_TOTAL_ITEMS_KEY);
-			put(COLLECTION_LOG_UNIQUE_OBTAINED_KEY, COLLECTION_LOG_UNIQUE_OBTAINED_KEY);
-			put(COLLECTION_LOG_UNIQUE_ITEMS_KEY, COLLECTION_LOG_UNIQUE_ITEMS_KEY);
-		}
-	};
 
 	public CollectionLogDeserializer()
 	{
@@ -68,8 +59,11 @@ public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog
                 }
 
                 List<CollectionLogKillCount> newKillCounts = new ArrayList<>();
-                JsonElement pageKillCounts = page.get(keyMap.get(COLLECTION_LOG_KILL_COUNTS_KEY));
-
+                JsonElement pageKillCounts = page.get(COLLECTION_LOG_KILL_COUNTS_KEY);
+                if (pageKillCounts == null) {
+                    // killCounts might be null because collectionlog.net returned "killCount" instead.
+                    pageKillCounts = page.get(COLLECTION_LOG_WEBSITE_KILL_COUNTS_KEY);
+                }
                 if (pageKillCounts != null)
                 {
                     for (JsonElement killCount : pageKillCounts.getAsJsonArray())
@@ -91,10 +85,10 @@ public class CollectionLogDeserializer implements JsonDeserializer<CollectionLog
         }
         return new CollectionLog(
             "",
-            jsonObjectLog.get(keyMap.get(COLLECTION_LOG_TOTAL_OBTAINED_KEY)).getAsInt(),
-            jsonObjectLog.get(keyMap.get(COLLECTION_LOG_TOTAL_ITEMS_KEY)).getAsInt(),
-            jsonObjectLog.get(keyMap.get(COLLECTION_LOG_UNIQUE_OBTAINED_KEY)).getAsInt(),
-            jsonObjectLog.get(keyMap.get(COLLECTION_LOG_UNIQUE_ITEMS_KEY)).getAsInt(),
+            jsonObjectLog.get(COLLECTION_LOG_TOTAL_OBTAINED_KEY).getAsInt(),
+            jsonObjectLog.get(COLLECTION_LOG_TOTAL_ITEMS_KEY).getAsInt(),
+            jsonObjectLog.get(COLLECTION_LOG_UNIQUE_OBTAINED_KEY).getAsInt(),
+            jsonObjectLog.get(COLLECTION_LOG_UNIQUE_ITEMS_KEY).getAsInt(),
             newTabs
         );
     }
