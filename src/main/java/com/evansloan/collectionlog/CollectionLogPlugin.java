@@ -1,5 +1,8 @@
 package com.evansloan.collectionlog;
 
+import com.evansloan.collectionlog.luck.CollectionLogItemAliases;
+import com.evansloan.collectionlog.luck.CollectionLogLuckUtils;
+import com.evansloan.collectionlog.luck.LogItemInfo;
 import com.evansloan.collectionlog.ui.Icon;
 import com.evansloan.collectionlog.util.CollectionLogDeserializer;
 import com.evansloan.collectionlog.util.JsonUtils;
@@ -23,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -39,13 +43,7 @@ import net.runelite.api.MenuEntry;
 import net.runelite.api.Player;
 import net.runelite.api.ScriptID;
 import net.runelite.api.WorldType;
-import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
-import net.runelite.api.events.ItemContainerChanged;
-import net.runelite.api.events.MenuOpened;
-import net.runelite.api.events.ScriptPostFired;
-import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.events.*;
 import net.runelite.api.widgets.ItemQuantityMode;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
@@ -90,10 +88,11 @@ public class CollectionLogPlugin extends Plugin
 
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
 	private static final Pattern COLLECTION_LOG_ITEM_REGEX = Pattern.compile("New item added to your collection log: (.*)");
+	private static final Pattern COLLECTION_LOG_LUCK_CHECK_REGEX = Pattern.compile("^You have received (.*) x (.*)\\.$");
 	private static final String COLLECTION_LOG_TARGET = "Collection log";
 	private static final String COLLECTION_LOG_EXPORT = "Export";
 	private static final String COLLECTION_LOG_COMMAND_STRING = "!log";
-	private static final List<String> COLLECTION_LOG_COMMAND_FILTERS = ImmutableList.of("missing", "obtained", "dupes");
+	private static final List<String> COLLECTION_LOG_COMMAND_FILTERS = ImmutableList.of("missing", "obtained", "dupes", "luck");
 	private static final Pattern COLLECTION_LOG_COMMAND_PATTERN = Pattern.compile("!log\\s*(" + String.join("|", COLLECTION_LOG_COMMAND_FILTERS) + ")?\\s*([\\w\\s]+)?", Pattern.CASE_INSENSITIVE);
 
 	private static final int ADVENTURE_LOG_COLLECTION_LOG_SELECTED_VARBIT_ID = 12061;
@@ -425,6 +424,13 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
+		Matcher checkLuckMatcher = COLLECTION_LOG_LUCK_CHECK_REGEX.matcher(chatMessage.getMessage());
+		if (checkLuckMatcher.matches())
+		{
+			processCheckItemMessage(checkLuckMatcher);
+			return;
+		}
+
 		Matcher m = COLLECTION_LOG_ITEM_REGEX.matcher(chatMessage.getMessage());
 		if (!m.matches())
 		{
@@ -446,6 +452,25 @@ public class CollectionLogPlugin extends Plugin
 			.forEach(item -> inventoryItems.add(item.getId(), item.getQuantity()));
 
 		// Defer to onItemContainerChanged or onLootReceived
+	}
+
+
+	/**
+	 * Display luck-related information when the player "check"s an item in the collection log.
+	 *
+	 * @param checkLuckMatcher
+	 */
+	private void processCheckItemMessage(Matcher checkLuckMatcher) {
+		if (checkLuckMatcher.groupCount() < 2) {
+			// Matcher didn't find 2 groups for some reason
+			return;
+		}
+
+		// For now, assume that the "check item" message is for the local player. Some day, this could support the
+		// "check item" functionality through another player's house Adventure Log
+		String message = buildLuckCommandMessage(collectionLogManager.getCollectionLog(), checkLuckMatcher.group(2));
+
+		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", message, null);
 	}
 
 	@Subscribe
@@ -973,25 +998,38 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		String commandFilter = commandMatcher.group(1);
-		String commandPage = commandMatcher.group(2);
+		String commandName = commandMatcher.group(1);
+		String commandTarget = commandMatcher.group(2);
+		// !log -> !log obtained
+		if (commandName == null)
+		{
+			commandName = "obtained";
+		}
 
 		if (collectionLog == null)
 		{
 			replacementMessage = "No Collection Log data found for user.";
 		}
-		else if (commandPage == null)
+		// !log luck
+		else if (commandName.equalsIgnoreCase("luck")) {
+			replacementMessage = buildLuckCommandMessage(collectionLog, commandTarget);
+		}
+		// !log [obtained|missing|dupes]
+		else if (commandTarget == null)
 		{
 			replacementMessage = "Collection Log: " + collectionLog.getUniqueObtained() + "/" + collectionLog.getUniqueItems();
 		}
 		else
 		{
-			String pageArgument = CollectionLogPage.aliasPageName(commandPage);
+			String pageArgument = CollectionLogPage.aliasPageName(commandTarget);
 			CollectionLogPage collectionLogPage;
-			if (pageArgument.equals("any"))
+
+			// !log [obtained|missing|dupes] any
+			if (pageArgument.equalsIgnoreCase("any"))
 			{
 				collectionLogPage = collectionLog.randomPage();
 			}
+			// !log [obtained|missing|dupes] <activity name>
 			else
 			{
 				collectionLogPage = collectionLog.searchForPage(pageArgument);
@@ -1003,8 +1041,8 @@ public class CollectionLogPlugin extends Plugin
 			}
 			else
 			{
-				loadPageIcons(collectionLogPage.getItems());
-				replacementMessage = buildMessageReplacement(collectionLogPage, commandFilter);
+				loadItemIcons(collectionLogPage.getItems());
+				replacementMessage = buildLogCommandMessageForPage(collectionLogPage, commandName);
 			}
 		}
 
@@ -1017,7 +1055,7 @@ public class CollectionLogPlugin extends Plugin
 	 *
 	 * @param collectionLogItems List of items to load
 	 */
-	private void loadPageIcons(List<CollectionLogItem> collectionLogItems)
+	private void loadItemIcons(List<CollectionLogItem> collectionLogItems)
 	{
 		List<CollectionLogItem> itemsToLoad = collectionLogItems
 			.stream()
@@ -1050,31 +1088,120 @@ public class CollectionLogPlugin extends Plugin
 	 * @param collectionLogPage Page to format into a chat message
 	 * @return Replacement message
 	 */
-	private String buildMessageReplacement(CollectionLogPage collectionLogPage, String commandFilter)
+	private String buildLogCommandMessageForPage(CollectionLogPage collectionLogPage, String commandFilter)
 	{
+		List<CollectionLogItem> filteredItems = collectionLogPage.applyItemFilter(commandFilter.toLowerCase());
 
-		if (commandFilter == null)
-		{
-			commandFilter = "obtained";
-		}
+		String replacementMessage = collectionLogPage.getName() + " (" + commandFilter + "): ";
+		replacementMessage += filteredItems.size() + "/" + collectionLogPage.getItems().size() + " ";
 
-		List<CollectionLogItem> items = collectionLogPage.applyItemFilter(commandFilter.toLowerCase());
 		StringBuilder itemBuilder = new StringBuilder();
-		for (CollectionLogItem item : items)
+		for (CollectionLogItem item : filteredItems)
 		{
-			String itemString = "<img=" + loadedCollectionLogIcons.get(item.getId()) + ">";
+			itemBuilder.append("<img=" + loadedCollectionLogIcons.get(item.getId()) + ">");
+
 			if (item.getQuantity() > 1)
 			{
-				itemString += "x" + item.getQuantity();
+				itemBuilder.append("x" + item.getQuantity());
 			}
-			itemString += "  ";
-			itemBuilder.append(itemString);
+
+			itemBuilder.append("  ");
 		}
 
-		String replacementMessage = collectionLogPage.getName() + " (" + commandFilter + "): " + items.size() + "/" + collectionLogPage.getItems().size() + " ";
-		replacementMessage += itemBuilder.toString();
+		return replacementMessage + itemBuilder;
+	}
 
-		return replacementMessage;
+	/**
+	 * Convert to actual item name rather than "display" name (e.g. remove " (Members)" suffixes)
+	 * It may be possible to simply remove the suffix directly, but I haven't checked that it works for every item.
+	 * For example, there may be items whose display name differs from its "real" name in a way that isn't simply
+	 * adding " (Members)"
+	 *
+	 * @param itemDisplayName An item's display name which
+	 * @return The item's true name regardless of membership status
+	 */
+	private String itemDisplayNameToItemName(String itemDisplayName) {
+		for (int i = 0; i < client.getItemCount(); i++) {
+			ItemComposition itemComposition = client.getItemDefinition(i);
+			if (itemComposition.getName().equalsIgnoreCase(itemDisplayName)) {
+				return itemComposition.getMembersName();
+			}
+		}
+		return itemDisplayName;
+	}
+
+	/**
+	 * Builds the replacement messages for the !log luck... command
+	 *
+	 * @param collectionLog The collection log to use for the luck calculation (which may be another player's)
+	 * @param commandTarget The item or page for which to calculate luck. If omitted, calculates account-level luck
+	 * @return Replacement message
+	 */
+	private String buildLuckCommandMessage(CollectionLog collectionLog, String commandTarget)
+	{
+		// !log luck [account|total|overall]
+		if (commandTarget == null
+				|| commandTarget.equalsIgnoreCase("account")
+				|| commandTarget.equalsIgnoreCase("total")
+				|| commandTarget.equalsIgnoreCase("overall")) {
+			return "Account-level luck calculation is not yet supported.";
+		}
+
+		// !log luck <page-name>
+		String pageName = CollectionLogPage.aliasPageName(commandTarget);
+		if (collectionLog.searchForPage(pageName) != null) {
+			return "Per-activity or per-page luck calculation is not yet supported.";
+		}
+
+		// !log luck <item-name>
+		String itemName = CollectionLogItemAliases.aliasItemName(commandTarget);
+		itemName = itemDisplayNameToItemName(itemName);
+
+		CollectionLogItem item = collectionLog.searchForItem(itemName);
+		if (item == null) {
+			return "Item " + itemName + " is not recognized.";
+		}
+		LogItemInfo logItemInfo = LogItemInfo.findByName(itemName);
+		if (logItemInfo == null) {
+			// This likely only happens if there is an update and the plugin does not yet support new items.
+			return "Item " + itemName + " is not yet supported for luck calculation.";
+		}
+		// all other unimplemented or unsupported drops take this path
+		String failReason = logItemInfo.getDropProbabilityDistribution().getIncalculableReason();
+		if (failReason != null) {
+			return failReason;
+		}
+
+		// make sure this item's icon is loaded
+		loadItemIcons(ImmutableList.of(item));
+
+		double luck = logItemInfo.getDropProbabilityDistribution().calculateLuck(item, collectionLog);
+		double dryness = logItemInfo.getDropProbabilityDistribution().calculateDryness(item, collectionLog);
+		if (luck < 0 || luck > 1 || dryness < 0 || dryness > 1) {
+			return "Unknown error calculating luck for item.";
+		}
+		double overallLuck = CollectionLogLuckUtils.getOverallLuck(luck, dryness);
+		Color luckColor = CollectionLogLuckUtils.getOverallLuckColor(overallLuck);
+
+		String luckString = CollectionLogLuckUtils.formatLuckSigDigits(luck);
+		String drynessString = CollectionLogLuckUtils.formatLuckSigDigits(dryness);
+
+		int numObtained = item.getQuantity();
+		String kcDescription = logItemInfo.getDropProbabilityDistribution().getKillCountDescription();
+
+		// This reports detailed luck stats (luck + dryness) rather than a simplified average. We should do a user study
+		// to see if reporting both luck/dryness is too confusing. To me, there is a difference between receiving 0
+		// drops in 1 kc and being still at ~50% versus receiving 5 drops in 500 kc and being exactly on drop rate.
+		// This difference is lost if reporting averaged luck + dryness as a single number.
+		// This could be a toggleable option...
+		return new ChatMessageBuilder()
+				.append(item.getName() + " ")
+				.img(loadedCollectionLogIcons.get(item.getId()))
+				.append("x" + numObtained + ": ")
+				.append(luckColor, luckString + "% lucky / " + drynessString + "% dry")
+				.append(" in ")
+				.append(kcDescription)
+				.build();
 	}
 
 	/**

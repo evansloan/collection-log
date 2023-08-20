@@ -46,6 +46,43 @@ public class CollectionLog
         return null;
     }
 
+    // TODO: initialize map in constructor if this is taking too long.
+    public CollectionLogItem searchForItem(String itemName) {
+        if (StringUtils.isEmpty(itemName)) {
+            return null;
+        }
+
+        for (CollectionLogTab tab : tabs.values()) {
+            for (CollectionLogPage page : tab.getPages().values()) {
+                for (CollectionLogItem item : page.getItems()) {
+                    if (itemName.equalsIgnoreCase(item.getName())) {
+                        // Because the total number of items dropped from any page is reported on every such page,
+                        // just return the item the first time it is seen on any page
+                        return item;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public CollectionLogKillCount searchForKillCount(String killCountName) {
+        if (StringUtils.isEmpty(killCountName)) {
+            return null;
+        }
+
+        for (CollectionLogTab tab : tabs.values()) {
+            for (CollectionLogPage page : tab.getPages().values()) {
+                for (CollectionLogKillCount killCount : page.getKillCounts()) {
+                    if (killCountName.equalsIgnoreCase(killCount.getName())) {
+                        return killCount;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     public CollectionLogPage randomPage()
     {
         int pageCount = 0;
