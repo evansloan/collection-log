@@ -7,22 +7,27 @@ public final class CollectionLogLuckUtils {
     // Format luck as a percentage with at least 2 significant digits, or more if needed for numbers close to 0 or 1.
     // Example: 0.0000145 -> 0.000015; 0.2535 -> 0.25; 0.500000 -> 0.50; 0.9999999 -> 0.9999999
     public static String formatLuckSigDigits(double luck) {
-        int sigDigitsIfUnlucky = 2;
+        if (luck >= 1) {
+            return "100";
+        }
+        if (luck <= 0) {
+            return "0";
+        }
 
+        int sigDigitsIfUnlucky = 2;
         // prevent numbers very close to 1, like 0.999, from being rounded up
-        // Also, avoid crash if luck = 1 by clamping sig digits to <= 16, which is the most possible
-        int sigDigitsIfLucky = Math.min(16, (int) Math.ceil(-Math.log10(1.0-luck)));
+        int sigDigitsIfLucky = (int) Math.ceil(-Math.log10(1.0-luck));
 
         int sigDigits = Math.max(sigDigitsIfUnlucky, sigDigitsIfLucky);
         return String.format("%."+sigDigits+"G", luck*100);
     }
 
-    // Return green when luck - dryness = 1, red when luck - dryness = -1, and interpolate for values in between
-    // TODO: make good/back luck colors configurable in Appearance config tab
+    // Return green when overall luck = 1, red when overall luck = 0, and interpolate for values in between
+    // Note that interpolation is done in HSB space, not for individual RGB components,
+    // so the midpoint is standard yellow.
     public static Color getOverallLuckColor(double overallFraction) {
-        int r = (int)(255 * (1 - overallFraction));
-        int g = (int)(255 * overallFraction);
-        return new Color(r, g, 0).darker();
+        // green is 1/3rd of the way around the HSB wheel
+        return new Color(Color.HSBtoRGB((float) (overallFraction / 3.0), 1.0f, 1.0f)).darker();
     }
 
     public static double getOverallLuck(double luckFraction, double drynessFraction) {
