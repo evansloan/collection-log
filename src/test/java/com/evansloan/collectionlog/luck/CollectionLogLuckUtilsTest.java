@@ -44,7 +44,7 @@ public class CollectionLogLuckUtilsTest {
 
     @Test
     public void getOverallLuckColor_returnsGreenAtMaxLuck() {
-        final Color expectedColor = Color.GREEN.darker();
+        final Color expectedColor = Color.GREEN.darker().darker();
 
         final Color actualColor = CollectionLogLuckUtils.getOverallLuckColor(1);
 
@@ -53,7 +53,7 @@ public class CollectionLogLuckUtilsTest {
 
     @Test
     public void getOverallLuckColor_returnsYellowAtAverageLuck() {
-        final Color expectedColor = Color.YELLOW.darker();
+        final Color expectedColor = Color.YELLOW.darker().darker();
 
         final Color actualColor = CollectionLogLuckUtils.getOverallLuckColor(0.5);
 
@@ -62,7 +62,7 @@ public class CollectionLogLuckUtilsTest {
 
     @Test
     public void getOverallLuckColor_returnsRedAtMinLuck() {
-        final Color expectedColor = Color.RED.darker();
+        final Color expectedColor = Color.RED.darker().darker();
 
         final Color actualColor = CollectionLogLuckUtils.getOverallLuckColor(0);
 

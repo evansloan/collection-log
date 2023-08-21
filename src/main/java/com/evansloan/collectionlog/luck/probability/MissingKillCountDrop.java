@@ -5,6 +5,6 @@ package com.evansloan.collectionlog.luck.probability;
 public class MissingKillCountDrop extends AbstractUnsupportedDrop {
 
     public MissingKillCountDrop() {
-        super("The collection log has no KC for one or more drop sources for this item.");
+        super("The collection log has no reliable KC for one or more drop sources for this item.");
     }
 }

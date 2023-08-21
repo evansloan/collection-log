@@ -27,7 +27,7 @@ public final class CollectionLogLuckUtils {
     // so the midpoint is standard yellow.
     public static Color getOverallLuckColor(double overallFraction) {
         // green is 1/3rd of the way around the HSB wheel
-        return new Color(Color.HSBtoRGB((float) (overallFraction / 3.0), 1.0f, 1.0f)).darker();
+        return new Color(Color.HSBtoRGB((float) (overallFraction / 3.0), 1.0f, 1.0f)).darker().darker();
     }
 
     public static double getOverallLuck(double luckFraction, double drynessFraction) {
