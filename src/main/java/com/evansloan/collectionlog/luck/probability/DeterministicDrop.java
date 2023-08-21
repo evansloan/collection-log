@@ -7,4 +7,5 @@ public class DeterministicDrop extends AbstractUnsupportedDrop {
     public DeterministicDrop() {
         super("This item is obtained in a non-luck-based way.");
     }
+
 }

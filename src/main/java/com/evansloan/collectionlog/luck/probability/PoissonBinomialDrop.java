@@ -8,10 +8,8 @@ import java.util.Map;
 // or bosses where the drop chances are not necessarily equal).
 public class PoissonBinomialDrop extends AbstractDropProbabilityDistribution {
 
-    private final Map<LogItemSourceInfo, Double> logSourceDropRates;
-
     public PoissonBinomialDrop(Map<LogItemSourceInfo, Double> logSourceDropRates) {
-        this.logSourceDropRates = logSourceDropRates;
+        super(logSourceDropRates);
     }
 
 }

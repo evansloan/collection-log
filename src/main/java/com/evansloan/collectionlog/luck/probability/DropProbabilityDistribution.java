@@ -18,7 +18,7 @@ public interface DropProbabilityDistribution {
         return -1;
     }
 
-    default String getKillCountDescription() {
+    default String getKillCountDescription(CollectionLog collectionLog) {
         return "UNIMPLEMENTED";
     };
 

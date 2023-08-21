@@ -1187,7 +1187,7 @@ public class CollectionLogPlugin extends Plugin
 		String drynessString = CollectionLogLuckUtils.formatLuckSigDigits(dryness);
 
 		int numObtained = item.getQuantity();
-		String kcDescription = logItemInfo.getDropProbabilityDistribution().getKillCountDescription();
+		String kcDescription = logItemInfo.getDropProbabilityDistribution().getKillCountDescription(collectionLog);
 
 		// This reports detailed luck stats (luck + dryness) rather than a simplified average. We should do a user study
 		// to see if reporting both luck/dryness is too confusing. To me, there is a difference between receiving 0
