@@ -4,7 +4,6 @@ import com.evansloan.collectionlog.*;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -12,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class BinomialDropTest {
 
@@ -37,7 +36,7 @@ public class BinomialDropTest {
     }
 
     @Test
-    public void testBasicBinomial() {
+    public void testBinomial_singleDropSource() {
         double dropChance = 0.01;
         int kc = 100;
         int numObtained = 1;
@@ -164,6 +163,28 @@ public class BinomialDropTest {
         BinomialDrop drop = new BinomialDrop(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, false, 0);
+
+        CollectionLog mockCollectionLog = getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void testBinomial_missingDropSource() {
+        double dropChance = 0.5;
+        int kc = 10;
+        int numObtained = 11;
+        double expectedLuck = -1;
+        double expectedDryness = -1;
+        double tolerance = 0.00001;
+
+        BinomialDrop drop = new BinomialDrop(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
         CollectionLog mockCollectionLog = getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 

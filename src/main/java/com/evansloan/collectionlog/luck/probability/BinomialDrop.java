@@ -2,14 +2,11 @@ package com.evansloan.collectionlog.luck.probability;
 
 import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogItem;
-import com.evansloan.collectionlog.CollectionLogKillCount;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,6 +34,10 @@ public class BinomialDrop extends AbstractDropProbabilityDistribution {
             return 0;
         }
         int numTrials = getTotalDropsObtained(collectionLog);
+        if (numSuccesses > numTrials) {
+            // this can happen if a drop source is not accounted for
+            return -1;
+        }
 
         BinomialDistribution dist = new BinomialDistribution(numTrials, dropChance);
 
@@ -51,6 +52,10 @@ public class BinomialDrop extends AbstractDropProbabilityDistribution {
         int numTrials = getTotalDropsObtained(collectionLog);
         if (numTrials <= 0) {
             return 0;
+        }
+        if (numSuccesses > numTrials) {
+            // this can happen if a drop source is not accounted for
+            return -1;
         }
 
         BinomialDistribution dist = new BinomialDistribution(numTrials, dropChance);

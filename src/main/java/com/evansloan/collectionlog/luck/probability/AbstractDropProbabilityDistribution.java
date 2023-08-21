@@ -5,7 +5,6 @@ import com.evansloan.collectionlog.CollectionLogKillCount;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
