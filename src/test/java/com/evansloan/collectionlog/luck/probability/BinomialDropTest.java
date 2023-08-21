@@ -1,39 +1,18 @@
 package com.evansloan.collectionlog.luck.probability;
 
-import com.evansloan.collectionlog.*;
+import com.evansloan.collectionlog.CollectionLog;
+import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
 public class BinomialDropTest {
-
-    private CollectionLog getMockCollectionLogWithKcs(Map<String, Integer> sourceToKcMap) {
-        List<CollectionLogKillCount> killCounts = sourceToKcMap.entrySet().stream()
-                .map(entry -> new CollectionLogKillCount(entry.getKey(), entry.getValue(), 0))
-                .collect(Collectors.toList());
-
-        List<CollectionLogItem> pageItems = Collections.emptyList();
-
-        CollectionLogPage mockPage = new CollectionLogPage("some page", pageItems, killCounts, true);
-        Map<String, CollectionLogPage> pages = ImmutableMap.of(mockPage.getName(), mockPage);
-
-        CollectionLogTab mockTab = new CollectionLogTab("some page", pages);
-        Map<String, CollectionLogTab> tabs = ImmutableMap.of(mockTab.getName(), mockTab);
-
-        return new CollectionLog("someusername", 0, 0, 0, 0, tabs);
-    }
-
-    private CollectionLog getMockCollectionLogWithKc(String itemSourceName, int kc) {
-        return getMockCollectionLogWithKcs(ImmutableMap.of(itemSourceName, kc));
-    }
 
     @Test
     public void testBinomial_singleDropSource() {
@@ -49,7 +28,8 @@ public class BinomialDropTest {
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
-        CollectionLog mockCollectionLog = getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(
+                LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
         double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
         assertEquals(expectedLuck, actualLuck, tolerance);
@@ -72,7 +52,7 @@ public class BinomialDropTest {
         Map<String, Integer> kcs = ImmutableMap.of(
                 LogItemSourceInfo.ARTIO_KILLS.getName(), kc1,
                 LogItemSourceInfo.CALLISTO_KILLS.getName(), kc2);
-        CollectionLog mockCollectionLog = getMockCollectionLogWithKcs(kcs);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
         List<LogItemSourceInfo> dropSources = ImmutableList.of(LogItemSourceInfo.ARTIO_KILLS, LogItemSourceInfo.CALLISTO_KILLS);
         BinomialDrop drop = new BinomialDrop(dropSources, dropChance);
@@ -100,7 +80,7 @@ public class BinomialDropTest {
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, false, 0);
 
-        CollectionLog mockCollectionLog = getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
         double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
         assertEquals(expectedLuck, actualLuck, tolerance);
@@ -109,6 +89,7 @@ public class BinomialDropTest {
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
+    @Test
     public void testBinomial_0Trials() {
         double dropChance = 0.5;
         int kc = 0;
@@ -121,7 +102,7 @@ public class BinomialDropTest {
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
-        CollectionLog mockCollectionLog = getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
         double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
         assertEquals(expectedLuck, actualLuck, tolerance);
@@ -130,6 +111,7 @@ public class BinomialDropTest {
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
+    @Test
     public void testBinomial_spooooooooooooooooned() {
         double dropChance = 0.5;
         int kc = 100000000;
@@ -143,7 +125,7 @@ public class BinomialDropTest {
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
-        CollectionLog mockCollectionLog = getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
         double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
         assertEquals(expectedLuck, actualLuck, tolerance);
@@ -152,6 +134,7 @@ public class BinomialDropTest {
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
+    @Test
     public void testBinomial_dryyyyyyyyyyyyyyyyyyyyy() {
         double dropChance = 0.5;
         int kc = 100000;
@@ -164,7 +147,7 @@ public class BinomialDropTest {
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, false, 0);
 
-        CollectionLog mockCollectionLog = getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
         double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
         assertEquals(expectedLuck, actualLuck, tolerance);
@@ -186,7 +169,7 @@ public class BinomialDropTest {
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
-        CollectionLog mockCollectionLog = getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
         double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
         assertEquals(expectedLuck, actualLuck, tolerance);
@@ -203,7 +186,7 @@ public class BinomialDropTest {
 
         BinomialDrop drop = new BinomialDrop(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance);
 
-        CollectionLog mockCollectionLog = getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
         String actualKcString = drop.getKillCountDescription(mockCollectionLog);
         assertEquals(expectedKcString, actualKcString);
@@ -229,7 +212,7 @@ public class BinomialDropTest {
 
         BinomialDrop drop = new BinomialDrop(dropSources, dropChance);
 
-        CollectionLog mockCollectionLog = getMockCollectionLogWithKcs(kcs);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
         String actualKcString = drop.getKillCountDescription(mockCollectionLog);
         assertEquals(expectedKcString, actualKcString);

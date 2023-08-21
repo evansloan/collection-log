@@ -1,6 +1,7 @@
 package com.evansloan.collectionlog.luck.probability;
 
 import com.evansloan.collectionlog.CollectionLog;
+import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.CollectionLogKillCount;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 
@@ -30,13 +31,23 @@ public abstract class AbstractDropProbabilityDistribution implements DropProbabi
                 .collect(Collectors.joining(", "));
     }
 
-    protected int getTotalDropsObtained(CollectionLog collectionLog) {
+    protected int getNumTrials(CollectionLog collectionLog) {
         return logSourceDropRates.keySet().stream()
                 .map(s -> collectionLog.searchForKillCount(s.getName()))
                 // filter out nulls just in case
                 .filter(Objects::nonNull)
                 .mapToInt(CollectionLogKillCount::getAmount)
                 .sum();
+    }
+
+    protected int getNumSuccesses(CollectionLogItem item) {
+        return item.getQuantity();
+    }
+
+    // the max number of successes that a player could have and still be considered "in the same boat" as you, luck-wise
+    // In the vast majority of cases, this is equal to getNumSuccesses.
+    protected int getMaxEquivalentNumSuccesses(CollectionLogItem item) {
+        return getNumSuccesses(item);
     }
 
 }

@@ -29,11 +29,11 @@ public class BinomialDrop extends AbstractDropProbabilityDistribution {
 
     @Override
     public double calculateLuck(CollectionLogItem item, CollectionLog collectionLog) {
-        int numSuccesses = item.getQuantity();
+        int numSuccesses = getNumSuccesses(item);
         if (numSuccesses <= 0) {
             return 0;
         }
-        int numTrials = getTotalDropsObtained(collectionLog);
+        int numTrials = getNumTrials(collectionLog);
         if (numSuccesses > numTrials) {
             // this can happen if a drop source is not accounted for
             return -1;
@@ -48,8 +48,8 @@ public class BinomialDrop extends AbstractDropProbabilityDistribution {
     // return the percent of players that would be luckier than this player by this point.
     @Override
     public double calculateDryness(CollectionLogItem item, CollectionLog collectionLog) {
-        int numSuccesses = item.getQuantity();
-        int numTrials = getTotalDropsObtained(collectionLog);
+        int numSuccesses = getNumSuccesses(item);
+        int numTrials = getNumTrials(collectionLog);
         if (numTrials <= 0) {
             return 0;
         }
@@ -60,7 +60,9 @@ public class BinomialDrop extends AbstractDropProbabilityDistribution {
 
         BinomialDistribution dist = new BinomialDistribution(numTrials, dropChance);
 
-        return 1 - dist.cumulativeProbability(numSuccesses);
+        int maxEquivalentNumSuccesses = getMaxEquivalentNumSuccesses(item);
+
+        return 1 - dist.cumulativeProbability(maxEquivalentNumSuccesses);
     }
 
 }
