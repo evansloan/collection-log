@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// A drop that follows the Poisson binomial distribution (used for drops that are obtained from multiple activities
-// or bosses where the drop chances are not necessarily equal).
+// A drop that follows the standard Binomial distribution. Note: This class supports drops that come from
+// multiple item sources, but it requires the drop chance for the item to be the same across all sources.
 public class BinomialDrop extends AbstractDropProbabilityDistribution {
 
     final double dropChance;
