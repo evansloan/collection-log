@@ -1,5 +1,6 @@
 package com.evansloan.collectionlog.luck.probability;
 
+import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 
@@ -19,14 +20,14 @@ public class HiddenShardDrop extends BinomialDrop {
     }
 
     @Override
-    protected int getNumSuccesses(CollectionLogItem item) {
+    protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog) {
         return item.getQuantity() * shardsRequired;
     }
 
     // Anyone who has received the same number of actual drops (and any unknown number of hidden shards) is
     // "in the same boat" in terms of luck
     @Override
-    protected int getMaxEquivalentNumSuccesses(CollectionLogItem item) {
+    protected int getMaxEquivalentNumSuccesses(CollectionLogItem item, CollectionLog collectionLog) {
         return (item.getQuantity() + 1) * shardsRequired - 1;
     }
 

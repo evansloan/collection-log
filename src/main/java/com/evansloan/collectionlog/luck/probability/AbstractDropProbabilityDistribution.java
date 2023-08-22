@@ -40,14 +40,14 @@ public abstract class AbstractDropProbabilityDistribution implements DropProbabi
                 .sum();
     }
 
-    protected int getNumSuccesses(CollectionLogItem item) {
+    protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog) {
         return item.getQuantity();
     }
 
     // the max number of successes that a player could have and still be considered "in the same boat" as you, luck-wise
     // In the vast majority of cases, this is equal to getNumSuccesses.
-    protected int getMaxEquivalentNumSuccesses(CollectionLogItem item) {
-        return getNumSuccesses(item);
+    protected int getMaxEquivalentNumSuccesses(CollectionLogItem item, CollectionLog collectionLog) {
+        return getNumSuccesses(item, collectionLog);
     }
 
 }

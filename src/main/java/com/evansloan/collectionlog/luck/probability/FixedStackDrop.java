@@ -1,5 +1,6 @@
 package com.evansloan.collectionlog.luck.probability;
 
+import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 
@@ -15,7 +16,7 @@ public class FixedStackDrop extends BinomialDrop {
     }
 
     @Override
-    protected int getNumSuccesses(CollectionLogItem item) {
+    protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog) {
         return item.getQuantity() / stackSize;
     }
 }
