@@ -11,11 +11,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 // Describes the probability distribution for a drop
-public abstract class AbstractDropProbabilityDistribution implements DropProbabilityDistribution {
+public abstract class AbstractDrop implements DropLuck {
 
     protected final Map<LogItemSourceInfo, Double> logSourceDropRates;
 
-    public AbstractDropProbabilityDistribution(Map<LogItemSourceInfo, Double> logSourceDropRates) {
+    public AbstractDrop(Map<LogItemSourceInfo, Double> logSourceDropRates) {
         this.logSourceDropRates = logSourceDropRates;
     }
 

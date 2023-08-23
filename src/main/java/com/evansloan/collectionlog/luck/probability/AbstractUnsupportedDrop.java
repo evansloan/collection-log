@@ -1,7 +1,7 @@
 package com.evansloan.collectionlog.luck.probability;
 
 // Base class for all unsupported or unimplemented drops
-public abstract class AbstractUnsupportedDrop implements DropProbabilityDistribution {
+public abstract class AbstractUnsupportedDrop implements DropLuck {
 
     private String reason;
 

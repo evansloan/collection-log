@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 // A drop that follows the standard Binomial distribution. Note: This class supports drops that come from
 // multiple item sources, but it requires the drop chance for the item to be the same across all sources.
-public class BinomialDrop extends AbstractDropProbabilityDistribution {
+public class BinomialDrop extends AbstractDrop {
 
     final double dropChance;
 
@@ -44,8 +44,6 @@ public class BinomialDrop extends AbstractDropProbabilityDistribution {
         return dist.cumulativeProbability(numSuccesses - 1);
     }
 
-    // Return the percent chance of having received more drops in the same KC than the player has. In other words,
-    // return the percent of players that would be luckier than this player by this point.
     @Override
     public double calculateDryness(CollectionLogItem item, CollectionLog collectionLog) {
         int numSuccesses = getNumSuccesses(item, collectionLog);

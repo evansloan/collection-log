@@ -12,6 +12,8 @@ import java.util.Map;
 // For example, Zulrah gives 2 rolls per kill, or clues give multiple rolls per "KC".
 // Note: This class supports multiple item sources, like BinomialDrop, but requires the drop chance for the item to be
 // the same across all item sources.
+// TODO: This functionality should be added to BinomialDrop (or higher up), rather than being its own class, so that
+//  other classes can take advantage of this logic
 public class MultiRollBinomialDrop extends BinomialDrop {
 
     private final Map<LogItemSourceInfo, Integer> rollsPerKc;
