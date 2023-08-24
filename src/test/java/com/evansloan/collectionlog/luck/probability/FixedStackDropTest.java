@@ -5,7 +5,7 @@ import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class FixedStackDropTest {
 
@@ -20,7 +20,7 @@ public class FixedStackDropTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
 
-        FixedStackDrop drop = new FixedStackDrop(LogItemSourceInfo.CERBERUS_KILLS, dropChancePerStack, stackSize);
+        FixedStackDrop drop = new FixedStackDrop(new RollInfo(LogItemSourceInfo.CERBERUS_KILLS, dropChancePerStack), stackSize);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "Key master teleport", numObtained, true, 0);
 
@@ -45,7 +45,7 @@ public class FixedStackDropTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
 
-        FixedStackDrop drop = new FixedStackDrop(LogItemSourceInfo.CERBERUS_KILLS, dropChancePerStack, stackSize);
+        FixedStackDrop drop = new FixedStackDrop(new RollInfo(LogItemSourceInfo.CERBERUS_KILLS, dropChancePerStack), stackSize);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "Key master teleport", numObtained, false, 0);
 

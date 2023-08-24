@@ -2,6 +2,7 @@ package com.evansloan.collectionlog.luck.probability;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.math3.distribution.BinomialDistribution;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -280,7 +281,7 @@ public class PoissonBinomialRefinedNormalApproxDistributionTest {
     }
 
     @Test
-//    @Ignore("Expensive - manual run only.")
+    @Ignore("Expensive - manual run only.")
     public void cumulativeProbability_compareToExact_highKc_randomProbability() {
         // To make test deterministic
         Random r = new Random(2345);

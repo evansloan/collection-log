@@ -5,7 +5,7 @@ import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class HiddenShardDropTest {
 
@@ -20,7 +20,7 @@ public class HiddenShardDropTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
 
-        HiddenShardDrop drop = new HiddenShardDrop(LogItemSourceInfo.DUKE_SUCELLUS_KILLS, dropChancePerShard, shardsRequired);
+        HiddenShardDrop drop = new HiddenShardDrop(new RollInfo(LogItemSourceInfo.DUKE_SUCELLUS_KILLS, dropChancePerShard), shardsRequired);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "Magus vestige", numObtained, true, 0);
 
@@ -45,7 +45,7 @@ public class HiddenShardDropTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
 
-        HiddenShardDrop drop = new HiddenShardDrop(LogItemSourceInfo.DUKE_SUCELLUS_KILLS, dropChancePerShard, shardsRequired);
+        HiddenShardDrop drop = new HiddenShardDrop(new RollInfo(LogItemSourceInfo.DUKE_SUCELLUS_KILLS, dropChancePerShard), shardsRequired);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "Magus vestige", numObtained, false, 0);
 

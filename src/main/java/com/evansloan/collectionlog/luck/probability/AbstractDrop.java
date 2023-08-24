@@ -3,26 +3,40 @@ package com.evansloan.collectionlog.luck.probability;
 import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.CollectionLogKillCount;
-import com.evansloan.collectionlog.luck.LogItemSourceInfo;
+import org.apache.commons.math3.util.Pair;
 
 import java.util.Comparator;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 // Describes the probability distribution for a drop
 public abstract class AbstractDrop implements DropLuck {
 
-    protected final Map<LogItemSourceInfo, Double> logSourceDropRates;
+    protected final List<RollInfo> rollInfos;
 
-    public AbstractDrop(Map<LogItemSourceInfo, Double> logSourceDropRates) {
-        this.logSourceDropRates = logSourceDropRates;
+    public AbstractDrop(List<RollInfo> rollInfos) {
+        this.rollInfos = rollInfos;
+
+        if (rollInfos.isEmpty()) {
+            throw new IllegalArgumentException("At least one RollInfo is required.");
+        }
+
+        // the number of rolls per source and the drop rate per source cannot both be non-uniform across all drops,
+        // otherwise it's impossible to tell which (different) drop rate led to the success, and luck cannot be
+        // calculated
+        boolean hasNonUniformDropChances = rollInfos.stream().mapToDouble(RollInfo::getDropChancePerRoll).distinct().count() != 1;
+        boolean hasNonUniformRollsPerKc = rollInfos.stream().mapToInt(RollInfo::getRollsPerKc).distinct().count() != 1;
+        if (hasNonUniformDropChances && hasNonUniformRollsPerKc) {
+            throw new IllegalArgumentException("Probabilities for multiple drop sources cannot be unequal while having " +
+                    "a different number of rolls per drop source.");
+        }
     }
 
     @Override
     public String getKillCountDescription(CollectionLog collectionLog) {
-        return logSourceDropRates.keySet().stream()
-                .map(s -> collectionLog.searchForKillCount(s.getName()))
+        return rollInfos.stream()
+                .map(roll -> collectionLog.searchForKillCount(roll.getDropSource().getName()))
                 // filter out nulls just in case
                 .filter(Objects::nonNull)
                 // sort by kc, descending
@@ -32,11 +46,13 @@ public abstract class AbstractDrop implements DropLuck {
     }
 
     protected int getNumTrials(CollectionLog collectionLog) {
-        return logSourceDropRates.keySet().stream()
-                .map(s -> collectionLog.searchForKillCount(s.getName()))
+        return rollInfos.stream()
+                .map(rollInfos -> new Pair<>(
+                        collectionLog.searchForKillCount(rollInfos.getDropSource().getName()),
+                        rollInfos.getRollsPerKc()))
                 // filter out nulls just in case
-                .filter(Objects::nonNull)
-                .mapToInt(CollectionLogKillCount::getAmount)
+                .filter(pair -> pair.getKey() != null && pair.getValue() != null)
+                .mapToInt(pair -> pair.getKey().getAmount() * pair.getValue())
                 .sum();
     }
 

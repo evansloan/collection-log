@@ -23,8 +23,8 @@ public class PoissonBinomialDropTest {
         double expectedDryness = 0.26424;
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
-        
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableMap.of(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
+
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableList.of(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance)));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -54,10 +54,10 @@ public class PoissonBinomialDropTest {
                 LogItemSourceInfo.CALLISTO_KILLS.getName(), kc2);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
-        Map<LogItemSourceInfo, Double> logSourceDropRates = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS, dropChance,
-                LogItemSourceInfo.CALLISTO_KILLS, dropChance);
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(logSourceDropRates);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -85,10 +85,10 @@ public class PoissonBinomialDropTest {
                 LogItemSourceInfo.CALLISTO_KILLS.getName(), kc2);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
-        Map<LogItemSourceInfo, Double> logSourceDropRates = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS, dropChance,
-                LogItemSourceInfo.CALLISTO_KILLS, dropChance);
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(logSourceDropRates);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -115,10 +115,10 @@ public class PoissonBinomialDropTest {
                 LogItemSourceInfo.CALLISTO_KILLS.getName(), kc2);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
-        Map<LogItemSourceInfo, Double> logSourceDropRates = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS, dropChance,
-                LogItemSourceInfo.CALLISTO_KILLS, dropChance);
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(logSourceDropRates);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -145,10 +145,10 @@ public class PoissonBinomialDropTest {
                 LogItemSourceInfo.CALLISTO_KILLS.getName(), kc2);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
-        Map<LogItemSourceInfo, Double> logSourceDropRates = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS, dropChance,
-                LogItemSourceInfo.CALLISTO_KILLS, dropChance);
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(logSourceDropRates);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -175,10 +175,10 @@ public class PoissonBinomialDropTest {
                 LogItemSourceInfo.CALLISTO_KILLS.getName(), kc2);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
-        Map<LogItemSourceInfo, Double> logSourceDropRates = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS, dropChance,
-                LogItemSourceInfo.CALLISTO_KILLS, dropChance);
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(logSourceDropRates);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -208,10 +208,10 @@ public class PoissonBinomialDropTest {
                 LogItemSourceInfo.CALLISTO_KILLS.getName(), kc2);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
-        Map<LogItemSourceInfo, Double> logSourceDropRates = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS, dropChance,
-                LogItemSourceInfo.CALLISTO_KILLS, dropChance);
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(logSourceDropRates);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -235,7 +235,7 @@ public class PoissonBinomialDropTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
 
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableMap.of(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableList.of(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance)));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, false, 0);
 
@@ -257,7 +257,7 @@ public class PoissonBinomialDropTest {
         double expectedDryness = 0;
         double tolerance = 0.00001;
 
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableMap.of(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableList.of(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance)));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -280,7 +280,7 @@ public class PoissonBinomialDropTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.000000001;
 
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableMap.of(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableList.of(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance)));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -302,7 +302,7 @@ public class PoissonBinomialDropTest {
         double expectedDryness = 1;
         double tolerance = 0.000000001;
 
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableMap.of(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableList.of(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance)));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, false, 0);
 
@@ -326,14 +326,14 @@ public class PoissonBinomialDropTest {
         double tolerance = 0.00001;
 
         Map<String, Integer> kcs = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS.getName(), kc/2,
-                LogItemSourceInfo.CALLISTO_KILLS.getName(), kc/2);
+                LogItemSourceInfo.ARTIO_KILLS.getName(), kc / 2,
+                LogItemSourceInfo.CALLISTO_KILLS.getName(), kc / 2);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
-        Map<LogItemSourceInfo, Double> logSourceDropRates = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS, dropChance,
-                LogItemSourceInfo.CALLISTO_KILLS, dropChance);
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(logSourceDropRates);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, false, 0);
 
@@ -358,10 +358,10 @@ public class PoissonBinomialDropTest {
                 LogItemSourceInfo.CALLISTO_KILLS.getName(), kc);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
-        Map<LogItemSourceInfo, Double> logSourceDropRates = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS, dropChance,
-                LogItemSourceInfo.CALLISTO_KILLS, dropChance);
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(logSourceDropRates);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -383,14 +383,14 @@ public class PoissonBinomialDropTest {
         double tolerance = 0.000000001;
 
         Map<String, Integer> kcs = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS.getName(), kc/2,
-                LogItemSourceInfo.CALLISTO_KILLS.getName(), kc/2);
+                LogItemSourceInfo.ARTIO_KILLS.getName(), kc / 2,
+                LogItemSourceInfo.CALLISTO_KILLS.getName(), kc / 2);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
-        Map<LogItemSourceInfo, Double> logSourceDropRates = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS, dropChance,
-                LogItemSourceInfo.CALLISTO_KILLS, dropChance);
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(logSourceDropRates);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -415,10 +415,10 @@ public class PoissonBinomialDropTest {
                 LogItemSourceInfo.CALLISTO_KILLS.getName(), kc);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
-        Map<LogItemSourceInfo, Double> logSourceDropRates = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS, dropChance,
-                LogItemSourceInfo.CALLISTO_KILLS, dropChance);
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(logSourceDropRates);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, false, 0);
 
@@ -440,7 +440,7 @@ public class PoissonBinomialDropTest {
         double expectedDryness = -1;
         double tolerance = 0.00001;
 
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableMap.of(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableList.of(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance)));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -459,7 +459,7 @@ public class PoissonBinomialDropTest {
         int kc = 100;
         String expectedKcString = "100x Abyssal Sire kills";
 
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableMap.of(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(ImmutableList.of(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance)));
 
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
@@ -477,26 +477,23 @@ public class PoissonBinomialDropTest {
         int kc3 = 150;
         String expectedKcString = "200x Calvar'ion kills, 150x Spindel kills, 100x Artio kills";
 
-        List<LogItemSourceInfo> dropSources = ImmutableList.of(
-                LogItemSourceInfo.ARTIO_KILLS,
-                LogItemSourceInfo.CALVARION_KILLS,
-                LogItemSourceInfo.SPINDEL_KILLS);
         Map<String, Integer> kcs = ImmutableMap.of(
                 LogItemSourceInfo.ARTIO_KILLS.getName(), kc1,
                 LogItemSourceInfo.CALVARION_KILLS.getName(), kc2,
                 LogItemSourceInfo.SPINDEL_KILLS.getName(), kc3
         );
 
-        Map<LogItemSourceInfo, Double> logSourceDropRates = ImmutableMap.of(
-                LogItemSourceInfo.ARTIO_KILLS, dropChance1,
-                LogItemSourceInfo.CALVARION_KILLS, dropChance2,
-                LogItemSourceInfo.SPINDEL_KILLS, dropChance3);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance1),
+                new RollInfo(LogItemSourceInfo.CALVARION_KILLS, dropChance2),
+                new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, dropChance3));
 
-        PoissonBinomialDrop drop = new PoissonBinomialDrop(logSourceDropRates);
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
 
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
         String actualKcString = drop.getKillCountDescription(mockCollectionLog);
         assertEquals(expectedKcString, actualKcString);
     }
+
 }

@@ -2,29 +2,32 @@ package com.evansloan.collectionlog.luck.probability;
 
 import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogItem;
-import com.evansloan.collectionlog.luck.LogItemSourceInfo;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 
 import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 // A drop that follows the standard Binomial distribution. Note: This class supports drops that come from
 // multiple item sources, but it requires the drop chance for the item to be the same across all sources.
 public class BinomialDrop extends AbstractDrop {
 
-    final double dropChance;
+    public BinomialDrop(List<RollInfo> rollInfos) {
+        super(rollInfos);
 
-    public BinomialDrop(List<LogItemSourceInfo> logItemSources, double dropChance) {
-        super(logItemSources.stream()
-                        .collect(Collectors.toMap(Function.identity(), s -> dropChance)));
-        this.dropChance = dropChance;
+        if (rollInfos.isEmpty()) {
+            throw new IllegalArgumentException("At least one RollInfo is required.");
+        }
+
+        double dropChance = rollInfos.get(0).getDropChancePerRoll();
+        for (RollInfo r : rollInfos) {
+            if (r.getDropChancePerRoll() != dropChance) {
+                throw new IllegalArgumentException("Probabilities for multiple drop sources must be equal.");
+            }
+        }
     }
 
-    public BinomialDrop(LogItemSourceInfo logItemSourceInfo, double dropChance) {
-        super(ImmutableMap.of(logItemSourceInfo, dropChance));
-        this.dropChance = dropChance;
+    public BinomialDrop(RollInfo rollInfo) {
+        this(ImmutableList.of(rollInfo));
     }
 
     @Override
@@ -39,7 +42,7 @@ public class BinomialDrop extends AbstractDrop {
             return -1;
         }
 
-        BinomialDistribution dist = new BinomialDistribution(numTrials, dropChance);
+        BinomialDistribution dist = new BinomialDistribution(numTrials, getDropChance());
 
         return dist.cumulativeProbability(numSuccesses - 1);
     }
@@ -56,11 +59,16 @@ public class BinomialDrop extends AbstractDrop {
             return -1;
         }
 
-        BinomialDistribution dist = new BinomialDistribution(numTrials, dropChance);
+        BinomialDistribution dist = new BinomialDistribution(numTrials, getDropChance());
 
         int maxEquivalentNumSuccesses = getMaxEquivalentNumSuccesses(item, collectionLog);
 
         return 1 - dist.cumulativeProbability(maxEquivalentNumSuccesses);
+    }
+
+    // we have already validated that at least 1 RollInfo exists, and all RollInfos have the same drop chance
+    private double getDropChance() {
+        return rollInfos.get(0).getDropChancePerRoll();
     }
 
 }

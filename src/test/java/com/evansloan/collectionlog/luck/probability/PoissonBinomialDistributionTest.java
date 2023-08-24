@@ -60,13 +60,13 @@ public class PoissonBinomialDistributionTest {
         PoissonBinomialDistribution dist = new PoissonBinomialDistribution(probabilities);
 
         assertEquals(0.025225, dist.probability(500), 0.000001);
-        assertEquals( 9.33264E-302, dist.probability(1000), 1e-307);
+        assertEquals(9.33264E-302, dist.probability(1000), 1e-307);
     }
 
     @Test
     public void probability_manyKc_handlesHighPrecisionForRareItems() {
         // For example, 1K master clues calculating the 3rd age pickaxe rate
-        List<Double> probabilities = new ArrayList<>(Collections.nCopies(10000, 1.0/313168));
+        List<Double> probabilities = new ArrayList<>(Collections.nCopies(10000, 1.0 / 313168));
 
         PoissonBinomialDistribution dist = new PoissonBinomialDistribution(probabilities);
 

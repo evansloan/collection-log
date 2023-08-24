@@ -5,7 +5,7 @@ import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class GuaranteedOnceBinomialDropTest {
 
@@ -20,7 +20,7 @@ public class GuaranteedOnceBinomialDropTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
 
-        GuaranteedOnceBinomialDrop drop = new GuaranteedOnceBinomialDrop(LogItemSourceInfo.VORKATH_KILLS, dropGuaranteedOnKc, dropChance);
+        GuaranteedOnceBinomialDrop drop = new GuaranteedOnceBinomialDrop(new RollInfo(LogItemSourceInfo.VORKATH_KILLS, dropChance), dropGuaranteedOnKc);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "a vorkath head or something", numObtained, true, 0);
 
@@ -45,7 +45,7 @@ public class GuaranteedOnceBinomialDropTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
 
-        GuaranteedOnceBinomialDrop drop = new GuaranteedOnceBinomialDrop(LogItemSourceInfo.VORKATH_KILLS, dropGuaranteedOnKc, dropChance);
+        GuaranteedOnceBinomialDrop drop = new GuaranteedOnceBinomialDrop(new RollInfo(LogItemSourceInfo.VORKATH_KILLS, dropChance), dropGuaranteedOnKc);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "a vorkath head or something", numObtained, true, 0);
 

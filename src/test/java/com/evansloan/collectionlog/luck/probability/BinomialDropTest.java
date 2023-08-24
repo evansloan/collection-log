@@ -24,7 +24,7 @@ public class BinomialDropTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
 
-        BinomialDrop drop = new BinomialDrop(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance);
+        BinomialDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -54,8 +54,10 @@ public class BinomialDropTest {
                 LogItemSourceInfo.CALLISTO_KILLS.getName(), kc2);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
-        List<LogItemSourceInfo> dropSources = ImmutableList.of(LogItemSourceInfo.ARTIO_KILLS, LogItemSourceInfo.CALLISTO_KILLS);
-        BinomialDrop drop = new BinomialDrop(dropSources, dropChance);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance));
+        BinomialDrop drop = new BinomialDrop(rollInfos);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -76,7 +78,7 @@ public class BinomialDropTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
 
-        BinomialDrop drop = new BinomialDrop(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance);
+        BinomialDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, false, 0);
 
@@ -98,7 +100,7 @@ public class BinomialDropTest {
         double expectedDryness = 0;
         double tolerance = 0.00001;
 
-        BinomialDrop drop = new BinomialDrop(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance);
+        BinomialDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -121,7 +123,7 @@ public class BinomialDropTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.000000001;
 
-        BinomialDrop drop = new BinomialDrop(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance);
+        BinomialDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -143,7 +145,7 @@ public class BinomialDropTest {
         double expectedDryness = 1;
         double tolerance = 0.000000001;
 
-        BinomialDrop drop = new BinomialDrop(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance);
+        BinomialDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, false, 0);
 
@@ -165,7 +167,7 @@ public class BinomialDropTest {
         double expectedDryness = -1;
         double tolerance = 0.00001;
 
-        BinomialDrop drop = new BinomialDrop(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance);
+        BinomialDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -184,7 +186,7 @@ public class BinomialDropTest {
         int kc = 100;
         String expectedKcString = "100x Abyssal Sire kills";
 
-        BinomialDrop drop = new BinomialDrop(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance);
+        BinomialDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, dropChance));
 
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
@@ -200,21 +202,78 @@ public class BinomialDropTest {
         int kc3 = 150;
         String expectedKcString = "200x Calvar'ion kills, 150x Spindel kills, 100x Artio kills";
 
-        List<LogItemSourceInfo> dropSources = ImmutableList.of(
-                LogItemSourceInfo.ARTIO_KILLS,
-                LogItemSourceInfo.CALVARION_KILLS,
-                LogItemSourceInfo.SPINDEL_KILLS);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.CALVARION_KILLS, dropChance),
+                new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, dropChance));
         Map<String, Integer> kcs = ImmutableMap.of(
                 LogItemSourceInfo.ARTIO_KILLS.getName(), kc1,
                 LogItemSourceInfo.CALVARION_KILLS.getName(), kc2,
                 LogItemSourceInfo.SPINDEL_KILLS.getName(), kc3
         );
 
-        BinomialDrop drop = new BinomialDrop(dropSources, dropChance);
+        BinomialDrop drop = new BinomialDrop(rollInfos);
 
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
         String actualKcString = drop.getKillCountDescription(mockCollectionLog);
         assertEquals(expectedKcString, actualKcString);
+    }
+
+    @Test
+    public void testBinomial_multiRoll_singleDropSource() {
+        double dropChance = 0.01;
+        int kc = 50;
+        int rollsPerKc = 2;
+        int numObtained = 1;
+        double expectedLuck = 0.36603;
+        double expectedDryness = 0.26424;
+        // expected probabilities calculated online, with the following sig digits
+        double tolerance = 0.00001;
+
+        BinomialDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.ZULRAH_KILLS, dropChance, rollsPerKc));
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(
+                LogItemSourceInfo.ZULRAH_KILLS.getName(), kc);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void testMultiRollBinomial_multiRoll_withMultipleSources() {
+        double dropChance = 0.01;
+        int kc1 = 20;
+        int rollsPerBoss1 = 2;
+        int kc2 = 20;
+        int rollsPerBoss2 = 3;
+        int numObtained = 1;
+        double expectedLuck = 0.36603;
+        double expectedDryness = 0.26424;
+        // expected probabilities calculated online, with the following sig digits
+        double tolerance = 0.00001;
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.ARTIO_KILLS.getName(), kc1,
+                LogItemSourceInfo.CALLISTO_KILLS.getName(), kc2);
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, dropChance, rollsPerBoss1),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, dropChance, rollsPerBoss2));
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        BinomialDrop drop = new BinomialDrop(rollInfos);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        assertEquals(expectedDryness, actualDryness, tolerance);
     }
 }

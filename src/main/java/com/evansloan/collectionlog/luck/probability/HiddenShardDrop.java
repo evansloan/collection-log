@@ -2,7 +2,6 @@ package com.evansloan.collectionlog.luck.probability;
 
 import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogItem;
-import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 
 // When a drop requires a number of hidden "shards" to accumulate (e.g. the player must hit the Desert Treasure 2 boss
 // vestige drop 3 times) before actually receiving the item, this is actually a binomial distribution
@@ -14,8 +13,8 @@ public class HiddenShardDrop extends BinomialDrop {
 
     private final int shardsRequired;
 
-    public HiddenShardDrop(LogItemSourceInfo logItemSourceInfo, double dropChancePerShard, int shardsRequired) {
-        super(logItemSourceInfo, dropChancePerShard);
+    public HiddenShardDrop(RollInfo rollInfo, int shardsRequired) {
+        super(rollInfo);
         this.shardsRequired = shardsRequired;
     }
 
