@@ -1,6 +1,7 @@
 package com.evansloan.collectionlog.luck.probability;
 
 import com.evansloan.collectionlog.CollectionLog;
+import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
 
 // When a fixed-size stack has a chance to drop (e.g. 1/64 chance for 3 Key master teleport scrolls), this is actually
@@ -15,7 +16,7 @@ public class FixedStackDrop extends BinomialDrop {
     }
 
     @Override
-    protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog) {
+    protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
         return item.getQuantity() / stackSize;
     }
 }

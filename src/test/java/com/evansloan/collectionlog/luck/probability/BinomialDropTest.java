@@ -31,10 +31,10 @@ public class BinomialDropTest {
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(
                 LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
-        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
         assertEquals(expectedLuck, actualLuck, tolerance);
 
-        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
@@ -61,10 +61,10 @@ public class BinomialDropTest {
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
-        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
         assertEquals(expectedLuck, actualLuck, tolerance);
 
-        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
@@ -84,10 +84,10 @@ public class BinomialDropTest {
 
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
-        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
         assertEquals(expectedLuck, actualLuck, tolerance);
 
-        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
@@ -106,10 +106,10 @@ public class BinomialDropTest {
 
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
-        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
         assertEquals(expectedLuck, actualLuck, tolerance);
 
-        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
@@ -129,10 +129,10 @@ public class BinomialDropTest {
 
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
-        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
         assertEquals(expectedLuck, actualLuck, tolerance);
 
-        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
@@ -151,10 +151,10 @@ public class BinomialDropTest {
 
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
-        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
         assertEquals(expectedLuck, actualLuck, tolerance);
 
-        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
@@ -173,10 +173,10 @@ public class BinomialDropTest {
 
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ABYSSAL_SIRE_KILLS.getName(), kc);
 
-        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
         assertEquals(expectedLuck, actualLuck, tolerance);
 
-        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
@@ -238,10 +238,10 @@ public class BinomialDropTest {
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(
                 LogItemSourceInfo.ZULRAH_KILLS.getName(), kc);
 
-        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
         assertEquals(expectedLuck, actualLuck, tolerance);
 
-        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
@@ -270,10 +270,10 @@ public class BinomialDropTest {
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
-        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
         assertEquals(expectedLuck, actualLuck, tolerance);
 
-        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 }

@@ -27,10 +27,10 @@ public class HiddenShardDropTest {
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(
                 LogItemSourceInfo.DUKE_SUCELLUS_KILLS.getName(), kc);
 
-        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
         assertEquals(expectedLuck, actualLuck, tolerance);
 
-        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
@@ -52,10 +52,10 @@ public class HiddenShardDropTest {
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(
                 LogItemSourceInfo.DUKE_SUCELLUS_KILLS.getName(), kc);
 
-        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog);
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
         assertEquals(expectedLuck, actualLuck, tolerance);
 
-        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog);
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 

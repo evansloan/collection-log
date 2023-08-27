@@ -1,6 +1,7 @@
 package com.evansloan.collectionlog.luck.probability;
 
 import com.evansloan.collectionlog.CollectionLog;
+import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.math3.distribution.BinomialDistribution;
@@ -31,12 +32,12 @@ public class BinomialDrop extends AbstractDrop {
     }
 
     @Override
-    public double calculateLuck(CollectionLogItem item, CollectionLog collectionLog) {
-        int numSuccesses = getNumSuccesses(item, collectionLog);
+    public double calculateLuck(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
+        int numSuccesses = getNumSuccesses(item, collectionLog, config);
         if (numSuccesses <= 0) {
             return 0;
         }
-        int numTrials = getNumTrials(collectionLog);
+        int numTrials = getNumTrials(collectionLog, config);
         if (numSuccesses > numTrials) {
             // this can happen if a drop source is not accounted for
             return -1;
@@ -48,9 +49,9 @@ public class BinomialDrop extends AbstractDrop {
     }
 
     @Override
-    public double calculateDryness(CollectionLogItem item, CollectionLog collectionLog) {
-        int numSuccesses = getNumSuccesses(item, collectionLog);
-        int numTrials = getNumTrials(collectionLog);
+    public double calculateDryness(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
+        int numSuccesses = getNumSuccesses(item, collectionLog, config);
+        int numTrials = getNumTrials(collectionLog, config);
         if (numTrials <= 0) {
             return 0;
         }
@@ -61,7 +62,7 @@ public class BinomialDrop extends AbstractDrop {
 
         BinomialDistribution dist = new BinomialDistribution(numTrials, getDropChance());
 
-        int maxEquivalentNumSuccesses = getMaxEquivalentNumSuccesses(item, collectionLog);
+        int maxEquivalentNumSuccesses = getMaxEquivalentNumSuccesses(item, collectionLog, config);
 
         return 1 - dist.cumulativeProbability(maxEquivalentNumSuccesses);
     }

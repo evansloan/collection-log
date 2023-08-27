@@ -1,6 +1,7 @@
 package com.evansloan.collectionlog.luck.probability;
 
 import com.evansloan.collectionlog.CollectionLog;
+import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.CollectionLogKillCount;
 import org.apache.commons.math3.util.Pair;
@@ -45,7 +46,7 @@ public abstract class AbstractDrop implements DropLuck {
                 .collect(Collectors.joining(", "));
     }
 
-    protected int getNumTrials(CollectionLog collectionLog) {
+    protected int getNumTrials(CollectionLog collectionLog, CollectionLogConfig config) {
         return rollInfos.stream()
                 .map(rollInfos -> new Pair<>(
                         collectionLog.searchForKillCount(rollInfos.getDropSource().getName()),
@@ -56,14 +57,14 @@ public abstract class AbstractDrop implements DropLuck {
                 .sum();
     }
 
-    protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog) {
+    protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
         return item.getQuantity();
     }
 
     // the max number of successes that a player could have and still be considered "in the same boat" as you, luck-wise
     // In the vast majority of cases, this is equal to getNumSuccesses.
-    protected int getMaxEquivalentNumSuccesses(CollectionLogItem item, CollectionLog collectionLog) {
-        return getNumSuccesses(item, collectionLog);
+    protected int getMaxEquivalentNumSuccesses(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
+        return getNumSuccesses(item, collectionLog, config);
     }
 
 }

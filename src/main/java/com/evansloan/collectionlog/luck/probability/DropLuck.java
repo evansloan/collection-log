@@ -1,6 +1,7 @@
 package com.evansloan.collectionlog.luck.probability;
 
 import com.evansloan.collectionlog.CollectionLog;
+import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
 
 public interface DropLuck {
@@ -13,7 +14,7 @@ public interface DropLuck {
      * @param collectionLog the collectionLog for which to calculate luck
      * @return the luck for this item in this collectionLog
      */
-    default double calculateLuck(CollectionLogItem item, CollectionLog collectionLog) {
+    default double calculateLuck(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
         // TODO: return special value if numObtained is >= max number tracked by the collection log, per drop source?
         return -1;
     }
@@ -26,7 +27,7 @@ public interface DropLuck {
      * @param collectionLog the collectionLog for which to calculate dryness
      * @return the dryness for this item in this collectionLog
      */
-    default double calculateDryness(CollectionLogItem item, CollectionLog collectionLog) {
+    default double calculateDryness(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
         return -1;
     }
 
@@ -35,7 +36,7 @@ public interface DropLuck {
     };
 
     // If this probability distribution cannot be calculated, return the reason why, otherwise return null.
-    default String getIncalculableReason() {
+    default String getIncalculableReason(CollectionLogItem item, CollectionLogConfig config) {
         return null;
     }
 

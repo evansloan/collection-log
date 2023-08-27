@@ -1,6 +1,7 @@
 package com.evansloan.collectionlog.luck.probability;
 
 import com.evansloan.collectionlog.CollectionLog;
+import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
 
 // This is identical to BinomialDrop, but a specific KC is ignored when a drop is guaranteed at that KC. For example,
@@ -16,14 +17,14 @@ public class GuaranteedOnceBinomialDrop extends BinomialDrop {
     }
 
     @Override
-    protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog) {
-        int kc = super.getNumTrials(collectionLog);
+    protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
+        int kc = super.getNumTrials(collectionLog, config);
         return kc < dropGuaranteedOnKc ? item.getQuantity() : item.getQuantity() - 1;
     }
 
     @Override
-    protected int getNumTrials(CollectionLog collectionLog) {
-        int kc = super.getNumTrials(collectionLog);
+    protected int getNumTrials(CollectionLog collectionLog, CollectionLogConfig config) {
+        int kc = super.getNumTrials(collectionLog, config);
         return kc < dropGuaranteedOnKc ? kc : kc - 1;
     }
 }

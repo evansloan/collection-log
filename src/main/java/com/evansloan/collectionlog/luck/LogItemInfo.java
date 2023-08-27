@@ -1,5 +1,6 @@
 package com.evansloan.collectionlog.luck;
 
+import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.luck.probability.*;
 import com.google.common.collect.ImmutableList;
 
@@ -71,11 +72,9 @@ public class LogItemInfo {
             new BinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0 / 1200)));
     public static LogItemInfo ABYSSAL_HEAD_7979 = new LogItemInfo("Abyssal head", 7979,
             new MissingKillCountDrop());
-    // Note: Lantern is now purchasable from the shop, and it should trigger the collection log unlock.
-    // TODO: make this a setting somewhere?
-    // Otherwise it would be: new BinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0/700)));
     public static LogItemInfo ABYSSAL_LANTERN_26822 = new LogItemInfo("Abyssal lantern", 26822,
-            new DeterministicDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0/700),
+                    CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY));
     public static LogItemInfo ABYSSAL_NEEDLE_26813 = new LogItemInfo("Abyssal needle", 26813,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0 / 300)));
     // Note: This represents the effective chance of dropping from the boss, NOT the chance given your # of Unsired.
@@ -152,13 +151,17 @@ public class LogItemInfo {
     public static LogItemInfo AGILITY_ARENA_TICKET_2996 = new LogItemInfo("Agility arena ticket", 2996,
             new DeterministicDrop());
     public static LogItemInfo AHRIMS_HOOD_4708 = new LogItemInfo("Ahrim's hood", 4708,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo AHRIMS_ROBESKIRT_4714 = new LogItemInfo("Ahrim's robeskirt", 4714,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo AHRIMS_ROBETOP_4712 = new LogItemInfo("Ahrim's robetop", 4712,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo AHRIMS_STAFF_4710 = new LogItemInfo("Ahrim's staff", 4710,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo ALCHEMICAL_HYDRA_HEADS_23077 = new LogItemInfo("Alchemical hydra heads", 23077,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.ALCHEMICAL_HYDRA_KILLS, 1.0 / 256)));
     public static LogItemInfo ALE_OF_THE_GODS_20056 = new LogItemInfo("Ale of the gods", 20056,
@@ -1161,13 +1164,17 @@ public class LogItemInfo {
     public static LogItemInfo DEXTEROUS_PRAYER_SCROLL_21034 = new LogItemInfo("Dexterous prayer scroll", 21034,
             new UnimplementedDrop());
     public static LogItemInfo DHAROKS_GREATAXE_4718 = new LogItemInfo("Dharok's greataxe", 4718,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo DHAROKS_HELM_4716 = new LogItemInfo("Dharok's helm", 4716,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo DHAROKS_PLATEBODY_4720 = new LogItemInfo("Dharok's platebody", 4720,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo DHAROKS_PLATELEGS_4722 = new LogItemInfo("Dharok's platelegs", 4722,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo DIGSITE_TELEPORT_12403 = new LogItemInfo("Digsite teleport", 12403,
             new NormalStackDrop());
     public static LogItemInfo DINHS_BULWARK_21015 = new LogItemInfo("Dinh's bulwark", 21015,
@@ -1676,13 +1683,17 @@ public class LogItemInfo {
     public static LogItemInfo GUARDIANS_EYE_26820 = new LogItemInfo("Guardian's eye", 26820,
             new DeterministicDrop());
     public static LogItemInfo GUTHANS_CHAINSKIRT_4730 = new LogItemInfo("Guthan's chainskirt", 4730,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo GUTHANS_HELM_4724 = new LogItemInfo("Guthan's helm", 4724,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo GUTHANS_PLATEBODY_4728 = new LogItemInfo("Guthan's platebody", 4728,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo GUTHANS_WARSPEAR_4726 = new LogItemInfo("Guthan's warspear", 4726,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo GUTHIXIAN_ICON_24217 = new LogItemInfo("Guthixian icon", 24217,
             new DeterministicDrop());
     public static LogItemInfo GUTHIX_BRACERS_10376 = new LogItemInfo("Guthix bracers", 10376,
@@ -1970,13 +1981,17 @@ public class LogItemInfo {
     public static LogItemInfo KARAMJAN_MONKEY_24862 = new LogItemInfo("Karamjan monkey", 24862,
             new DeterministicDrop());
     public static LogItemInfo KARILS_COIF_4732 = new LogItemInfo("Karil's coif", 4732,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo KARILS_CROSSBOW_4734 = new LogItemInfo("Karil's crossbow", 4734,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo KARILS_LEATHERSKIRT_4738 = new LogItemInfo("Karil's leatherskirt", 4738,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo KARILS_LEATHERTOP_4736 = new LogItemInfo("Karil's leathertop", 4736,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo KATANA_12357 = new LogItemInfo("Katana", 12357,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.ELITE_CLUES_COMPLETED, 1.0 / 1275, 5)));
     public static LogItemInfo KBD_HEADS_7980 = new LogItemInfo("Kbd heads", 7980,
@@ -3030,13 +3045,17 @@ public class LogItemInfo {
     public static LogItemInfo TOP_OF_SCEPTRE_9010 = new LogItemInfo("Top of sceptre", 9010,
             new MissingKillCountDrop());
     public static LogItemInfo TORAGS_HAMMERS_4747 = new LogItemInfo("Torag's hammers", 4747,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo TORAGS_HELM_4745 = new LogItemInfo("Torag's helm", 4745,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo TORAGS_PLATEBODY_4749 = new LogItemInfo("Torag's platebody", 4749,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo TORAGS_PLATELEGS_4751 = new LogItemInfo("Torag's platelegs", 4751,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo TORMENTED_ORNAMENT_KIT_23348 = new LogItemInfo("Tormented ornament kit", 23348,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MASTER_CLUES_COMPLETED, 1.0 / 851, 6)));
     public static LogItemInfo TORN_PRAYER_SCROLL_21047 = new LogItemInfo("Torn prayer scroll", 21047,
@@ -3110,13 +3129,17 @@ public class LogItemInfo {
                     new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, 1.0 / 2800)
             )));
     public static LogItemInfo VERACS_BRASSARD_4757 = new LogItemInfo("Verac's brassard", 4757,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo VERACS_FLAIL_4755 = new LogItemInfo("Verac's flail", 4755,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo VERACS_HELM_4753 = new LogItemInfo("Verac's helm", 4753,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo VERACS_PLATESKIRT_4759 = new LogItemInfo("Verac's plateskirt", 4759,
-            new UnimplementedDrop());
+            new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
+                    CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo VIAL_OF_BLOOD_22446 = new LogItemInfo("Vial of blood", 22446,
             new NormalStackDrop());
     public static LogItemInfo VICTORS_CAPE_1000_24520 = new LogItemInfo("Victor's cape (1000)", 24520,

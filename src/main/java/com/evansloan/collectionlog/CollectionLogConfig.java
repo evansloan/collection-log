@@ -7,6 +7,9 @@ import java.awt.*;
 @ConfigGroup("collectionlog")
 public interface CollectionLogConfig extends Config
 {
+	String NUM_ABYSSAL_LANTERNS_PURCHASED_KEY = "num_abyssal_lanterns_purchased";
+	String NUM_INVALID_BARROWS_KC_KEY = "num_invalid_barrows_kc";
+
 	String PLUGIN_VERSION = "3.1.0";
 
 	Color DEFAULT_GREEN = new Color(13, 193, 13);
@@ -181,5 +184,35 @@ public interface CollectionLogConfig extends Config
 	default boolean hidePersonalLuckCalculation()
 	{
 		return false;
+	}
+
+	// Purchasing Abyssal Lanterns prevents calculating how many the player has received through the Rewards Guardian.
+	// The calculation can be corrected if the player inputs the number purchased from the shop.
+	@ConfigItem(
+			keyName = NUM_ABYSSAL_LANTERNS_PURCHASED_KEY,
+			name = "# Abyssal Lanterns bought",
+			description = "The number of Abyssal Lanterns you bought from the Guardians of the Rift shop.",
+			position = 2,
+			section = luckSection
+	)
+	default int numAbyssalLanternsPurchased()
+	{
+		return 0;
+	}
+
+	// Completing Barrows without killing all 6 brothers, for example if rapidly resetting to finish Barrows combat
+	// achievements, drastically reduces the chance of receiving unique loot. The player can configure an approximate
+	// number of Barrows KC they have wasted, including summing fractional less-than-6-brother-kills, to make the luck
+	// calculation more accurate. This is completely optional, and being exact is not really necessary.
+	@ConfigItem(
+			keyName = NUM_INVALID_BARROWS_KC_KEY,
+			name = "# Barrows KC wasted",
+			description = "The effective number of Barrows KC wasted by killing < 6 brothers. 4-5 brothers killed ~= 0.5 KC wasted.",
+			position = 3,
+			section = luckSection
+	)
+	default int numInvalidBarrowsKc()
+	{
+		return 0;
 	}
 }

@@ -1157,7 +1157,7 @@ public class CollectionLogPlugin extends Plugin
 			return "Item " + itemName + " is not yet supported for luck calculation.";
 		}
 		// all other unimplemented or unsupported drops take this path
-		String failReason = logItemInfo.getDropProbabilityDistribution().getIncalculableReason();
+		String failReason = logItemInfo.getDropProbabilityDistribution().getIncalculableReason(item, config);
 		if (failReason != null) {
 			return failReason;
 		}
@@ -1165,8 +1165,8 @@ public class CollectionLogPlugin extends Plugin
 		// make sure this item's icon is loaded
 		loadItemIcons(ImmutableList.of(item));
 
-		double luck = logItemInfo.getDropProbabilityDistribution().calculateLuck(item, collectionLog);
-		double dryness = logItemInfo.getDropProbabilityDistribution().calculateDryness(item, collectionLog);
+		double luck = logItemInfo.getDropProbabilityDistribution().calculateLuck(item, collectionLog, config);
+		double dryness = logItemInfo.getDropProbabilityDistribution().calculateDryness(item, collectionLog, config);
 		if (luck < 0 || luck > 1 || dryness < 0 || dryness > 1) {
 			return "Unknown error calculating luck for item.";
 		}
