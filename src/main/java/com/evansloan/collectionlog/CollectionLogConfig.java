@@ -1,11 +1,8 @@
 package com.evansloan.collectionlog;
 
-import java.awt.Color;
-import net.runelite.client.config.Alpha;
-import net.runelite.client.config.Config;
-import net.runelite.client.config.ConfigGroup;
-import net.runelite.client.config.ConfigItem;
-import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.*;
+
+import java.awt.*;
 
 @ConfigGroup("collectionlog")
 public interface CollectionLogConfig extends Config
@@ -163,5 +160,26 @@ public interface CollectionLogConfig extends Config
 	default boolean sendExportChatMessage()
 	{
 		return true;
+	}
+
+	@ConfigSection(
+			name = "Luck calculation",
+			description = "Config options for calculation collection log luck",
+			position = 5
+	)
+	String luckSection = "Luck calculation";
+
+	// Other players' luck will always show, for example though the !log command, but the player may want to hide
+	// their own luck because it could be unpleasant to see.
+	@ConfigItem(
+			keyName = "hide_personal_luck_calculation",
+			name = "Hide personal luck",
+			description = "Disable the display of your own luck calculations",
+			position = 1,
+			section = luckSection
+	)
+	default boolean hidePersonalLuckCalculation()
+	{
+		return false;
 	}
 }

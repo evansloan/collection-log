@@ -442,6 +442,10 @@ public class CollectionLogPlugin extends Plugin
 	 * @param checkLuckMatcher the matcher containing command info
 	 */
 	private void processCheckItemMessage(Matcher checkLuckMatcher) {
+		// Note: this assumes this function is called for the local player
+		if (config.hidePersonalLuckCalculation()) {
+			return;
+		}
 		if (checkLuckMatcher.groupCount() < 2) {
 			// Matcher didn't find 2 groups for some reason
 			return;
@@ -1120,6 +1124,11 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private String buildLuckCommandMessage(CollectionLog collectionLog, String commandTarget)
 	{
+		if (config.hidePersonalLuckCalculation()) {
+			// This should make it obvious that 1) The player can go to the config to change this setting, and 2) other
+			// players can still see their luck if they type in a !log luck command.
+			return "Your luck is set to be hidden from you in the plugin config.";
+		}
 		// !log luck [account|total|overall]
 		if (commandTarget == null
 				|| commandTarget.equalsIgnoreCase("account")
