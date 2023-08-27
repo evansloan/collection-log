@@ -430,6 +430,37 @@ public class PoissonBinomialDropTest {
     }
 
     @Test
+    public void testPoissonBinomial_multiSource_cacheOfRunes() {
+        int numObtained = 9;
+        double expectedLuck = 0.702;
+        double expectedDryness = 0.189;
+        double tolerance = 0.001;
+
+        // based on real data
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS.getName(), 5,
+                LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS.getName(), 46,
+                LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS.getName(), 14
+        );
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        List<RollInfo> rollInfos = ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0 / 27, 3),
+                new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0 / 27, 3),
+                new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0 / 27, 3)
+        );
+        PoissonBinomialDrop drop = new PoissonBinomialDrop(rollInfos);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "Cache of runes", numObtained, true, 0);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, null);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, null);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
     public void testPoissonBinomial_missingDropSource() {
         double dropChance = 0.5;
         int kc = 10;

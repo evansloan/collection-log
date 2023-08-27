@@ -906,9 +906,9 @@ public class LogItemInfo {
             new BinomialDrop(new RollInfo(LogItemSourceInfo.VARDORVIS_KILLS, 1.0 / 3000)));
     public static LogItemInfo CABBAGE_ROUND_SHIELD_20272 = new LogItemInfo("Cabbage round shield", 20272,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MEDIUM_CLUES_COMPLETED, 1.0 / 1133, 4)));
-    // TODO: Is this correct?
+    // TODO: Is this correct? Technically the rate of uniques should lower the effective drop rate.
     public static LogItemInfo CACHE_OF_RUNES_27293 = new LogItemInfo("Cache of runes", 27293,
-            new PoissonBinomialDrop(ImmutableList.of(
+            new BinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0 / 27, 3),
                     new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0 / 27, 3),
                     new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0 / 27, 3)
