@@ -13,11 +13,12 @@ import java.util.List;
 // or bosses where the drop chances are not necessarily equal).
 public class PoissonBinomialDrop extends AbstractDrop {
 
-    // If numSuccesses > this value, use the Refined Normal Approximation instead of the exact distribution
+    // If numSuccesses > this value, use the Refined Normal Approximation instead of the exact distribution.
     private static final int NORMAL_APPROX_NUM_SUCCESSES_THRESHOLD = 100;
 
-    // If numTrials > this value, use the Refined Normal Approximation instead of the exact distribution
-    private static final int NORMAL_APPROX_NUM_TRIALS_THRESHOLD = 200;
+    // If numTrials > this value, use the Refined Normal Approximation instead of the exact distribution.
+    // This is necessary more for performance than accuracy.
+    private static final int NORMAL_APPROX_NUM_TRIALS_THRESHOLD = 500;
 
     public PoissonBinomialDrop(List<RollInfo> rollInfos) {
         super(rollInfos);
@@ -40,15 +41,14 @@ public class PoissonBinomialDrop extends AbstractDrop {
     private double getExactOrApproxCumulativeProbability(int numSuccesses, int numTrials, CollectionLog collectionLog) {
         List<Double> probabilities = convertKcToProbabilities(collectionLog);
 
-        AbstractCustomProbabilityDistribution dist;
         if (numSuccesses > NORMAL_APPROX_NUM_SUCCESSES_THRESHOLD
                 || numTrials > NORMAL_APPROX_NUM_TRIALS_THRESHOLD) {
-            dist = new PoissonBinomialRefinedNormalApproxDistribution(probabilities);
+            return new PoissonBinomialRefinedNormalApproxDistribution(probabilities)
+                    .cumulativeProbability(numSuccesses);
         } else {
-            dist = new PoissonBinomialDistribution(probabilities);
+            return new PoissonBinomialDistribution(probabilities)
+                    .cumulativeProbability(numSuccesses);
         }
-
-        return dist.cumulativeProbability(numSuccesses);
     }
 
     @Override

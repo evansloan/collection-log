@@ -18,6 +18,4 @@ abstract class AbstractCustomProbabilityDistribution {
         this.probabilities = probabilities;
     }
 
-    abstract double cumulativeProbability(int x);
-
 }

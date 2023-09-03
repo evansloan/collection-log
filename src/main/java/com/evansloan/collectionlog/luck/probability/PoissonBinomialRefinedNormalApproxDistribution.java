@@ -8,11 +8,11 @@ import java.util.List;
 // A. Yu. Volkova, A refinement of the central limit theorem for
 // sums of independent random indicators, Teor. Veroyatnost. i
 // Primenen., 1995, Volume 40, Issue 4, 885–888
-public class PoissonBinomialRefinedNormalApproxDistribution extends AbstractCustomProbabilityDistribution{
+public class PoissonBinomialRefinedNormalApproxDistribution extends AbstractCustomProbabilityDistribution {
 
-    public final double mean;
-    public final double standardDeviation;
-    public final double skewness;
+    private final double mean;
+    private final double standardDeviation;
+    private final double skewness;
 
     public PoissonBinomialRefinedNormalApproxDistribution(List<Double> probabilities) {
         super(probabilities);
@@ -22,7 +22,6 @@ public class PoissonBinomialRefinedNormalApproxDistribution extends AbstractCust
         this.skewness = computeSkewness(standardDeviation);
     }
 
-    @Override
     public double cumulativeProbability(int x) {
         if (x < 0) {
             return 0;
@@ -30,7 +29,7 @@ public class PoissonBinomialRefinedNormalApproxDistribution extends AbstractCust
         if (x > probabilities.size()) {
             return 1;
         }
-        return refinedNormalApproximation(x);
+        return Math.max(0, Math.min(1, refinedNormalApproximation(x)));
     }
 
     // Return the mean of the distribution (the first "moment" or "mu")
@@ -38,7 +37,7 @@ public class PoissonBinomialRefinedNormalApproxDistribution extends AbstractCust
         return probabilities.stream().mapToDouble(Double::doubleValue).sum();
     }
 
-    // Return the standard deviation of the distrubution (the second "moment" or "sigma")
+    // Return the standard deviation of the distribution (the second "moment" or "sigma")
     protected double computeStandardDeviation() {
         return Math.sqrt(
                 probabilities.stream().mapToDouble(

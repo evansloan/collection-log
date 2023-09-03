@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 // An implementation of the Poisson Binomial Distribution which is performant up to several hundred trials
 // NOTE: This implementation returns all NaNs if any probability equals 1!
-public class PoissonBinomialDistribution extends AbstractCustomProbabilityDistribution{
+public class PoissonBinomialDistribution extends AbstractCustomProbabilityDistribution {
 
     private List<Double> probabilityMassFunction;
     private List<Double> cumulativeDensityFunction;
@@ -30,7 +30,6 @@ public class PoissonBinomialDistribution extends AbstractCustomProbabilityDistri
     }
 
     // Return the probability of numSuccesses <= x
-    @Override
     public double cumulativeProbability(int x) {
         if (x < 0) {
             return 0;
@@ -85,7 +84,7 @@ public class PoissonBinomialDistribution extends AbstractCustomProbabilityDistri
         pmf.set(probabilities.size(), z);
 
         int maxXRequired = Math.min(maxX, probabilities.size());
-        for(int i = 1; i <= maxXRequired; i++) {
+        for (int i = 1; i <= maxXRequired; i++) {
             BigDecimal s = BigDecimal.ZERO;
             int m = probabilities.size() - i;
             int k = i - 1;
