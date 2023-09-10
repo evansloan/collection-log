@@ -1,7 +1,7 @@
 package com.evansloan.collectionlog.luck;
 
 import com.evansloan.collectionlog.CollectionLogConfig;
-import com.evansloan.collectionlog.luck.probability.*;
+import com.evansloan.collectionlog.luck.drop.*;
 import com.google.common.collect.ImmutableList;
 
 import java.lang.reflect.Field;

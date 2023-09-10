@@ -1,4 +1,4 @@
-package com.evansloan.collectionlog.luck.probability;
+package com.evansloan.collectionlog.luck.drop;
 
 public class UnimplementedDrop extends AbstractUnsupportedDrop {
 

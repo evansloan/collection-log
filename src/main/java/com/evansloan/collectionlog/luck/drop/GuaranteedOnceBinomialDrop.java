@@ -1,8 +1,9 @@
-package com.evansloan.collectionlog.luck.probability;
+package com.evansloan.collectionlog.luck.drop;
 
 import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
+import com.evansloan.collectionlog.luck.RollInfo;
 
 // This is identical to BinomialDrop, but a specific KC is ignored when a drop is guaranteed at that KC. For example,
 // Vorkath's head is guaranteed at 50 kc, so to calculate "luck", the 1 is subtracted from both KC and # heads received

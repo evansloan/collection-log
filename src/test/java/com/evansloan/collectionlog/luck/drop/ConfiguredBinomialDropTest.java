@@ -1,9 +1,10 @@
-package com.evansloan.collectionlog.luck.probability;
+package com.evansloan.collectionlog.luck.drop;
 
 import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
+import com.evansloan.collectionlog.luck.RollInfo;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 

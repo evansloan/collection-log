@@ -1,4 +1,4 @@
-package com.evansloan.collectionlog.luck.probability;
+package com.evansloan.collectionlog.luck.drop;
 
 import com.evansloan.collectionlog.*;
 import com.google.common.collect.ImmutableMap;

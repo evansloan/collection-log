@@ -1,8 +1,9 @@
-package com.evansloan.collectionlog.luck.probability;
+package com.evansloan.collectionlog.luck.drop;
 
 import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
+import com.evansloan.collectionlog.luck.RollInfo;
 
 // When a fixed-size stack has a chance to drop (e.g. 1/64 chance for 3 Key master teleport scrolls), this is actually
 // a binomial distribution where the number of successes is the number of items received divided by the stack size

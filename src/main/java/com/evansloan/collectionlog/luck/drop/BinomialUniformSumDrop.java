@@ -1,8 +1,11 @@
-package com.evansloan.collectionlog.luck.probability;
+package com.evansloan.collectionlog.luck.drop;
 
 import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
+import com.evansloan.collectionlog.luck.RollInfo;
+import com.evansloan.collectionlog.luck.probability.BinomialDiscreteApproxUniformSumDistribution;
+import com.evansloan.collectionlog.luck.probability.BinomialUniformSumNormalApproxDistribution;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;

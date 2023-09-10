@@ -1,4 +1,4 @@
-package com.evansloan.collectionlog.luck.probability;
+package com.evansloan.collectionlog.luck.drop;
 
 // An item that does not drop in a luck-based way. For example, drops received after a fixed KC, drops unlocked with
 // currencies, or drops received by killing a boss in a specific way may fit into this category.

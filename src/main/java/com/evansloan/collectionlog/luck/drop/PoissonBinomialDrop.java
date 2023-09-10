@@ -1,9 +1,12 @@
-package com.evansloan.collectionlog.luck.probability;
+package com.evansloan.collectionlog.luck.drop;
 
 import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.CollectionLogKillCount;
+import com.evansloan.collectionlog.luck.RollInfo;
+import com.evansloan.collectionlog.luck.probability.PoissonBinomialDistribution;
+import com.evansloan.collectionlog.luck.probability.PoissonBinomialRefinedNormalApproxDistribution;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,7 +1,5 @@
-package com.evansloan.collectionlog.luck.probability;
+package com.evansloan.collectionlog.luck;
 
-
-import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 
 // A wrapper for info relating to the drop of a specific item from a specific drop source
 public class RollInfo {

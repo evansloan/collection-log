@@ -1,8 +1,9 @@
-package com.evansloan.collectionlog.luck.probability;
+package com.evansloan.collectionlog.luck.drop;
 
 import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
+import com.evansloan.collectionlog.luck.RollInfo;
 
 // When a drop requires a number of hidden "shards" to accumulate (e.g. the player must hit the Desert Treasure 2 boss
 // vestige drop 3 times) before actually receiving the item, this is actually a binomial distribution
