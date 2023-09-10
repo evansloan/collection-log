@@ -37,7 +37,6 @@ public class LogItemInfo {
         ...VORKATHS_HEAD_21907 = new LogItemInfo("Vorkath's head", 21907,
             new GuaranteedOnceBinomialDrop(new RollInfo(LogItemSourceInfo.VORKATH_KILLS, 1.0 / 50), 50)),
 
-        TODO: add NormalStackDrop after implemented
         TODO: Is Slayer Kill Log available in the code somewhere? Users could use this to calculate luck for related drops.
             Maybe users would have to open this every so often to be able to track luck.
 
@@ -81,7 +80,10 @@ public class LogItemInfo {
     public static LogItemInfo ABYSSAL_ORPHAN_13262 = new LogItemInfo("Abyssal orphan", 13262,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.ABYSSAL_SIRE_KILLS, 1.0 / 2560)));
     public static LogItemInfo ABYSSAL_PEARLS_26792 = new LogItemInfo("Abyssal pearls", 26792,
-            new NormalStackDrop());
+            new BinomialUniformSumDrop(
+                    new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0/6.94),
+                    10, 20
+            ));
     public static LogItemInfo ABYSSAL_PROTECTOR_26901 = new LogItemInfo("Abyssal protector", 26901,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0 / 4000)));
     public static LogItemInfo ABYSSAL_RED_DYE_26811 = new LogItemInfo("Abyssal red dye", 26811,
@@ -233,7 +235,7 @@ public class LogItemInfo {
     public static LogItemInfo ANCIENT_EMBLEM_21807 = new LogItemInfo("Ancient emblem", 21807,
             new MissingKillCountDrop());
     public static LogItemInfo ANCIENT_ESSENCE_27616 = new LogItemInfo("Ancient essence", 27616,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo ANCIENT_FULL_HELM_12466 = new LogItemInfo("Ancient full helm", 12466,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.HARD_CLUES_COMPLETED, 1.0 / 1625, 5)));
     public static LogItemInfo ANCIENT_GLOBE_25686 = new LogItemInfo("Ancient globe", 25686,
@@ -484,7 +486,10 @@ public class LogItemInfo {
     public static LogItemInfo ASH_COVERED_TOME_21697 = new LogItemInfo("Ash covered tome", 21697,
             new DeterministicDrop());
     public static LogItemInfo ATTAS_SEED_22881 = new LogItemInfo("Attas seed", 22881,
-            new NormalStackDrop());
+            new BinomialUniformSumDrop(
+                    new RollInfo(LogItemSourceInfo.HESPORI_KILLS, 1.0/3),
+                    1, 2
+            ));
     public static LogItemInfo AVERNIC_DEFENDER_HILT_22477 = new LogItemInfo("Avernic defender hilt", 22477,
             new UnimplementedDrop());
     public static LogItemInfo AWAKENERS_ORB_28334 = new LogItemInfo("Awakener's orb", 28334,
@@ -797,7 +802,7 @@ public class LogItemInfo {
     public static LogItemInfo BLUE_ELEGANT_SKIRT_10430 = new LogItemInfo("Blue elegant skirt", 10430,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.EASY_CLUES_COMPLETED, 1.0 / 2808, 3)));
     public static LogItemInfo BLUE_FIRELIGHTER_7331 = new LogItemInfo("Blue firelighter", 7331,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo BLUE_HEADBAND_12301 = new LogItemInfo("Blue headband", 12301,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MEDIUM_CLUES_COMPLETED, 1.0 / 1133, 4)));
     public static LogItemInfo BLUE_NAVAL_SHIRT_8952 = new LogItemInfo("Blue naval shirt", 8952,
@@ -901,7 +906,7 @@ public class LogItemInfo {
     public static LogItemInfo BUCKET_HELM_G_20059 = new LogItemInfo("Bucket helm (g)", 20059,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MASTER_CLUES_COMPLETED, 1.0 / 13616, 6)));
     public static LogItemInfo BURNT_PAGE_20718 = new LogItemInfo("Burnt page", 20718,
-            new NormalStackDrop());
+            new UnimplementedDrop());
     public static LogItemInfo BUTCH_28248 = new LogItemInfo("Butch", 28248,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.VARDORVIS_KILLS, 1.0 / 3000)));
     public static LogItemInfo CABBAGE_ROUND_SHIELD_20272 = new LogItemInfo("Cabbage round shield", 20272,
@@ -953,7 +958,7 @@ public class LogItemInfo {
     public static LogItemInfo CHARGED_ICE_27643 = new LogItemInfo("Charged ice", 27643,
             new DeterministicDrop());
     public static LogItemInfo CHARGE_DRAGONSTONE_JEWELLERY_SCROLL_20238 = new LogItemInfo("Charge dragonstone jewellery scroll", 20238,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo CHEWED_BONES_11338 = new LogItemInfo("Chewed bones", 11338,
             new MissingKillCountDrop());
     public static LogItemInfo CHOMPY_BIRD_HAT_2978 = new LogItemInfo("Chompy bird hat", 2978,
@@ -1176,7 +1181,7 @@ public class LogItemInfo {
             new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
                     CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo DIGSITE_TELEPORT_12403 = new LogItemInfo("Digsite teleport", 12403,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo DINHS_BULWARK_21015 = new LogItemInfo("Dinh's bulwark", 21015,
             new UnimplementedDrop());
     public static LogItemInfo DOUBLE_AMMO_MOULD_27012 = new LogItemInfo("Double ammo mould", 27012,
@@ -1364,7 +1369,7 @@ public class LogItemInfo {
     public static LogItemInfo FEDORA_11990 = new LogItemInfo("Fedora", 11990,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.CRAZY_ARCHAEOLOGIST_KILLS, 1.0 / 128)));
     public static LogItemInfo FELDIP_HILLS_TELEPORT_12404 = new LogItemInfo("Feldip hills teleport", 12404,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo FIGHTER_HAT_10548 = new LogItemInfo("Fighter hat", 10548,
             new DeterministicDrop());
     public static LogItemInfo FIGHTER_TORSO_10551 = new LogItemInfo("Fighter torso", 10551,
@@ -1621,7 +1626,10 @@ public class LogItemInfo {
     public static LogItemInfo GRANITE_CLAMP_12849 = new LogItemInfo("Granite clamp", 12849,
             new DeterministicDrop());
     public static LogItemInfo GRANITE_DUST_21726 = new LogItemInfo("Granite dust", 21726,
-            new NormalStackDrop());
+            new BinomialUniformSumDrop(
+                    new RollInfo(LogItemSourceInfo.GROTESQUE_GUARDIAN_KILLS, 1),
+                    50, 100
+            ));
     public static LogItemInfo GRANITE_GLOVES_21736 = new LogItemInfo("Granite gloves", 21736,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.GROTESQUE_GUARDIAN_KILLS, 1.0 / 500, 2)));
     public static LogItemInfo GRANITE_HAMMER_21742 = new LogItemInfo("Granite hammer", 21742,
@@ -1661,7 +1669,7 @@ public class LogItemInfo {
     public static LogItemInfo GREEN_ELEGANT_SKIRT_10434 = new LogItemInfo("Green elegant skirt", 10434,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.EASY_CLUES_COMPLETED, 1.0 / 2808, 3)));
     public static LogItemInfo GREEN_FIRELIGHTER_7330 = new LogItemInfo("Green firelighter", 7330,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo GREEN_HEADBAND_12307 = new LogItemInfo("Green headband", 12307,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MEDIUM_CLUES_COMPLETED, 1.0 / 1133, 4)));
     public static LogItemInfo GREEN_NAVAL_SHIRT_8953 = new LogItemInfo("Green naval shirt", 8953,
@@ -1858,7 +1866,10 @@ public class LogItemInfo {
     public static LogItemInfo HYDRA_TAIL_22988 = new LogItemInfo("Hydra tail", 22988,
             new MissingKillCountDrop());
     public static LogItemInfo IASOR_SEED_22883 = new LogItemInfo("Iasor seed", 22883,
-            new NormalStackDrop());
+            new BinomialUniformSumDrop(
+                    new RollInfo(LogItemSourceInfo.HESPORI_KILLS, 1.0/3),
+                    1, 2
+            ));
     public static LogItemInfo ICE_QUARTZ_28270 = new LogItemInfo("Ice quartz", 28270,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.DUKE_SUCELLUS_KILLS, 89.0 / 90.0 * 47.0 / 48.0 * 24.0 / 25.0 / 200)));
     public static LogItemInfo ICTHLARINS_SHROUD_TIER_1_27257 = new LogItemInfo("Icthlarin's shroud (tier 1)", 27257,
@@ -1905,7 +1916,7 @@ public class LogItemInfo {
     public static LogItemInfo INTRICATE_POUCH_26908 = new LogItemInfo("Intricate pouch", 26908,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0 / 25)));
     public static LogItemInfo IORWERTH_CAMP_TELEPORT_12410 = new LogItemInfo("Iorwerth camp teleport", 12410,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo IRON_BOOTS_4121 = new LogItemInfo("Iron boots", 4121,
             new MissingKillCountDrop());
     public static LogItemInfo IRON_DEFENDER_8845 = new LogItemInfo("Iron defender", 8845,
@@ -2007,7 +2018,10 @@ public class LogItemInfo {
     public static LogItemInfo KRAKEN_TENTACLE_12004 = new LogItemInfo("Kraken tentacle", 12004,
             new MissingKillCountDrop());
     public static LogItemInfo KRONOS_SEED_22885 = new LogItemInfo("Kronos seed", 22885,
-            new NormalStackDrop());
+            new BinomialUniformSumDrop(
+                    new RollInfo(LogItemSourceInfo.HESPORI_KILLS, 1.0/3),
+                    1, 2
+            ));
     public static LogItemInfo KRUK_JR_24866 = new LogItemInfo("Kruk jr", 24866,
             new DeterministicDrop());
     public static LogItemInfo KURASK_HEAD_7978 = new LogItemInfo("Kurask head", 7978,
@@ -2102,9 +2116,9 @@ public class LogItemInfo {
     public static LogItemInfo LUMBERJACK_TOP_10939 = new LogItemInfo("Lumberjack top", 10939,
             new DeterministicDrop());
     public static LogItemInfo LUMBERYARD_TELEPORT_12642 = new LogItemInfo("Lumberyard teleport", 12642,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo LUNAR_ISLE_TELEPORT_12405 = new LogItemInfo("Lunar isle teleport", 12405,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo MAGES_BOOK_6889 = new LogItemInfo("Mage's book", 6889,
             new DeterministicDrop());
     public static LogItemInfo MAGIC_COMP_BOW_10284 = new LogItemInfo("Magic comp bow", 10284,
@@ -2197,7 +2211,10 @@ public class LogItemInfo {
     public static LogItemInfo MOLE_CLAW_7416 = new LogItemInfo("Mole claw", 7416,
             new DeterministicDrop());
     public static LogItemInfo MOLE_SKIN_7418 = new LogItemInfo("Mole skin", 7418,
-            new NormalStackDrop());
+            new BinomialUniformSumDrop(
+                    new RollInfo(LogItemSourceInfo.GIANT_MOLE_KILLS, 1),
+                    1, 3
+            ));
     public static LogItemInfo MOLE_SLIPPERS_23285 = new LogItemInfo("Mole slippers", 23285,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.BEGINNER_CLUES_COMPLETED, 1.0 / 360, 2)));
     public static LogItemInfo MONKEY_TAIL_19610 = new LogItemInfo("Monkey tail", 19610,
@@ -2213,11 +2230,11 @@ public class LogItemInfo {
     public static LogItemInfo MONOCLE_12353 = new LogItemInfo("Monocle", 12353,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.ELITE_CLUES_COMPLETED, 1.0 / 1275, 5)));
     public static LogItemInfo MORTTON_TELEPORT_12406 = new LogItemInfo("Mort'ton teleport", 12406,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo MOSSY_KEY_22374 = new LogItemInfo("Mossy key", 22374,
             new MissingKillCountDrop());
     public static LogItemInfo MOS_LEHARMLESS_TELEPORT_12411 = new LogItemInfo("Mos le'harmless teleport", 12411,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo MUDSKIPPER_HAT_6665 = new LogItemInfo("Mudskipper hat", 6665,
             new MissingKillCountDrop());
     public static LogItemInfo MUD_BATTLESTAFF_6562 = new LogItemInfo("Mud battlestaff", 6562,
@@ -2283,7 +2300,7 @@ public class LogItemInfo {
     public static LogItemInfo MYSTIC_ROBE_TOP_LIGHT_4111 = new LogItemInfo("Mystic robe top (light)", 4111,
             new MissingKillCountDrop());
     public static LogItemInfo NARDAH_TELEPORT_12402 = new LogItemInfo("Nardah teleport", 12402,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo NAVY_CAVALIER_12325 = new LogItemInfo("Navy cavalier", 12325,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.HARD_CLUES_COMPLETED, 1.0 / 1625, 5)));
     public static LogItemInfo NEXLING_26348 = new LogItemInfo("Nexling", 26348,
@@ -2369,7 +2386,7 @@ public class LogItemInfo {
     public static LogItemInfo PENGUIN_MASK_12428 = new LogItemInfo("Penguin mask", 12428,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MEDIUM_CLUES_COMPLETED, 1.0 / 1133, 4)));
     public static LogItemInfo PEST_CONTROL_TELEPORT_12407 = new LogItemInfo("Pest control teleport", 12407,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo PET_CHAOS_ELEMENTAL_11995 = new LogItemInfo("Pet chaos elemental", 11995,
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.CHAOS_ELEMENTAL_KILLS, 1.0 / 300),
@@ -2428,7 +2445,7 @@ public class LogItemInfo {
     public static LogItemInfo PISCARILIUS_SCARF_19952 = new LogItemInfo("Piscarilius scarf", 19952,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.ELITE_CLUES_COMPLETED, 1.0 / 1275, 5)));
     public static LogItemInfo PISCATORIS_TELEPORT_12408 = new LogItemInfo("Piscatoris teleport", 12408,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo PITH_HELMET_12516 = new LogItemInfo("Pith helmet", 12516,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.HARD_CLUES_COMPLETED, 1.0 / 1625, 5)));
     public static LogItemInfo PLAIN_SATCHEL_25618 = new LogItemInfo("Plain satchel", 25618,
@@ -2460,13 +2477,13 @@ public class LogItemInfo {
     public static LogItemInfo PURPLE_ELEGANT_SKIRT_10438 = new LogItemInfo("Purple elegant skirt", 10438,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MEDIUM_CLUES_COMPLETED, 1.0 / 2266, 4)));
     public static LogItemInfo PURPLE_FIRELIGHTER_10326 = new LogItemInfo("Purple firelighter", 10326,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo PURPLE_NAVAL_SHIRT_8957 = new LogItemInfo("Purple naval shirt", 8957,
             new DeterministicDrop());
     public static LogItemInfo PURPLE_NAVY_SLACKS_8996 = new LogItemInfo("Purple navy slacks", 8996,
             new DeterministicDrop());
     public static LogItemInfo PURPLE_SWEETS_10476 = new LogItemInfo("Purple sweets", 10476,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo PURPLE_TRICORN_HAT_8964 = new LogItemInfo("Purple tricorn hat", 8964,
             new DeterministicDrop());
     public static LogItemInfo PYROMANCER_BOOTS_20710 = new LogItemInfo("Pyromancer boots", 20710,
@@ -2514,7 +2531,7 @@ public class LogItemInfo {
     public static LogItemInfo RED_ELEGANT_SKIRT_10426 = new LogItemInfo("Red elegant skirt", 10426,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.EASY_CLUES_COMPLETED, 1.0 / 2808, 3)));
     public static LogItemInfo RED_FIRELIGHTER_7329 = new LogItemInfo("Red firelighter", 7329,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo RED_HEADBAND_2645 = new LogItemInfo("Red headband", 2645,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MEDIUM_CLUES_COMPLETED, 1.0 / 1133, 4)));
     public static LogItemInfo RED_NAVAL_SHIRT_8954 = new LogItemInfo("Red naval shirt", 8954,
@@ -2909,7 +2926,7 @@ public class LogItemInfo {
     public static LogItemInfo SMOULDERING_STONE_13233 = new LogItemInfo("Smouldering stone", 13233,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.CERBERUS_KILLS, 1.0 / 512)));
     public static LogItemInfo SOAKED_PAGE_25578 = new LogItemInfo("Soaked page", 25578,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo SOUL_CAPE_25346 = new LogItemInfo("Soul cape", 25346,
             new DeterministicDrop());
     public static LogItemInfo SPECTRAL_SIGIL_12823 = new LogItemInfo("Spectral sigil", 12823,
@@ -2925,7 +2942,10 @@ public class LogItemInfo {
     public static LogItemInfo SPIRIT_ANGLER_WADERS_25596 = new LogItemInfo("Spirit angler waders", 25596,
             new DeterministicDrop());
     public static LogItemInfo SPIRIT_FLAKES_25588 = new LogItemInfo("Spirit flakes", 25588,
-            new NormalStackDrop());
+            new BinomialUniformSumDrop(
+                    new RollInfo(LogItemSourceInfo.REWARD_PERMITS_CLAIMED, 1.0/4),
+                    32, 64
+            ));
     public static LogItemInfo SPIRIT_SHIELD_12829 = new LogItemInfo("Spirit shield", 12829,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.CORPOREAL_BEAST_KILLS, 1.0 / 64)));
     public static LogItemInfo SRARACHA_23495 = new LogItemInfo("Sraracha", 23495,
@@ -2993,7 +3013,7 @@ public class LogItemInfo {
     public static LogItemInfo TACKLE_BOX_25580 = new LogItemInfo("Tackle box", 25580,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.REWARD_PERMITS_CLAIMED, 1.0 / 400)));
     public static LogItemInfo TAI_BWO_WANNAI_TELEPORT_12409 = new LogItemInfo("Tai bwo wannai teleport", 12409,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo TANGLEROOT_20661 = new LogItemInfo("Tangleroot", 20661,
             new MissingKillCountDrop());
     public static LogItemInfo TANZANITE_FANG_12922 = new LogItemInfo("Tanzanite fang", 12922,
@@ -3141,7 +3161,7 @@ public class LogItemInfo {
             new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/2448, 7),
                     CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo VIAL_OF_BLOOD_22446 = new LogItemInfo("Vial of blood", 22446,
-            new NormalStackDrop());
+            new UnimplementedDrop());
     public static LogItemInfo VICTORS_CAPE_1000_24520 = new LogItemInfo("Victor's cape (1000)", 24520,
             new DeterministicDrop());
     public static LogItemInfo VICTORS_CAPE_100_24213 = new LogItemInfo("Victor's cape (100)", 24213,
@@ -3245,7 +3265,7 @@ public class LogItemInfo {
     public static LogItemInfo WHITE_ELEGANT_SKIRT_10422 = new LogItemInfo("White elegant skirt", 10422,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MEDIUM_CLUES_COMPLETED, 1.0 / 2266, 4)));
     public static LogItemInfo WHITE_FIRELIGHTER_10327 = new LogItemInfo("White firelighter", 10327,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo WHITE_HEADBAND_12299 = new LogItemInfo("White headband", 12299,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MEDIUM_CLUES_COMPLETED, 1.0 / 1133, 4)));
     public static LogItemInfo WHITE_UNICORN_MASK_20269 = new LogItemInfo("White unicorn mask", 20269,
@@ -3396,7 +3416,7 @@ public class LogItemInfo {
     public static LogItemInfo ZOMBIE_TROUSERS_7593 = new LogItemInfo("Zombie trousers", 7593,
             new MissingKillCountDrop());
     public static LogItemInfo ZULRAHS_SCALES_12934 = new LogItemInfo("Zulrah's scales", 12934,
-            new NormalStackDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo ZUL_ANDRA_TELEPORT_12938 = new LogItemInfo("Zul-andra teleport", 12938,
             new FixedStackDrop(new RollInfo(LogItemSourceInfo.ZULRAH_KILLS, 1.0/16.53, 2), 4));
     public static LogItemInfo THIRD_AGE_AMULET_10344 = new LogItemInfo("3rd age amulet", 10344,

@@ -481,4 +481,54 @@ public class BinomialUniformSumDropTest {
         doTest_binomialUniformSum(kc, dropChance, numObtained, minRoll, maxRoll, tolerance, expectedLuck, expectedDryness);
     }
 
+    @Test
+    public void testBinomialUniformSum_approx_guaranteed() {
+        int kc = 2000;
+        double dropChance = 1;
+        assertTrue(kc * dropChance > BinomialUniformSumDrop.NORMAL_APPROX_NUM_SUCCESSES_THRESHOLD);
+        int minRoll = 1;
+        int maxRoll = 3;
+
+        // comparing with a normal distribution with mean = 4000 and
+        // standard deviation = sqrt(2000 * (3^3 - 1) / 12) ~= 36.5148, since the overall variance is kc * variance of a discrete
+        // uniform distribution
+
+        // This is not very good.  I think the uniform approximation of the discrete distribution is not reliable and
+        // needs to be improved in the future. The variance may be off by a factor of ~2.
+        double tolerance = 0.07;
+
+        doTest_binomialUniformSum(kc, dropChance, 3900, minRoll, maxRoll, tolerance, 0.00308, 0.99692);
+        doTest_binomialUniformSum(kc, dropChance, 3950, minRoll, maxRoll, tolerance, 0.08545, 0.91455);
+        doTest_binomialUniformSum(kc, dropChance, 4000, minRoll, maxRoll, tolerance, 0.5, 0.5);
+        doTest_binomialUniformSum(kc, dropChance, 4050, minRoll, maxRoll, tolerance, 0.91455, 0.08545);
+        doTest_binomialUniformSum(kc, dropChance, 4100, minRoll, maxRoll, tolerance, 0.99692, 0.00308);
+    }
+
+    @Test
+    public void testBinomialUniformSum_exact_guaranteed() {
+        int kc = 2;
+        double dropChance = 1;
+        assertTrue(kc * dropChance < BinomialUniformSumDrop.NORMAL_APPROX_NUM_SUCCESSES_THRESHOLD);
+        int minRoll = 1;
+        int maxRoll = 3;
+
+        // comparing with a normal distribution with mean = 4 and
+        // standard deviation = sqrt(2 * (3^3 - 1) / 12) ~= 1.1547, since the overall variance is kc * variance of a discrete
+        // uniform distribution
+
+        // luck/dryness could be slightly off because this is very approximate
+        double tolerance = 0.04;
+
+        // this should be impossible. This is arguably a bug (and -1, -1 is also valid), but it's fine.
+        doTest_binomialUniformSum(kc, dropChance, 1, minRoll, maxRoll, tolerance, 0, 1);
+        // expected cases
+        doTest_binomialUniformSum(kc, dropChance, 2, minRoll, maxRoll, tolerance, 0 / 9.0, 8 / 9.0);
+        doTest_binomialUniformSum(kc, dropChance, 3, minRoll, maxRoll, tolerance, 1 / 9.0, 6 / 9.0);
+        doTest_binomialUniformSum(kc, dropChance, 4, minRoll, maxRoll, tolerance, 3 / 9.0, 3 / 9.0);
+        doTest_binomialUniformSum(kc, dropChance, 5, minRoll, maxRoll, tolerance, 6 / 9.0, 1 / 9.0);
+        doTest_binomialUniformSum(kc, dropChance, 6, minRoll, maxRoll, tolerance, 8 / 9.0, 0 / 9.0);
+        // this should be impossible
+        doTest_binomialUniformSum(kc, dropChance, 7, minRoll, maxRoll, tolerance, -1, -1);
+    }
+
 }
