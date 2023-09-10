@@ -107,7 +107,7 @@ public class DropConfigOptionsTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
 
-        // default 0 lanterns purchased
+        // default 0 wasted Barrows chests.
         CollectionLogConfig config = new CollectionLogConfig() {};
 
         AbstractDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, dropChance))
@@ -136,7 +136,7 @@ public class DropConfigOptionsTest {
         // expected probabilities calculated online, with the following sig digits
         double tolerance = 0.00001;
 
-        // The player has configured the number of lanterns purchased to 2
+        // The player has configured the number of invalid Barrows KC.
         CollectionLogConfig config = new CollectionLogConfig() {
             @Override
             public int numInvalidBarrowsKc() {
@@ -152,6 +152,73 @@ public class DropConfigOptionsTest {
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(
                 LogItemSourceInfo.BARROWS_CHESTS_OPENED.getName(), kc);
 
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_barrowsBoltRacks_disabled() {
+        // The player has configured the number of invalid Barrows KC.
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int numInvalidBarrowsKc() {
+                return 35;
+            }
+        };
+
+        AbstractDrop drop = new BinomialUniformSumDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/8.096, 7),
+                35, 40)
+                .withConfigOption(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY)
+                .withConfigOption(CollectionLogConfig.BARROWS_BOLT_RACKS_ENABLED_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "Bolt racks", 13579, true, 0);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNotNull(incalculableReason);
+        assertTrue(incalculableReason.contains("bolt rack"));
+    }
+
+    @Test
+    public void calculateLuck_barrowsBoltRacks_enabled() {
+        double dropChance = 0.01;
+        // Even though 135 were completed, 35 were wasted, so the luck is as if only 1 was received
+        int kc = 135;
+        // exactly on drop rate
+        int numObtained = 25 * 7;
+        double expectedLuck = 0.5;
+        double expectedDryness = 0.5;
+        double tolerance = 0.03;
+
+        // The player has configured the number of invalid Barrows KC.
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int numInvalidBarrowsKc() {
+                return 35;
+            }
+
+            @Override
+            public boolean barrowsBoltRacksEnabled() {
+                return true;
+            }
+        };
+
+        AbstractDrop drop = new BinomialUniformSumDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, dropChance, 7),
+                20, 30)
+                .withConfigOption(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY)
+                .withConfigOption(CollectionLogConfig.BARROWS_BOLT_RACKS_ENABLED_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(
+                LogItemSourceInfo.BARROWS_CHESTS_OPENED.getName(), kc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        // Make sure subtracting invalid Barrows KC also works
         double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
         assertEquals(expectedLuck, actualLuck, tolerance);
 

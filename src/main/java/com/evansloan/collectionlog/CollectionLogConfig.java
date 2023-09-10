@@ -9,6 +9,7 @@ public interface CollectionLogConfig extends Config
 {
 	String NUM_ABYSSAL_LANTERNS_PURCHASED_KEY = "num_abyssal_lanterns_purchased";
 	String NUM_INVALID_BARROWS_KC_KEY = "num_invalid_barrows_kc";
+	String BARROWS_BOLT_RACKS_ENABLED_KEY = "barrows_bolt_racks_enabled";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -214,5 +215,17 @@ public interface CollectionLogConfig extends Config
 	default int numInvalidBarrowsKc()
 	{
 		return 0;
+	}
+
+	@ConfigItem(
+			keyName = BARROWS_BOLT_RACKS_ENABLED_KEY,
+			name = "Bolt racks enabled",
+			description = "Whether or not you try to get enough points at Barrows to receive bolt racks.",
+			position = 4,
+			section = luckSection
+	)
+	default boolean barrowsBoltRacksEnabled()
+	{
+		return false;
 	}
 }

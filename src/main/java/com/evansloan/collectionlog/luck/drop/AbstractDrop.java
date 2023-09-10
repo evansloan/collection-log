@@ -55,6 +55,11 @@ public abstract class AbstractDrop implements DropLuck {
         if (config == null && !configOptions.isEmpty()) {
             return "Luck calculation for this drop is only available for your own character.";
         }
+        if (configOptions.contains(CollectionLogConfig.BARROWS_BOLT_RACKS_ENABLED_KEY)
+                && !config.barrowsBoltRacksEnabled()
+        ) {
+            return "Barrows bolt racks are disabled in the config settings.";
+        }
         return null;
     }
 
@@ -71,7 +76,7 @@ public abstract class AbstractDrop implements DropLuck {
     }
 
     protected int getNumTrials(CollectionLog collectionLog, CollectionLogConfig config) {
-        return rollInfos.stream()
+        int numTrials = rollInfos.stream()
                 .map(rollInfos -> new Pair<>(
                         collectionLog.searchForKillCount(rollInfos.getDropSource().getName()),
                         rollInfos.getRollsPerKc()))
@@ -79,10 +84,24 @@ public abstract class AbstractDrop implements DropLuck {
                 .filter(pair -> pair.getKey() != null && pair.getValue() != null)
                 .mapToInt(pair -> pair.getKey().getAmount() * pair.getValue())
                 .sum();
+
+        if (configOptions.contains(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY)) {
+            numTrials -= config.numInvalidBarrowsKc() * rollInfos.get(0).getRollsPerKc();
+        }
+
+        return numTrials;
     }
 
     protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
-        return item.getQuantity();
+        int numSuccesses = item.getQuantity();
+
+        // Note: The Abyssal Lantern is now purchasable from the shop, and it triggers the collection log unlock, but
+        // purchased lanterns shouldn't count towards the luck of lanterns received from the Rewards Guardian
+        if (configOptions.contains(CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY)) {
+            numSuccesses -= config.numAbyssalLanternsPurchased();
+        }
+
+        return numSuccesses;
     }
 
     // the max number of successes that a player could have and still be considered "in the same boat" as you, luck-wise

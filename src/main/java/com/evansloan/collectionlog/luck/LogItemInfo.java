@@ -834,7 +834,10 @@ public class LogItemInfo {
     public static LogItemInfo BOBS_RED_SHIRT_10316 = new LogItemInfo("Bob's red shirt", 10316,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.EASY_CLUES_COMPLETED, 1.0 / 1404, 3)));
     public static LogItemInfo BOLT_RACK_4740 = new LogItemInfo("Bolt rack", 4740,
-            new UnimplementedDrop());
+            new BinomialUniformSumDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0/8.096, 7),
+                    35, 40)
+                    .withConfigOption(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY)
+                    .withConfigOption(CollectionLogConfig.BARROWS_BOLT_RACKS_ENABLED_KEY));
     public static LogItemInfo BONES_TO_PEACHES_6926 = new LogItemInfo("Bones to peaches", 6926,
             new DeterministicDrop());
     public static LogItemInfo BOOTS_OF_DARKNESS_20140 = new LogItemInfo("Boots of darkness", 20140,

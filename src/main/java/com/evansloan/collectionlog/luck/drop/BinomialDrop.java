@@ -73,24 +73,4 @@ public class BinomialDrop extends AbstractDrop {
         return rollInfos.get(0).getDropChancePerRoll();
     }
 
-    @Override
-    protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
-        int modifier = 0;
-        // Note: The Abyssal Lantern is now purchasable from the shop, and it triggers the collection log unlock, but
-        // purchased lanterns shouldn't count towards the luck of lanterns received from the Rewards Guardian
-        if (configOptions.contains(CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY)) {
-            modifier = -config.numAbyssalLanternsPurchased();
-        }
-        return super.getNumSuccesses(item, collectionLog, config) + modifier;
-    }
-
-    @Override
-    protected int getNumTrials(CollectionLog collectionLog, CollectionLogConfig config) {
-        int modifier = 0;
-        if (configOptions.contains(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY)) {
-            modifier = -config.numInvalidBarrowsKc() * rollInfos.get(0).getRollsPerKc();
-        }
-        return super.getNumTrials(collectionLog, config) + modifier;
-    }
-
 }
