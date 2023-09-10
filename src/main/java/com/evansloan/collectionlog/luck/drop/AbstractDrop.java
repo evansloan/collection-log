@@ -7,6 +7,7 @@ import com.evansloan.collectionlog.CollectionLogKillCount;
 import com.evansloan.collectionlog.luck.RollInfo;
 import org.apache.commons.math3.util.Pair;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +17,8 @@ import java.util.stream.Collectors;
 public abstract class AbstractDrop implements DropLuck {
 
     protected final List<RollInfo> rollInfos;
+
+    protected List<String> configOptions;
 
     public AbstractDrop(List<RollInfo> rollInfos) {
         this.rollInfos = rollInfos;
@@ -33,6 +36,26 @@ public abstract class AbstractDrop implements DropLuck {
             throw new IllegalArgumentException("Probabilities for multiple drop sources cannot be unequal while having " +
                     "a different number of rolls per drop source.");
         }
+
+        this.configOptions = new ArrayList<>();
+    }
+
+    /**
+     * Any subclass may make minor modifications to its calculations by using a plugin configuration setting.
+     * This helps correct inflated KC for various reasons, correct inflated # items received, etc.
+     */
+    public AbstractDrop withConfigOption(String configOption) {
+        this.configOptions.add(configOption);
+        return this;
+    }
+
+    @Override
+    public String getIncalculableReason(CollectionLogItem item, CollectionLogConfig config) {
+        // This drop needs custom behavior defined in client configs, but these are only available client-side.
+        if (config == null && !configOptions.isEmpty()) {
+            return "Luck calculation for this drop is only available for your own character.";
+        }
+        return null;
     }
 
     @Override

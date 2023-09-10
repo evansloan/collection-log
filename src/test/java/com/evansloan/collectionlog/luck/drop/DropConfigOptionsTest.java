@@ -10,12 +10,12 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class ConfiguredBinomialDropTest {
+public class DropConfigOptionsTest {
 
     @Test
     public void getIncalculableReason_withoutConfigDisplaysError() {
-        ConfiguredBinomialDrop drop = new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0 / 700),
-                CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY);
+        AbstractDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0 / 700))
+        .withConfigOption(CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY);
 
         CollectionLogItem item = new CollectionLogItem(1234, "an item", 1, true, 3);
 
@@ -25,8 +25,8 @@ public class ConfiguredBinomialDropTest {
 
     @Test
     public void getIncalculableReason_withConfig() {
-        ConfiguredBinomialDrop drop = new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0 / 700),
-                CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY);
+        AbstractDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0 / 700))
+        .withConfigOption(CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY);
 
         CollectionLogItem item = new CollectionLogItem(1234, "an item", 1, true, 3);
 
@@ -48,8 +48,8 @@ public class ConfiguredBinomialDropTest {
         // default 0 lanterns purchased
         CollectionLogConfig config = new CollectionLogConfig() {};
 
-        ConfiguredBinomialDrop abyssalLanternDrop = new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, dropChance),
-                CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY);
+        AbstractDrop abyssalLanternDrop = new BinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, dropChance))
+        .withConfigOption(CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -82,8 +82,8 @@ public class ConfiguredBinomialDropTest {
             }
         };
 
-        ConfiguredBinomialDrop abyssalLanternDrop = new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, dropChance),
-                CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY);
+        AbstractDrop abyssalLanternDrop = new BinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, dropChance))
+        .withConfigOption(CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -110,8 +110,8 @@ public class ConfiguredBinomialDropTest {
         // default 0 lanterns purchased
         CollectionLogConfig config = new CollectionLogConfig() {};
 
-        ConfiguredBinomialDrop drop = new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, dropChance),
-                CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY);
+        AbstractDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, dropChance))
+        .withConfigOption(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
@@ -144,8 +144,8 @@ public class ConfiguredBinomialDropTest {
             }
         };
 
-        ConfiguredBinomialDrop drop = new ConfiguredBinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, dropChance),
-                CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY);
+        AbstractDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, dropChance))
+        .withConfigOption(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
