@@ -68,7 +68,7 @@ public class BinomialDrop extends AbstractDrop {
     }
 
     // we have already validated that at least 1 RollInfo exists, and all RollInfos have the same drop chance
-    private double getDropChance() {
+    protected double getDropChance() {
         return rollInfos.get(0).getDropChancePerRoll();
     }
 

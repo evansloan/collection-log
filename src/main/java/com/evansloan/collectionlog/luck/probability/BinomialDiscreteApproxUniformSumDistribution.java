@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 
 // This class approximates the distribution of receiving a given amount of loot when there is both a drop chance and a
-// range in num received. The PDF is computed by multiplying the binomial chance of every possible number of successes X
+// quantity range. The PDF is computed by multiplying the binomial chance of every possible number of successes X
 // by a continuity-corrected continuous uniform sum distribution with n = X, using the number of items received as a
 // fraction of the maximum possible number of items received.
 // https://math.stackexchange.com/questions/4759137/probability-distribution-of-binomial-variable-multiplied-by-a-uniform-variable
