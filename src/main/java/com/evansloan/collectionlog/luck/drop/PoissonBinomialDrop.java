@@ -28,21 +28,21 @@ public class PoissonBinomialDrop extends AbstractDrop {
     }
 
     // Duplicate all drop source's probabilities by the number of respective KC
-    private List<Double> convertKcToProbabilities(CollectionLog collectionLog) {
+    private List<Double> convertKcToProbabilities(CollectionLog collectionLog, CollectionLogConfig config) {
         List<Double> probabilities = new ArrayList<>();
 
         for (RollInfo rollInfo : rollInfos) {
             CollectionLogKillCount kc = collectionLog.searchForKillCount(rollInfo.getDropSource().getName());
             if (kc != null) {
-                probabilities.addAll(Collections.nCopies(kc.getAmount() * rollInfo.getRollsPerKc(), rollInfo.getDropChancePerRoll()));
+                probabilities.addAll(Collections.nCopies(kc.getAmount() * rollInfo.getRollsPerKc(), getDropChance(rollInfo, config)));
             }
         }
 
         return probabilities;
     }
 
-    private double getExactOrApproxCumulativeProbability(int numSuccesses, int numTrials, CollectionLog collectionLog) {
-        List<Double> probabilities = convertKcToProbabilities(collectionLog);
+    private double getExactOrApproxCumulativeProbability(int numSuccesses, int numTrials, CollectionLog collectionLog, CollectionLogConfig config) {
+        List<Double> probabilities = convertKcToProbabilities(collectionLog, config);
 
         if (numSuccesses > NORMAL_APPROX_NUM_SUCCESSES_THRESHOLD
                 || numTrials > NORMAL_APPROX_NUM_TRIALS_THRESHOLD) {
@@ -66,7 +66,7 @@ public class PoissonBinomialDrop extends AbstractDrop {
             return -1;
         }
 
-        return getExactOrApproxCumulativeProbability(numSuccesses - 1, numTrials, collectionLog);
+        return getExactOrApproxCumulativeProbability(numSuccesses - 1, numTrials, collectionLog, config);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class PoissonBinomialDrop extends AbstractDrop {
 
         int maxEquivalentNumSuccesses = getMaxEquivalentNumSuccesses(item, collectionLog, config);
 
-        return 1 - getExactOrApproxCumulativeProbability(maxEquivalentNumSuccesses, numTrials, collectionLog);
+        return 1 - getExactOrApproxCumulativeProbability(maxEquivalentNumSuccesses, numTrials, collectionLog, config);
     }
 
 }

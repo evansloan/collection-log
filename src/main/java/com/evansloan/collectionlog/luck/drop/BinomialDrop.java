@@ -44,7 +44,7 @@ public class BinomialDrop extends AbstractDrop {
             return -1;
         }
 
-        BinomialDistribution dist = new BinomialDistribution(numTrials, getDropChance());
+        BinomialDistribution dist = new BinomialDistribution(numTrials, getDropChance(rollInfos.get(0), config));
 
         return dist.cumulativeProbability(numSuccesses - 1);
     }
@@ -61,16 +61,12 @@ public class BinomialDrop extends AbstractDrop {
             return -1;
         }
 
-        BinomialDistribution dist = new BinomialDistribution(numTrials, getDropChance());
+        // we have already validated that at least 1 RollInfo exists, and all RollInfos have the same drop chance
+        BinomialDistribution dist = new BinomialDistribution(numTrials, getDropChance(rollInfos.get(0), config));
 
         int maxEquivalentNumSuccesses = getMaxEquivalentNumSuccesses(item, collectionLog, config);
 
         return 1 - dist.cumulativeProbability(maxEquivalentNumSuccesses);
-    }
-
-    // we have already validated that at least 1 RollInfo exists, and all RollInfos have the same drop chance
-    protected double getDropChance() {
-        return rollInfos.get(0).getDropChancePerRoll();
     }
 
 }

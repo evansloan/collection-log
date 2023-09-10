@@ -5,8 +5,12 @@ import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 import com.evansloan.collectionlog.luck.RollInfo;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
+
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -225,4 +229,87 @@ public class DropConfigOptionsTest {
         double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
+
+    @Test
+    public void calculateLuck_CoXUniques() {
+        // Twisted bow drop rate is about 30_000 / 867_600 / 34.5 = 0.100%
+
+        // 0.100% chance per KC
+        int regularKc = 1000;
+        // 0.150% chance per KC
+        int cmKc = 2000;
+        // exactly on drop rate.
+        int numObtained = 4;
+
+        // Luck should ~= dryness because the player is almost exactly on drop rate for twisted bows.
+        double expectedLuck = 0.43;
+        double expectedDryness = 0.37;
+        double tolerance = 0.01;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int avgPersonalCoxPoints() {
+                return 30_000;
+            }
+
+            @Override
+            public int avgPersonalCoxCmPoints() {
+                return 45_000;
+            }
+        };
+
+        AbstractDrop drop =  new PoissonBinomialDrop(ImmutableList.of(
+                        new RollInfo(LogItemSourceInfo.CHAMBERS_OF_XERIC_COMPLETIONS, 1.0 / 34.5),
+                        new RollInfo(LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS, 1.0 / 34.5)
+                ))
+                        .withConfigOption(CollectionLogConfig.AVG_PERSONAL_COX_POINTS_KEY)
+                        .withConfigOption(CollectionLogConfig.AVG_PERSONAL_COX_CM_POINTS_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.CHAMBERS_OF_XERIC_COMPLETIONS.getName(), regularKc,
+                LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS.getName(), cmKc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_CoXCmRecolorsUnaffectedByPoints() {
+        int cmKc = 400;
+        int numObtained = 1;
+
+        // calculated online
+        double expectedLuck = 0.368;
+        double expectedDryness = 0.264;
+        double tolerance = 0.001;
+
+        CollectionLogConfig config = new CollectionLogConfig(){};
+
+        AbstractDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS, 1.0 / 400));
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS.getName(), cmKc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
 }

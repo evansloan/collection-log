@@ -10,6 +10,8 @@ public interface CollectionLogConfig extends Config
 	String NUM_ABYSSAL_LANTERNS_PURCHASED_KEY = "num_abyssal_lanterns_purchased";
 	String NUM_INVALID_BARROWS_KC_KEY = "num_invalid_barrows_kc";
 	String BARROWS_BOLT_RACKS_ENABLED_KEY = "barrows_bolt_racks_enabled";
+	String AVG_PERSONAL_COX_POINTS_KEY = "avg_personal_cox_points";
+	String AVG_PERSONAL_COX_CM_POINTS_KEY = "avg_personal_cox_cm_points";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -227,5 +229,29 @@ public interface CollectionLogConfig extends Config
 	default boolean barrowsBoltRacksEnabled()
 	{
 		return false;
+	}
+
+	@ConfigItem(
+			keyName = AVG_PERSONAL_COX_POINTS_KEY,
+			name = "CoX points per raid",
+			description = "The average # of points you personally receive per Chambers of Xeric raid.",
+			position = 5,
+			section = luckSection
+	)
+	default int avgPersonalCoxPoints()
+	{
+		return 30_000;
+	}
+
+	@ConfigItem(
+			keyName = AVG_PERSONAL_COX_CM_POINTS_KEY,
+			name = "CoX CM points per raid",
+			description = "The average # of points you personally receive per Chambers of Xeric Challenge Mode raid.",
+			position = 6,
+			section = luckSection
+	)
+	default int avgPersonalCoxCmPoints()
+	{
+		return 45_000;
 	}
 }

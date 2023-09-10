@@ -4,6 +4,7 @@ import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.CollectionLogKillCount;
+import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 import com.evansloan.collectionlog.luck.RollInfo;
 import org.apache.commons.math3.util.Pair;
 
@@ -108,6 +109,26 @@ public abstract class AbstractDrop implements DropLuck {
     // In the vast majority of cases, this is equal to getNumSuccesses.
     protected int getMaxEquivalentNumSuccesses(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
         return getNumSuccesses(item, collectionLog, config);
+    }
+
+    protected double getDropChance(RollInfo rollInfo, CollectionLogConfig config) {
+        double dropChance = rollInfo.getDropChancePerRoll();
+
+        if (rollInfo.getDropSource().equals(LogItemSourceInfo.CHAMBERS_OF_XERIC_COMPLETIONS)
+            && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_COX_POINTS_KEY)) {
+            dropChance *= getCoxUniqueChanceFromPoints(config.avgPersonalCoxPoints());
+        } else if (rollInfo.getDropSource().equals(LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS)
+            && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_COX_CM_POINTS_KEY)) {
+            dropChance *= getCoxUniqueChanceFromPoints(config.avgPersonalCoxCmPoints());
+        }
+
+        return dropChance;
+    }
+
+    private double getCoxUniqueChanceFromPoints(int points) {
+        // max point cap
+        int effectivePoints = Math.min(570_000, points);
+        return effectivePoints / 867_600.0;
     }
 
 }

@@ -54,7 +54,7 @@ public class BinomialUniformSumDrop extends BinomialDrop {
             return -1;
         }
 
-        return getExactOrApproxCumulativeProbability(numReceived - 1, getDropChance(), (int) numTrials);
+        return getExactOrApproxCumulativeProbability(numReceived - 1, getDropChance(rollInfos.get(0), config), (int) numTrials);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class BinomialUniformSumDrop extends BinomialDrop {
             return -1;
         }
 
-        return 1 - getExactOrApproxCumulativeProbability(numReceived, getDropChance(), (int) numTrials);
+        return 1 - getExactOrApproxCumulativeProbability(numReceived, getDropChance(rollInfos.get(0), config), (int) numTrials);
     }
 
 }
