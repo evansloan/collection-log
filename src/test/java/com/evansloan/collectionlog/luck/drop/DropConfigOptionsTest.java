@@ -284,7 +284,7 @@ public class DropConfigOptionsTest {
 
     @Test
     public void calculateLuck_CoXCmRecolorsUnaffectedByPoints() {
-        int cmKc = 400;
+        int kc = 400;
         int numObtained = 1;
 
         // calculated online
@@ -299,7 +299,89 @@ public class DropConfigOptionsTest {
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
         Map<String, Integer> kcs = ImmutableMap.of(
-                LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS.getName(), cmKc);
+                LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS.getName(), kc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_ToBUniques() {
+        // Scythe drop rate is about 0.25 / 172.9 = 0.1446% for regular KC
+        // Let's use 0.3 / 138.6 = 0.2165% for hard mode KC to help make sure this test is accurate
+
+        int regularKc = 692;
+        int hmKc = 462;
+        // exactly on drop rate.
+        int numObtained = 2;
+
+        // Approximating based on a binomial with success probability 1/560
+        double expectedLuck = 0.389;
+        double expectedDryness = 0.340;
+        // That's a surprisingly good approximation (< ~2% error)
+        double tolerance = 0.02;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public double avgPersonalTobPointFraction() {
+                return 0.25;
+            }
+
+            @Override
+            public double avgPersonalTobHmPointFraction() {
+                return 0.3;
+            }
+        };
+
+        AbstractDrop drop =  new PoissonBinomialDrop(ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS, 1.0 / 172.9),
+                new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 138.6)
+        ))
+                .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_POINTS_KEY)
+                .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_HM_POINTS_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "Scythe of Vitur", numObtained, true, 0);
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS.getName(), regularKc,
+                LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS.getName(), hmKc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_ToBHmRecolorsUnaffectedByPoints() {
+        int kc = 400;
+        int numObtained = 1;
+
+        // calculated online
+        double expectedLuck = 0.368;
+        double expectedDryness = 0.264;
+        double tolerance = 0.001;
+
+        CollectionLogConfig config = new CollectionLogConfig(){};
+
+        AbstractDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 400));
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS.getName(), kc);
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
         String incalculableReason = drop.getIncalculableReason(mockItem, config);

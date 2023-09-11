@@ -120,6 +120,12 @@ public abstract class AbstractDrop implements DropLuck {
         } else if (rollInfo.getDropSource().equals(LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS)
             && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_COX_CM_POINTS_KEY)) {
             dropChance *= getCoxUniqueChanceFromPoints(config.avgPersonalCoxCmPoints());
+        } else if (rollInfo.getDropSource().equals(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS)
+            && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_TOB_POINTS_KEY)) {
+            dropChance *= getToBUniqueChanceFromPointFraction(config.avgPersonalTobPointFraction());
+        } else if (rollInfo.getDropSource().equals(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS)
+                && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_TOB_HM_POINTS_KEY)) {
+            dropChance *= getToBUniqueChanceFromPointFraction(config.avgPersonalTobHmPointFraction());
         }
 
         return dropChance;
@@ -129,6 +135,10 @@ public abstract class AbstractDrop implements DropLuck {
         // max point cap
         int effectivePoints = Math.min(570_000, points);
         return effectivePoints / 867_600.0;
+    }
+
+    private double getToBUniqueChanceFromPointFraction(double pointFraction) {
+        return Math.max(0, Math.min(1, pointFraction));
     }
 
 }

@@ -12,6 +12,8 @@ public interface CollectionLogConfig extends Config
 	String BARROWS_BOLT_RACKS_ENABLED_KEY = "barrows_bolt_racks_enabled";
 	String AVG_PERSONAL_COX_POINTS_KEY = "avg_personal_cox_points";
 	String AVG_PERSONAL_COX_CM_POINTS_KEY = "avg_personal_cox_cm_points";
+	String AVG_PERSONAL_TOB_POINTS_KEY = "avg_personal_tob_points";
+	String AVG_PERSONAL_TOB_HM_POINTS_KEY = "avg_personal_tob_hm_points";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -253,5 +255,29 @@ public interface CollectionLogConfig extends Config
 	default int avgPersonalCoxCmPoints()
 	{
 		return 45_000;
+	}
+
+	@ConfigItem(
+			keyName = AVG_PERSONAL_TOB_POINTS_KEY,
+			name = "ToB point fraction",
+			description = "The average fraction of max team points you receive per Theatre of Blood raid, including MVP points.",
+			position = 7,
+			section = luckSection
+	)
+	default double avgPersonalTobPointFraction()
+	{
+		return 0.25;
+	}
+
+	@ConfigItem(
+			keyName = AVG_PERSONAL_TOB_HM_POINTS_KEY,
+			name = "ToB HM point fraction",
+			description = "The average fraction of max team points you receive per Theatre of Blood Hard Mode raid, including MVP points.",
+			position = 8,
+			section = luckSection
+	)
+	default double avgPersonalTobHmPointFraction()
+	{
+		return 0.2;
 	}
 }

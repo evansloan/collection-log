@@ -42,7 +42,6 @@ public class LogItemInfo {
 
         Remaining items to support:
             Raids:
-                Theatre of Blood
                 Tombs of Amascut
 
             MVP mechanic:
@@ -509,7 +508,13 @@ public class LogItemInfo {
                     1, 2
             ));
     public static LogItemInfo AVERNIC_DEFENDER_HILT_22477 = new LogItemInfo("Avernic defender hilt", 22477,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS, 1.0 / 21.61),
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 19.8)
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_POINTS_KEY)
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_HM_POINTS_KEY)
+    );
     public static LogItemInfo AWAKENERS_ORB_28334 = new LogItemInfo("Awakener's orb", 28334,
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.WHISPERER_KILLS, 1.0 / 34.5),
@@ -1470,7 +1475,13 @@ public class LogItemInfo {
     public static LogItemInfo GHOUL_CHAMPION_SCROLL_6799 = new LogItemInfo("Ghoul champion scroll", 6799,
             new MissingKillCountDrop());
     public static LogItemInfo GHRAZI_RAPIER_22324 = new LogItemInfo("Ghrazi rapier", 22324,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS, 1.0 / 86.45),
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 69.3)
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_POINTS_KEY)
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_HM_POINTS_KEY)
+    );
     public static LogItemInfo GIANT_BOOT_23252 = new LogItemInfo("Giant boot", 23252,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.ELITE_CLUES_COMPLETED, 1.0 / 1275, 5)));
     public static LogItemInfo GIANT_CHAMPION_SCROLL_6800 = new LogItemInfo("Giant champion scroll", 6800,
@@ -1876,6 +1887,7 @@ public class LogItemInfo {
             )));
     public static LogItemInfo HOLY_ELIXIR_12833 = new LogItemInfo("Holy elixir", 12833,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.CORPOREAL_BEAST_KILLS, 3.0 / 512)));
+    // Always assume the player completes the HM raid within the challenge time.
     public static LogItemInfo HOLY_ORNAMENT_KIT_25742 = new LogItemInfo("Holy ornament kit", 25742,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 100)));
     public static LogItemInfo HOLY_SANDALS_12598 = new LogItemInfo("Holy sandals", 12598,
@@ -2029,11 +2041,29 @@ public class LogItemInfo {
     public static LogItemInfo JUNGLE_DEMON_MASK_20032 = new LogItemInfo("Jungle demon mask", 20032,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MASTER_CLUES_COMPLETED, 1.0 / 851, 6)));
     public static LogItemInfo JUSTICIAR_CHESTGUARD_22327 = new LogItemInfo("Justiciar chestguard", 22327,
-            new UnimplementedDrop());
+                        new PoissonBinomialDrop(ImmutableList.of(
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS, 1.0 / 86.45),
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 69.3)
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_POINTS_KEY)
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_HM_POINTS_KEY)
+    );
     public static LogItemInfo JUSTICIAR_FACEGUARD_22326 = new LogItemInfo("Justiciar faceguard", 22326,
-            new UnimplementedDrop());
+                        new PoissonBinomialDrop(ImmutableList.of(
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS, 1.0 / 86.45),
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 69.3)
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_POINTS_KEY)
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_HM_POINTS_KEY)
+    );
     public static LogItemInfo JUSTICIAR_LEGGUARDS_22328 = new LogItemInfo("Justiciar legguards", 22328,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS, 1.0 / 86.45),
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 69.3)
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_POINTS_KEY)
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_HM_POINTS_KEY)
+    );
     public static LogItemInfo KALPHITE_PRINCESS_12647 = new LogItemInfo("Kalphite princess", 12647,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.KALPHITE_QUEEN_KILLS, 1.0 / 3000)));
     public static LogItemInfo KARAMJAN_MONKEY_24862 = new LogItemInfo("Karamjan monkey", 24862,
@@ -2134,7 +2164,8 @@ public class LogItemInfo {
             new BinomialDrop(new RollInfo(LogItemSourceInfo.LEVIATHAN_KILLS, 1.0 / 2500)));
     public static LogItemInfo LIL_CREATOR_25348 = new LogItemInfo("Lil' creator", 25348,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.SPOILS_OF_WAR_OPENED, 1.0 / 400)));
-    // TODO: Is it a fair assumption to always assume max pet rate? It doesn't seem very hard to reach it?
+    // This assumes that the player always reaches max pet rate. This is fairly easy to do, as the player can die 2+
+    // times per raid and still receive the max pet rate.
     public static LogItemInfo LIL_ZIK_22473 = new LogItemInfo("Lil' zik", 22473,
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 500),
@@ -2762,9 +2793,17 @@ public class LogItemInfo {
     public static LogItemInfo SANDWICH_LADY_TOP_23315 = new LogItemInfo("Sandwich lady top", 23315,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.BEGINNER_CLUES_COMPLETED, 1.0 / 360, 2)));
     public static LogItemInfo SANGUINESTI_STAFF_UNCHARGED_22481 = new LogItemInfo("Sanguinesti staff (uncharged)", 22481,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS, 1.0 / 86.45),
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 69.3)
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_POINTS_KEY)
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_HM_POINTS_KEY)
+    );
+    // Always assume the player completes the HM raid within the challenge time.
     public static LogItemInfo SANGUINE_DUST_25746 = new LogItemInfo("Sanguine dust", 25746,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 275)));
+    // Always assume the player completes the HM raid within the challenge time.
     public static LogItemInfo SANGUINE_ORNAMENT_KIT_25744 = new LogItemInfo("Sanguine ornament kit", 25744,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 150)));
     public static LogItemInfo SARACHNIS_CUDGEL_23528 = new LogItemInfo("Sarachnis cudgel", 23528,
@@ -2855,7 +2894,13 @@ public class LogItemInfo {
     public static LogItemInfo SCRIBBLED_NOTE_21664 = new LogItemInfo("Scribbled note", 21664,
             new MissingKillCountDrop());
     public static LogItemInfo SCYTHE_OF_VITUR_UNCHARGED_22486 = new LogItemInfo("Scythe of vitur (uncharged)", 22486,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS, 1.0 / 172.9),
+                    new RollInfo(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS, 1.0 / 138.6)
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_POINTS_KEY)
+                    .withConfigOption(CollectionLogConfig.AVG_PERSONAL_TOB_HM_POINTS_KEY)
+    );
     public static LogItemInfo SEED_BOX_13639 = new LogItemInfo("Seed box", 13639,
             new DeterministicDrop());
     public static LogItemInfo SEERCULL_6724 = new LogItemInfo("Seercull", 6724,
@@ -3231,7 +3276,7 @@ public class LogItemInfo {
             new BinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0 / 2448, 7))
                     .withConfigOption(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
     public static LogItemInfo VIAL_OF_BLOOD_22446 = new LogItemInfo("Vial of blood", 22446,
-            new UnimplementedDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo VICTORS_CAPE_1000_24520 = new LogItemInfo("Victor's cape (1000)", 24520,
             new DeterministicDrop());
     public static LogItemInfo VICTORS_CAPE_100_24213 = new LogItemInfo("Victor's cape (100)", 24213,
