@@ -115,6 +115,8 @@ public abstract class AbstractDrop implements DropLuck {
     protected double getDropChance(RollInfo rollInfo, CollectionLogConfig config) {
         double dropChance = rollInfo.getDropChancePerRoll();
 
+        // Check both the drop source as well as the item name or modifier name, since checking the drop source is
+        // necessary for multi-source drops where each drop source behaves differently (e.g. Nightmare and Phosani's Nightmare)
         if (rollInfo.getDropSource().equals(LogItemSourceInfo.CHAMBERS_OF_XERIC_COMPLETIONS)
             && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_COX_POINTS_KEY)) {
             dropChance *= getCoxUniqueChanceFromPoints(config.avgPersonalCoxPoints());
@@ -149,17 +151,36 @@ public abstract class AbstractDrop implements DropLuck {
         else if (
                 rollInfo.getDropSource().equals(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS)
                         && configOptions.contains(LogItemInfo.TUMEKENS_GUARDIAN_27352.getItemName())) {
-            dropChance *= getToAPetChance(config.entryToaUniqueChance());
+            return getToAPetChance(config.entryToaUniqueChance());
         }
         else if (
                 rollInfo.getDropSource().equals(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS)
                         && configOptions.contains(LogItemInfo.TUMEKENS_GUARDIAN_27352.getItemName())) {
-            dropChance *= getToAPetChance(config.regularToaUniqueChance());
+            return getToAPetChance(config.regularToaUniqueChance());
         }
         else if (
                 rollInfo.getDropSource().equals(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS)
                         && configOptions.contains(LogItemInfo.TUMEKENS_GUARDIAN_27352.getItemName())) {
-            dropChance *= getToAPetChance(config.expertToaUniqueChance());
+            return getToAPetChance(config.expertToaUniqueChance());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.NIGHTMARE_KILLS)
+                        && configOptions.contains(CollectionLogConfig.AVG_NIGHTMARE_TEAM_SIZE_KEY)
+                        && configOptions.contains(CollectionLogConfig.AVG_NIGHTMARE_REWARDS_FRACTION_KEY)
+        ) {
+            dropChance *= getNightmareUniqueShare(config.avgNightmareTeamSize(), config.avgNightmareRewardsFraction());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.NIGHTMARE_KILLS)
+                        && configOptions.contains(LogItemInfo.JAR_OF_DREAMS_24495.getItemName())
+        ) {
+            dropChance *= getNightmareJarModifier(config.avgNightmareTeamSize());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.NIGHTMARE_KILLS)
+                        && configOptions.contains(LogItemInfo.LITTLE_NIGHTMARE_24491.getItemName())
+        ) {
+            dropChance *= getNightmarePetShare(config.avgNightmareTeamSize());
         }
 
         return dropChance;
@@ -193,6 +214,31 @@ public abstract class AbstractDrop implements DropLuck {
         double x = uniqueChance;
 
         return a*x*x + b*x + c;
+    }
+
+    private double getNightmareUniqueShare(double partySize, double rawRewardsFraction) {
+        // chance for additional drop in large parties
+        double uniqueChance = 1 + Math.max(0, Math.min(75, partySize - 5)) / 100.0;
+
+        double rewardsFraction = Math.max(0, Math.min(1, rawRewardsFraction));
+
+        return uniqueChance * rewardsFraction;
+    }
+
+    private double getNightmareJarModifier(double partySize) {
+        double clampedPartySize = Math.max(1, Math.min(5, partySize));
+        // Just assume average MVP rate - This is not really worth an entire config option to make it slightly more
+        // accurate.
+        double avgMvpRate = 1.0 / clampedPartySize;
+
+        // If you always MVP, you get the full 5% bonus. Scales linearly.
+        return 1 + avgMvpRate * 0.05;
+    }
+
+    private double getNightmarePetShare(double partySize) {
+        double clampedPartySize = Math.max(1, Math.min(5, partySize));
+
+        return 1.0 / clampedPartySize;
     }
 
 }

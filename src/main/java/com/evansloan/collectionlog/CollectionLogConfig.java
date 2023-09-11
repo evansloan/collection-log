@@ -17,6 +17,8 @@ public interface CollectionLogConfig extends Config
 	String ENTRY_TOA_UNIQUE_CHANCE_KEY = "entry_toa_unique_chance";
 	String REGULAR_TOA_UNIQUE_CHANCE_KEY = "regular_toa_unique_chance";
 	String EXPERT_TOA_UNIQUE_CHANCE_KEY = "expert_toa_unique_chance";
+	String AVG_NIGHTMARE_TEAM_SIZE_KEY = "avg_nightmare_team_size";
+	String AVG_NIGHTMARE_REWARDS_FRACTION_KEY = "avg_nightmare_rewards_fraction";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -319,5 +321,28 @@ public interface CollectionLogConfig extends Config
 	default double expertToaUniqueChance()
 	{
 		return 0.0440;
+	}
+
+	@ConfigItem(
+			keyName = AVG_NIGHTMARE_TEAM_SIZE_KEY,
+			name = "Avg Nightmare team size",
+			description = "Average team size when killing The Nightmare of Ashihama. Decimals can be used.",
+			position = 12,
+			section = luckSection
+	)
+	default double avgNightmareTeamSize() {
+		return 5;
+	}
+
+	@ConfigItem(
+			keyName = AVG_NIGHTMARE_REWARDS_FRACTION_KEY,
+			name = "Avg Nightmare rewards fraction",
+			description = "Your average fraction of the contribution to killing The Nightmare of Ashihama." +
+					" Multiply value by 1.05 if you always MVP. Defaults to 1 / team_size.",
+			position = 13,
+			section = luckSection
+	)
+	default double avgNightmareRewardsFraction() {
+		return 0.2;
 	}
 }

@@ -528,4 +528,171 @@ public class DropConfigOptionsTest {
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
+    @Test
+    public void calculateLuck_Nightmare_uniques() {
+        // Inquisitor's Mace drop rate is about:
+        // 1/1200 / 2 * 1.05 for Nightmare (teams of 2, always MVPs for testing purposes)
+        // 1/2000 for Phosani's Nightmare
+
+        // equivalent to 1 drop
+        int regularKc = 2286;
+        // equivalent to 1 drop
+        int phosaniKc = 2000;
+
+        // on drop rate.
+        int numObtained = 2;
+
+        // Approximating based on a binomial with success probability 1/1000, n = 2000 (expected value = 2)
+        double expectedLuck = 0.406;
+        double expectedDryness = 0.323;
+        double tolerance = 0.006;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public double avgNightmareTeamSize() {
+                return 2;
+            }
+
+            @Override
+            public double avgNightmareRewardsFraction() {
+                return 0.5 * 1.05;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.NIGHTMARE_KILLS, 1.0 / 1200),
+                new RollInfo(LogItemSourceInfo.PHOSANIS_NIGHTMARE_KILLS, 1.0 / 2000)
+        ))
+                .withConfigOption(CollectionLogConfig.AVG_NIGHTMARE_TEAM_SIZE_KEY)
+                .withConfigOption(CollectionLogConfig.AVG_NIGHTMARE_REWARDS_FRACTION_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.NIGHTMARE_KILLS.getName(), regularKc,
+                LogItemSourceInfo.PHOSANIS_NIGHTMARE_KILLS.getName(), phosaniKc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_Nightmare_pet() {
+        // Pet drop rate is about:
+        // 1/4000 for Nightmare (teams of 5)
+        // 1/1400 for Phosani's Nightmare
+
+        // equivalent to 1 pet
+        int regularKc = 4000;
+        // equivalent to 1 pet
+        int phosaniKc = 1400;
+
+        // on drop rate.
+        int numObtained = 2;
+
+        // Approximating based on a binomial with success probability 1/1000, n = 2000 (expected value = 2)
+        double expectedLuck = 0.406;
+        double expectedDryness = 0.323;
+        double tolerance = 0.01;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public double avgNightmareTeamSize() {
+                return 5;
+            }
+
+            @Override
+            // This is purposely set way too high to check that the pet drop is not affected by contribution
+            public double avgNightmareRewardsFraction() {
+                return 0.5;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                        new RollInfo(LogItemSourceInfo.NIGHTMARE_KILLS, 1.0 / 800),
+                        new RollInfo(LogItemSourceInfo.PHOSANIS_NIGHTMARE_KILLS, 1.0 / 1400)
+                ))
+                        .withConfigOption("Little nightmare");
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.NIGHTMARE_KILLS.getName(), regularKc,
+                LogItemSourceInfo.PHOSANIS_NIGHTMARE_KILLS.getName(), phosaniKc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_Nightmare_jar() {
+        // drop rate is about:
+        // 1/1950 for Nightmare (teams of 2, MVPs half the time)
+        // 1/4000 for Phosani's Nightmare
+
+        // equivalent to 1 drop
+        int regularKc = 1950;
+        // equivalent to 1 drop
+        int phosaniKc = 4000;
+
+        // on drop rate.
+        int numObtained = 2;
+
+        // Approximating based on a binomial with success probability 1/1000, n = 2000 (expected value = 2)
+        double expectedLuck = 0.406;
+        double expectedDryness = 0.323;
+        // This tolerance successfully distinguishes between 1900, 1950, and 2000 regular KC to make sure the
+        // MVP contribution is counted correctly
+        double tolerance = 0.006;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public double avgNightmareTeamSize() {
+                return 2;
+            }
+
+            @Override
+            // MVP half the time
+            public double avgNightmareRewardsFraction() {
+                return 0.5 * (1 + 0.5 * 1.05);
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.NIGHTMARE_KILLS, 1.0 / 2000),
+                new RollInfo(LogItemSourceInfo.PHOSANIS_NIGHTMARE_KILLS, 1.0 / 4000)
+        ))
+                .withConfigOption("Jar of dreams");
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.NIGHTMARE_KILLS.getName(), regularKc,
+                LogItemSourceInfo.PHOSANIS_NIGHTMARE_KILLS.getName(), phosaniKc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
 }
