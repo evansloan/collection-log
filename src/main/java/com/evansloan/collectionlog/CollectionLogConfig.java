@@ -14,6 +14,9 @@ public interface CollectionLogConfig extends Config
 	String AVG_PERSONAL_COX_CM_POINTS_KEY = "avg_personal_cox_cm_points";
 	String AVG_PERSONAL_TOB_POINTS_KEY = "avg_personal_tob_points";
 	String AVG_PERSONAL_TOB_HM_POINTS_KEY = "avg_personal_tob_hm_points";
+	String ENTRY_TOA_UNIQUE_CHANCE_KEY = "entry_toa_unique_chance";
+	String REGULAR_TOA_UNIQUE_CHANCE_KEY = "regular_toa_unique_chance";
+	String EXPERT_TOA_UNIQUE_CHANCE_KEY = "expert_toa_unique_chance";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -279,5 +282,42 @@ public interface CollectionLogConfig extends Config
 	default double avgPersonalTobHmPointFraction()
 	{
 		return 0.2;
+	}
+
+	// Note: This assumes that there is no reason to ever do a raid less than 50 invocation level.
+	@ConfigItem(
+			keyName = ENTRY_TOA_UNIQUE_CHANCE_KEY,
+			name = "Entry ToA Unique Chance",
+			description = "Use a plugin/calc to estimate your chance of a unique for your typical raid setup. Defaults to 50 invocation level.",
+			position = 9,
+			section = luckSection
+	)
+	default double entryToaUniqueChance()
+	{
+		return 0.0076;
+	}
+
+	@ConfigItem(
+			keyName = REGULAR_TOA_UNIQUE_CHANCE_KEY,
+			name = "Regular ToA Unique Chance",
+			description = "Use a plugin/calc to estimate your chance of a unique for your typical raid setup. Defaults to 150 invocation level.",
+			position = 10,
+			section = luckSection
+	)
+	default double regularToaUniqueChance()
+	{
+		return 0.0202;
+	}
+
+	@ConfigItem(
+			keyName = EXPERT_TOA_UNIQUE_CHANCE_KEY,
+			name = "Expert ToA Unique Chance",
+			description = "Use a plugin/calc to estimate your chance of a unique for your typical raid setup. Defaults to 300 invocation level.",
+			position = 11,
+			section = luckSection
+	)
+	default double expertToaUniqueChance()
+	{
+		return 0.0440;
 	}
 }

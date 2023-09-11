@@ -41,9 +41,6 @@ public class LogItemInfo {
             Maybe users would have to open this every so often to be able to track luck.
 
         Remaining items to support:
-            Raids:
-                Tombs of Amascut
-
             MVP mechanic:
                 Nightmare
                 Nex
@@ -937,7 +934,7 @@ public class LogItemInfo {
             new BinomialDrop(new RollInfo(LogItemSourceInfo.VARDORVIS_KILLS, 1.0 / 3000)));
     public static LogItemInfo CABBAGE_ROUND_SHIELD_20272 = new LogItemInfo("Cabbage round shield", 20272,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MEDIUM_CLUES_COMPLETED, 1.0 / 1133, 4)));
-    // TODO: Is this correct? Technically the rate of uniques should lower the effective drop rate.
+    // TODO: Technically, the rate of uniques should lower the effective drop rate. Low priority to fix.
     public static LogItemInfo CACHE_OF_RUNES_27293 = new LogItemInfo("Cache of runes", 27293,
             new BinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0 / 27, 3),
@@ -1357,7 +1354,16 @@ public class LogItemInfo {
     public static LogItemInfo ELDRITCH_ORB_24517 = new LogItemInfo("Eldritch orb", 24517,
             new UnimplementedDrop());
     public static LogItemInfo ELIDINIS_WARD_25985 = new LogItemInfo("Elidinis' ward", 25985,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    // drop chance is reduced by 98% in entry mode
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0 / 8 / 50),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0 / 8),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0 / 8)
+            ))
+                    .withConfigOption(CollectionLogConfig.ENTRY_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.REGULAR_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.EXPERT_TOA_UNIQUE_CHANCE_KEY)
+    );
     public static LogItemInfo ELITE_VOID_ROBE_13073 = new LogItemInfo("Elite void robe", 13073,
             new DeterministicDrop());
     public static LogItemInfo ELITE_VOID_TOP_13072 = new LogItemInfo("Elite void top", 13072,
@@ -2142,7 +2148,15 @@ public class LogItemInfo {
     public static LogItemInfo LEVIATHANS_LURE_28325 = new LogItemInfo("Leviathan's lure", 28325,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.LEVIATHAN_KILLS, 1.0 / 768)));
     public static LogItemInfo LIGHTBEARER_25975 = new LogItemInfo("Lightbearer", 25975,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0 / 3.429),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0 / 3.429),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0 / 3.429)
+            ))
+                    .withConfigOption(CollectionLogConfig.ENTRY_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.REGULAR_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.EXPERT_TOA_UNIQUE_CHANCE_KEY)
+    );
     public static LogItemInfo LIGHT_BOW_TIE_19985 = new LogItemInfo("Light bow tie", 19985,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.ELITE_CLUES_COMPLETED, 1.0 / 12750, 5)));
     public static LogItemInfo LIGHT_FRAME_19586 = new LogItemInfo("Light frame", 19586,
@@ -2226,13 +2240,40 @@ public class LogItemInfo {
     public static LogItemInfo MASK_OF_RANUL_23522 = new LogItemInfo("Mask of ranul", 23522,
             new MissingKillCountDrop());
     public static LogItemInfo MASORI_BODY_27229 = new LogItemInfo("Masori body", 27229,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    // drop chance is reduced by 98% in entry mode
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0 / 12 / 50),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0 / 12),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0 / 12)
+            ))
+                    .withConfigOption(CollectionLogConfig.ENTRY_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.REGULAR_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.EXPERT_TOA_UNIQUE_CHANCE_KEY)
+    );
     public static LogItemInfo MASORI_CHAPS_27232 = new LogItemInfo("Masori chaps", 27232,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    // drop chance is reduced by 98% in entry mode
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0 / 12 / 50),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0 / 12),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0 / 12)
+            ))
+                    .withConfigOption(CollectionLogConfig.ENTRY_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.REGULAR_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.EXPERT_TOA_UNIQUE_CHANCE_KEY)
+    );
     public static LogItemInfo MASORI_CRAFTING_KIT_27372 = new LogItemInfo("Masori crafting kit", 27372,
             new DeterministicDrop());
     public static LogItemInfo MASORI_MASK_27226 = new LogItemInfo("Masori mask", 27226,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    // drop chance is reduced by 98% in entry mode
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0 / 12 / 50),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0 / 12),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0 / 12)
+            ))
+                    .withConfigOption(CollectionLogConfig.ENTRY_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.REGULAR_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.EXPERT_TOA_UNIQUE_CHANCE_KEY)
+    );
     public static LogItemInfo MASTER_SCROLL_BOOK_EMPTY_21387 = new LogItemInfo("Master scroll book (empty)", 21387,
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.MASTER_CLUES_COMPLETED, 1.0 / 333.5),
@@ -2442,7 +2483,15 @@ public class LogItemInfo {
     public static LogItemInfo ORNATE_MAUL_HANDLE_24229 = new LogItemInfo("Ornate maul handle", 24229,
             new DeterministicDrop());
     public static LogItemInfo OSMUMTENS_FANG_26219 = new LogItemInfo("Osmumten's fang", 26219,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0 / 3.429),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0 / 3.429),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0 / 3.429)
+            ))
+                    .withConfigOption(CollectionLogConfig.ENTRY_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.REGULAR_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.EXPERT_TOA_UNIQUE_CHANCE_KEY)
+    );
     public static LogItemInfo PANTALOONS_10396 = new LogItemInfo("Pantaloons", 10396,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.EASY_CLUES_COMPLETED, 1.0 / 1404, 3)));
     public static LogItemInfo PARAGRAPH_OF_TEXT_21674 = new LogItemInfo("Paragraph of text", 21674,
@@ -3203,9 +3252,25 @@ public class LogItemInfo {
     public static LogItemInfo TRIDENT_OF_THE_SEAS_FULL_11905 = new LogItemInfo("Trident of the seas (full)", 11905,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.KRAKEN_KILLS, 1.0 / 512)));
     public static LogItemInfo TUMEKENS_GUARDIAN_27352 = new LogItemInfo("Tumeken's guardian", 27352,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    // drop chance is handled elsewhere
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0)
+            ))
+                    .withConfigOption("Tumeken's guardian")
+    );
     public static LogItemInfo TUMEKENS_SHADOW_UNCHARGED_27277 = new LogItemInfo("Tumeken's shadow (uncharged)", 27277,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    // drop chance is reduced by 98% in entry mode
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0 / 24 / 50),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0 / 24),
+                    new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0 / 24)
+            ))
+                    .withConfigOption(CollectionLogConfig.ENTRY_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.REGULAR_TOA_UNIQUE_CHANCE_KEY)
+                    .withConfigOption(CollectionLogConfig.EXPERT_TOA_UNIQUE_CHANCE_KEY)
+    );
     // Always assume the player completes the CM raid within the challenge time.
     public static LogItemInfo TWISTED_ANCESTRAL_COLOUR_KIT_24670 = new LogItemInfo("Twisted ancestral colour kit", 24670,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS, 1.0 / 75)));

@@ -394,4 +394,138 @@ public class DropConfigOptionsTest {
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
+    @Test
+    public void calculateLuck_ToAUniques() {
+        // Shadow drop rate is about:
+        // 0.01 / 24 / 50 = 0.000833333% for entry KC
+        // 0.02 / 24  = 0.083333333% for regular KC
+        // 0.05 / 24  = 0.208333333% for expert KC
+
+        // equivalent to 1/5th of a shadow
+        int entryKc = 24000;
+        // equivalent to 1 shadow
+        int regularKc = 1200;
+        // equivalent to 2 shadows
+        int expertKc = 960;
+
+        // on drop rate. Should be very slightly dry because of the entry KC.
+        int numObtained = 3;
+
+        // Approximating based on a binomial with success probability 1/1000, n = 3200 (expected value = 2+1+0.2)
+        double expectedLuck = 0.379;
+        double expectedDryness = 0.398;
+        // extremely low error compared to the binomial
+        double tolerance = 0.005;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public double entryToaUniqueChance() {
+                return 0.01;
+            }
+
+            @Override
+            public double regularToaUniqueChance() {
+                return 0.02;
+            }
+
+            @Override
+            public double expertToaUniqueChance() {
+                return 0.05;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                // drop chance is reduced by 98% in entry mode
+                new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0 / 24 / 50),
+                new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0 / 24),
+                new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0 / 24)
+        ))
+                .withConfigOption(CollectionLogConfig.ENTRY_TOA_UNIQUE_CHANCE_KEY)
+                .withConfigOption(CollectionLogConfig.REGULAR_TOA_UNIQUE_CHANCE_KEY)
+                .withConfigOption(CollectionLogConfig.EXPERT_TOA_UNIQUE_CHANCE_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "Tumeken's shadow (uncharged)", numObtained, true, 0);
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS.getName(), entryKc,
+                LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS.getName(), regularKc,
+                LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS.getName(), expertKc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_ToA_pet() {
+        // Pet drop rate is about:
+        // 0.0389% for entry KC (50s, unique chance 0.7624%)
+        // 0.0604% for regular KC (150s, unique chance 1.9737%)
+        // 0.2018% for expert KC (350s, unique chance 6.0534%)
+
+        // equivalent to 1 pet
+        int entryKc = 2571;
+        // equivalent to 1 pet
+        int regularKc = 1656;
+        // equivalent to 1 pet
+        int expertKc = 495;
+
+        // on drop rate. Should be very slightly dry because of the entry KC.
+        int numObtained = 3;
+
+        // Approximating based on a binomial with success probability 1/1000, n = 3000 (expected value = 3)
+        double expectedLuck = 0.423;
+        double expectedDryness = 0.353;
+        double tolerance = 0.025;
+
+        // Overriding with custom unique chances
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public double entryToaUniqueChance() {
+                return 0.007624;
+            }
+
+            @Override
+            public double regularToaUniqueChance() {
+                return 0.019737;
+            }
+
+            @Override
+            public double expertToaUniqueChance() {
+                return 0.060534;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                // drop chance is handled elsewhere
+                new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS, 1.0),
+                new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS, 1.0),
+                new RollInfo(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS, 1.0)
+        ))
+                .withConfigOption("Tumeken's guardian");
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "Tumeken's guardian", numObtained, true, 0);
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS.getName(), entryKc,
+                LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS.getName(), regularKc,
+                LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS.getName(), expertKc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
 }

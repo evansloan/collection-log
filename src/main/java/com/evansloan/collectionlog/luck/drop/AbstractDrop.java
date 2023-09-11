@@ -4,6 +4,7 @@ import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.CollectionLogKillCount;
+import com.evansloan.collectionlog.luck.LogItemInfo;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 import com.evansloan.collectionlog.luck.RollInfo;
 import org.apache.commons.math3.util.Pair;
@@ -117,15 +118,48 @@ public abstract class AbstractDrop implements DropLuck {
         if (rollInfo.getDropSource().equals(LogItemSourceInfo.CHAMBERS_OF_XERIC_COMPLETIONS)
             && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_COX_POINTS_KEY)) {
             dropChance *= getCoxUniqueChanceFromPoints(config.avgPersonalCoxPoints());
-        } else if (rollInfo.getDropSource().equals(LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS)
+        }
+        else if (rollInfo.getDropSource().equals(LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS)
             && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_COX_CM_POINTS_KEY)) {
             dropChance *= getCoxUniqueChanceFromPoints(config.avgPersonalCoxCmPoints());
-        } else if (rollInfo.getDropSource().equals(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS)
+        }
+        else if (rollInfo.getDropSource().equals(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS)
             && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_TOB_POINTS_KEY)) {
-            dropChance *= getToBUniqueChanceFromPointFraction(config.avgPersonalTobPointFraction());
-        } else if (rollInfo.getDropSource().equals(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS)
+            dropChance *= getToBPointFraction(config.avgPersonalTobPointFraction());
+        }
+        else if (rollInfo.getDropSource().equals(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS)
                 && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_TOB_HM_POINTS_KEY)) {
-            dropChance *= getToBUniqueChanceFromPointFraction(config.avgPersonalTobHmPointFraction());
+            dropChance *= getToBPointFraction(config.avgPersonalTobHmPointFraction());
+        }
+        else if (
+            rollInfo.getDropSource().equals(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS)
+                    && configOptions.contains(CollectionLogConfig.ENTRY_TOA_UNIQUE_CHANCE_KEY)) {
+            dropChance *= getToAUniqueChance(config.entryToaUniqueChance());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS)
+                        && configOptions.contains(CollectionLogConfig.REGULAR_TOA_UNIQUE_CHANCE_KEY)) {
+            dropChance *= getToAUniqueChance(config.regularToaUniqueChance());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS)
+                        && configOptions.contains(CollectionLogConfig.EXPERT_TOA_UNIQUE_CHANCE_KEY)) {
+            dropChance *= getToAUniqueChance(config.expertToaUniqueChance());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS)
+                        && configOptions.contains(LogItemInfo.TUMEKENS_GUARDIAN_27352.getItemName())) {
+            dropChance *= getToAPetChance(config.entryToaUniqueChance());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.TOMBS_OF_AMASCUT_COMPLETIONS)
+                        && configOptions.contains(LogItemInfo.TUMEKENS_GUARDIAN_27352.getItemName())) {
+            dropChance *= getToAPetChance(config.regularToaUniqueChance());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.TOMBS_OF_AMASCUT_EXPERT_COMPLETIONS)
+                        && configOptions.contains(LogItemInfo.TUMEKENS_GUARDIAN_27352.getItemName())) {
+            dropChance *= getToAPetChance(config.expertToaUniqueChance());
         }
 
         return dropChance;
@@ -137,8 +171,28 @@ public abstract class AbstractDrop implements DropLuck {
         return effectivePoints / 867_600.0;
     }
 
-    private double getToBUniqueChanceFromPointFraction(double pointFraction) {
+    private double getToBPointFraction(double pointFraction) {
         return Math.max(0, Math.min(1, pointFraction));
+    }
+
+    private double getToAUniqueChance(double uniqueChance) {
+        // max unique rate.
+        return Math.max(0, Math.min(0.55, uniqueChance));
+    }
+
+    // Unique chance can be used to estimate pet chance without the user having to plug in both.
+    // Fit online using wiki calculator and quadratic fit. Regions < 50 or > 550 invo may be inaccurate.
+    // This is also slightly inaccurate if you are getting many more or fewer points than average in a large
+    // team raid.
+    private double getToAPetChance(double rawUniqueChance) {
+        // max unique rate. This equation will be inaccurate by this point, anyway.
+        double uniqueChance = Math.max(0, Math.min(0.55, rawUniqueChance));
+        double a = 9.266e-02;
+        double b = 2.539e-02;
+        double c = 1.269e-04;
+        double x = uniqueChance;
+
+        return a*x*x + b*x + c;
     }
 
 }
