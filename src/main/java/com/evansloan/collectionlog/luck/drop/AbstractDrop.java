@@ -182,6 +182,12 @@ public abstract class AbstractDrop implements DropLuck {
         ) {
             dropChance *= getNightmarePetShare(config.avgNightmareTeamSize());
         }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.NEX_KILLS)
+                        && configOptions.contains(CollectionLogConfig.AVG_NEX_REWARDS_FRACTION_KEY)
+        ) {
+            dropChance *= getNexUniqueShare(config.avgNexRewardsFraction());
+        }
 
         return dropChance;
     }
@@ -216,6 +222,12 @@ public abstract class AbstractDrop implements DropLuck {
         return a*x*x + b*x + c;
     }
 
+    // The fraction of Nightmare contribution is used rather than MVP rate since having both options would be a bit
+    // overkill, and contribution could vary more or have a higher affect on unique rates than MVP rate. For example,
+    // in a mixed group, a player with max gear could do 1.5x the DPS of others in the group, while the MVP rate
+    // is only a 5% boost even if they MVP every time.
+    // Also, the user is instructed to increase the rewardsFraction by 5% if they always MVP, so it is still possible
+    // to correct the calculation in these cases.
     private double getNightmareUniqueShare(double partySize, double rawRewardsFraction) {
         // chance for additional drop in large parties
         double uniqueChance = 1 + Math.max(0, Math.min(75, partySize - 5)) / 100.0;
@@ -239,6 +251,15 @@ public abstract class AbstractDrop implements DropLuck {
         double clampedPartySize = Math.max(1, Math.min(5, partySize));
 
         return 1.0 / clampedPartySize;
+    }
+
+    // It isn't very clear whether MVP chance is 10% more additively or multiplicatively. This assumes multiplicatively
+    // and the user is instructed to increase the rewardsFraction by 10% if they always MVP, so no additional
+    // calculation based on team size etc. is necessary.
+    private double getNexUniqueShare(double rawRewardsFraction) {
+        double rewardsFraction = Math.max(0, Math.min(1, rawRewardsFraction));
+
+        return rewardsFraction;
     }
 
 }

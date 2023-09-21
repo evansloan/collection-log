@@ -41,9 +41,6 @@ public class LogItemInfo {
             Maybe users would have to open this every so often to be able to track luck.
 
         Remaining items to support:
-            MVP mechanic:
-                Nex
-
             Not enough info:
                 Wintertodt
                 Zalcano
@@ -2474,7 +2471,12 @@ public class LogItemInfo {
     public static LogItemInfo NAVY_CAVALIER_12325 = new LogItemInfo("Navy cavalier", 12325,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.HARD_CLUES_COMPLETED, 1.0 / 1625, 5)));
     public static LogItemInfo NEXLING_26348 = new LogItemInfo("Nexling", 26348,
-            new UnimplementedDrop());
+            new BinomialDrop(new RollInfo(LogItemSourceInfo.NEX_KILLS, 1.0 / 500))
+                    // We don't actually know exactly how much of a bonus MVPing gives to the Nex pet, but assuming it's
+                    // 10% multiplicatively just like uniques, we can just use the rewards fraction as if it's
+                    // a normal drop since the MVP rate is included in the rewards fraction
+                    .withConfigOption(CollectionLogConfig.AVG_NEX_REWARDS_FRACTION_KEY)
+    );
     public static LogItemInfo NIGHTMARE_STAFF_24422 = new LogItemInfo("Nightmare staff", 24422,
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.NIGHTMARE_KILLS, 1.0 / 400),
@@ -2484,7 +2486,9 @@ public class LogItemInfo {
                     .withConfigOption(CollectionLogConfig.AVG_NIGHTMARE_REWARDS_FRACTION_KEY)
     );
     public static LogItemInfo NIHIL_HORN_26372 = new LogItemInfo("Nihil horn", 26372,
-            new UnimplementedDrop());
+            new BinomialDrop(new RollInfo(LogItemSourceInfo.NEX_KILLS, 1.0 / 258))
+                    .withConfigOption(CollectionLogConfig.AVG_NEX_REWARDS_FRACTION_KEY)
+    );
     public static LogItemInfo NIHIL_SHARD_26231 = new LogItemInfo("Nihil shard", 26231,
             new UnimplementedDrop());
     public static LogItemInfo NOON_21748 = new LogItemInfo("Noon", 21748,
@@ -3285,11 +3289,17 @@ public class LogItemInfo {
     public static LogItemInfo TORTURE_ORNAMENT_KIT_20062 = new LogItemInfo("Torture ornament kit", 20062,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MASTER_CLUES_COMPLETED, 1.0 / 851, 6)));
     public static LogItemInfo TORVA_FULL_HELM_DAMAGED_26376 = new LogItemInfo("Torva full helm (damaged)", 26376,
-            new UnimplementedDrop());
+            new BinomialDrop(new RollInfo(LogItemSourceInfo.NEX_KILLS, 1.0 / 258))
+                    .withConfigOption(CollectionLogConfig.AVG_NEX_REWARDS_FRACTION_KEY)
+    );
     public static LogItemInfo TORVA_PLATEBODY_DAMAGED_26378 = new LogItemInfo("Torva platebody (damaged)", 26378,
-            new UnimplementedDrop());
+            new BinomialDrop(new RollInfo(LogItemSourceInfo.NEX_KILLS, 1.0 / 258))
+                    .withConfigOption(CollectionLogConfig.AVG_NEX_REWARDS_FRACTION_KEY)
+    );
     public static LogItemInfo TORVA_PLATELEGS_DAMAGED_26380 = new LogItemInfo("Torva platelegs (damaged)", 26380,
-            new UnimplementedDrop());
+            new BinomialDrop(new RollInfo(LogItemSourceInfo.NEX_KILLS, 1.0 / 258))
+                    .withConfigOption(CollectionLogConfig.AVG_NEX_REWARDS_FRACTION_KEY)
+    );
     public static LogItemInfo TREASONOUS_RING_12605 = new LogItemInfo("Treasonous ring", 12605,
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.VENENATIS_KILLS, 1.0 / 512),
@@ -3621,7 +3631,9 @@ public class LogItemInfo {
     public static LogItemInfo ZAMORAK_STOLE_10474 = new LogItemInfo("Zamorak stole", 10474,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.HARD_CLUES_COMPLETED, 1.0 / 1625, 5)));
     public static LogItemInfo ZARYTE_VAMBRACES_26235 = new LogItemInfo("Zaryte vambraces", 26235,
-            new UnimplementedDrop());
+            new BinomialDrop(new RollInfo(LogItemSourceInfo.NEX_KILLS, 1.0 / 172))
+                    .withConfigOption(CollectionLogConfig.AVG_NEX_REWARDS_FRACTION_KEY)
+    );
     public static LogItemInfo ZEALOTS_BOOTS_25440 = new LogItemInfo("Zealot's boots", 25440,
             new MissingKillCountDrop());
     public static LogItemInfo ZEALOTS_HELM_25438 = new LogItemInfo("Zealot's helm", 25438,

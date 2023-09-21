@@ -19,6 +19,7 @@ public interface CollectionLogConfig extends Config
 	String EXPERT_TOA_UNIQUE_CHANCE_KEY = "expert_toa_unique_chance";
 	String AVG_NIGHTMARE_TEAM_SIZE_KEY = "avg_nightmare_team_size";
 	String AVG_NIGHTMARE_REWARDS_FRACTION_KEY = "avg_nightmare_rewards_fraction";
+	String AVG_NEX_REWARDS_FRACTION_KEY = "avg_nex_rewards_fraction";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -338,11 +339,25 @@ public interface CollectionLogConfig extends Config
 			keyName = AVG_NIGHTMARE_REWARDS_FRACTION_KEY,
 			name = "Avg Nightmare rewards fraction",
 			description = "Your average fraction of the contribution to killing The Nightmare of Ashihama." +
-					" Multiply value by 1.05 if you always MVP. Defaults to 1 / team_size.",
+					" This should include MVP bonuses, so multiply by 1.05 if always MVP, or less accordingly.",
 			position = 13,
 			section = luckSection
 	)
 	default double avgNightmareRewardsFraction() {
-		return 0.2;
+		// average MVP rate of 20% with an average contribution on a 5-man team
+		return 0.202;
+	}
+
+	@ConfigItem(
+			keyName = AVG_NEX_REWARDS_FRACTION_KEY,
+			name = "Avg Nex rewards fraction",
+			description = "Your average fraction of the contribution to killing Nex." +
+					" This should include MVP bonuses, so multiply by 1.1 if always MVP, or less accordingly.",
+			position = 14,
+			section = luckSection
+	)
+	default double avgNexRewardsFraction() {
+		// average MVP rate of 20% with an average contribution on a 5-man team
+		return 0.204;
 	}
 }

@@ -695,4 +695,44 @@ public class DropConfigOptionsTest {
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
+    @Test
+    public void calculateLuck_Nex_uniques() {
+        // Nihil horn drop rate is about:
+        // 1 / 258 / 4 * 1.1 for Nex (teams of 4, always MVPs for testing purposes)
+
+        // equivalent to 1 drop
+        int kc = 1234;
+
+        // on drop rate.
+        int numObtained = 1;
+
+        // Calculated using online binomial calculator
+        double expectedLuck = 0.268;
+        double expectedDryness = 0.379;
+        double tolerance = 0.001;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public double avgNexRewardsFraction() {
+                return 0.25 * 1.1;
+            }
+        };
+
+        AbstractDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.NEX_KILLS, 1.0 / 258))
+                .withConfigOption(CollectionLogConfig.AVG_NEX_REWARDS_FRACTION_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.NEX_KILLS.getName(), kc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
 }
