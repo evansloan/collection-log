@@ -20,6 +20,7 @@ public interface CollectionLogConfig extends Config
 	String AVG_NIGHTMARE_TEAM_SIZE_KEY = "avg_nightmare_team_size";
 	String AVG_NIGHTMARE_REWARDS_FRACTION_KEY = "avg_nightmare_rewards_fraction";
 	String AVG_NEX_REWARDS_FRACTION_KEY = "avg_nex_rewards_fraction";
+	String NUM_ROLLS_PER_WINTERTODT_CRATE_KEY = "num_rolls_per_wintertodt_crate";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -359,5 +360,17 @@ public interface CollectionLogConfig extends Config
 	default double avgNexRewardsFraction() {
 		// average MVP rate of 20% with an average contribution on a 5-man team
 		return 0.204;
+	}
+
+	@ConfigItem(
+			keyName = NUM_ROLLS_PER_WINTERTODT_CRATE_KEY,
+			name = "# Wintertodt Rolls",
+			description = "The number of rolls per Wintertodt supply crate. 500 pts = 2 rolls. 1k pts = 3 rolls, and so on",
+			position = 15,
+			section = luckSection
+	)
+	default double numRollsPerWintertodtCrate()
+	{
+		return 2.5;
 	}
 }

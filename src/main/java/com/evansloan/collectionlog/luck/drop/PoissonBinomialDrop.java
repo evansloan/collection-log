@@ -34,7 +34,9 @@ public class PoissonBinomialDrop extends AbstractDrop {
         for (RollInfo rollInfo : rollInfos) {
             CollectionLogKillCount kc = collectionLog.searchForKillCount(rollInfo.getDropSource().getName());
             if (kc != null) {
-                probabilities.addAll(Collections.nCopies(kc.getAmount() * rollInfo.getRollsPerKc(), getDropChance(rollInfo, config)));
+                probabilities.addAll(Collections.nCopies(
+                        (int) Math.round(kc.getAmount() * getRollsPerKc(rollInfo, config)),
+                        getDropChance(rollInfo, config)));
             }
         }
 

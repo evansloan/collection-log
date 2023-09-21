@@ -735,4 +735,64 @@ public class DropConfigOptionsTest {
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
+    @Test
+    public void calculateLuck_Wintertodt_dragon_axe() {
+        // This is a good test of combining config options with multiple drop sources where only some of the drop sources
+        // are relevant to that config option
+
+        // drop rate is about:
+        // 1/128 for Dag kings
+        // 1/10000 for WT crates.
+
+        // equivalent to 2 drops
+        int primeKc = 128 * 2;
+        // equivalent to 3 drops
+        int rexKc = 128 * 3;
+        // equivalent to 4 drops
+        int supremeKc = 128 * 4;
+        // equivalent to 1 drop (at 2.5 rolls per crate)
+        int wintertodtKc = 4000;
+
+        // on drop rate.
+        int numObtained = 1 + 2 + 3 + 4;
+
+        // Approximating based on a binomial with success probability 1/1000, n = 10000 (expected value = 10)
+        double expectedLuck = 0.458;
+        double expectedDryness = 0.417;
+        double tolerance = 0.002;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public double numRollsPerWintertodtCrate() {
+                return 2.5;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.DAGANNOTH_PRIME_KILLS, 1.0 / 128),
+                new RollInfo(LogItemSourceInfo.DAGANNOTH_REX_KILLS, 1.0 / 128),
+                new RollInfo(LogItemSourceInfo.DAGANNOTH_SUPREME_KILLS, 1.0 / 128),
+                new RollInfo(LogItemSourceInfo.WINTERTODT_KILLS, 1.0 / 10000)
+        ))
+                .withConfigOption(CollectionLogConfig.NUM_ROLLS_PER_WINTERTODT_CRATE_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.DAGANNOTH_PRIME_KILLS.getName(), primeKc,
+                LogItemSourceInfo.DAGANNOTH_REX_KILLS.getName(), rexKc,
+                LogItemSourceInfo.DAGANNOTH_SUPREME_KILLS.getName(), supremeKc,
+                LogItemSourceInfo.WINTERTODT_KILLS.getName(), wintertodtKc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
 }

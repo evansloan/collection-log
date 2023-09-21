@@ -42,7 +42,6 @@ public class LogItemInfo {
 
         Remaining items to support:
             Not enough info:
-                Wintertodt
                 Zalcano
                 Jad/Inferno pets
 
@@ -248,7 +247,9 @@ public class LogItemInfo {
     public static LogItemInfo ANCIENT_HALO_24201 = new LogItemInfo("Ancient halo", 24201,
             new DeterministicDrop());
     public static LogItemInfo ANCIENT_HILT_26370 = new LogItemInfo("Ancient hilt", 26370,
-            new UnimplementedDrop());
+            new BinomialDrop(new RollInfo(LogItemSourceInfo.NEX_KILLS, 1.0 / 516))
+                    .withConfigOption(CollectionLogConfig.AVG_NEX_REWARDS_FRACTION_KEY)
+    );
     public static LogItemInfo ANCIENT_ICON_27627 = new LogItemInfo("Ancient icon", 27627,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.PHANTOM_MUSPAH_KILLS, 1.0 / 50)));
     public static LogItemInfo ANCIENT_KITESHIELD_12468 = new LogItemInfo("Ancient kiteshield", 12468,
@@ -1241,7 +1242,13 @@ public class LogItemInfo {
                     new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, 1.0 / 358)
             )));
     public static LogItemInfo DRAGON_AXE_6739 = new LogItemInfo("Dragon axe", 6739,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    new RollInfo(LogItemSourceInfo.DAGANNOTH_PRIME_KILLS, 1.0 / 128),
+                    new RollInfo(LogItemSourceInfo.DAGANNOTH_REX_KILLS, 1.0 / 128),
+                    new RollInfo(LogItemSourceInfo.DAGANNOTH_SUPREME_KILLS, 1.0 / 128),
+                    new RollInfo(LogItemSourceInfo.WINTERTODT_KILLS, 1.0 / 10000)
+            ))
+                    .withConfigOption(CollectionLogConfig.NUM_ROLLS_PER_WINTERTODT_CRATE_KEY));
     public static LogItemInfo DRAGON_BOOTS_11840 = new LogItemInfo("Dragon boots", 11840,
             new MissingKillCountDrop());
     public static LogItemInfo DRAGON_BOOTS_ORNAMENT_KIT_22231 = new LogItemInfo("Dragon boots ornament kit", 22231,
@@ -2613,7 +2620,9 @@ public class LogItemInfo {
     public static LogItemInfo PHASMATYS_FLAG_8971 = new LogItemInfo("Phasmatys flag", 8971,
             new DeterministicDrop());
     public static LogItemInfo PHOENIX_20693 = new LogItemInfo("Phoenix", 20693,
-            new UnimplementedDrop());
+            new BinomialDrop(new RollInfo(LogItemSourceInfo.WINTERTODT_KILLS, 1.0 / 5000))
+                    .withConfigOption(CollectionLogConfig.NUM_ROLLS_PER_WINTERTODT_CRATE_KEY)
+    );
     public static LogItemInfo PINK_BOATER_12309 = new LogItemInfo("Pink boater", 12309,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MEDIUM_CLUES_COMPLETED, 1.0 / 1133, 4)));
     public static LogItemInfo PINK_ELEGANT_BLOUSE_12339 = new LogItemInfo("Pink elegant blouse", 12339,
@@ -3263,7 +3272,9 @@ public class LogItemInfo {
     public static LogItemInfo TOKTZ_XIL_UL_6522 = new LogItemInfo("Toktz-xil-ul", 6522,
             new MissingKillCountDrop());
     public static LogItemInfo TOME_OF_FIRE_EMPTY_20716 = new LogItemInfo("Tome of fire (empty)", 20716,
-            new UnimplementedDrop());
+            new BinomialDrop(new RollInfo(LogItemSourceInfo.WINTERTODT_KILLS, 1.0 / 1000))
+                    .withConfigOption(CollectionLogConfig.NUM_ROLLS_PER_WINTERTODT_CRATE_KEY)
+    );
     public static LogItemInfo TOME_OF_WATER_EMPTY_25576 = new LogItemInfo("Tome of water (empty)", 25576,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.REWARD_PERMITS_CLAIMED, 1.0 / 1600)));
     public static LogItemInfo TOP_HAT_12432 = new LogItemInfo("Top hat", 12432,
@@ -3285,7 +3296,10 @@ public class LogItemInfo {
     public static LogItemInfo TORMENTED_ORNAMENT_KIT_23348 = new LogItemInfo("Tormented ornament kit", 23348,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MASTER_CLUES_COMPLETED, 1.0 / 851, 6)));
     public static LogItemInfo TORN_PRAYER_SCROLL_21047 = new LogItemInfo("Torn prayer scroll", 21047,
-            new UnimplementedDrop());
+            new BinomialDrop(ImmutableList.of(
+                    new RollInfo(LogItemSourceInfo.CHAMBERS_OF_XERIC_COMPLETIONS, 1.0 / 33, 2),
+                    new RollInfo(LogItemSourceInfo.CHAMBERS_OF_XERIC_CM_COMPLETIONS, 1.0 / 33, 2)
+            )));
     public static LogItemInfo TORTURE_ORNAMENT_KIT_20062 = new LogItemInfo("Torture ornament kit", 20062,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MASTER_CLUES_COMPLETED, 1.0 / 851, 6)));
     public static LogItemInfo TORVA_FULL_HELM_DAMAGED_26376 = new LogItemInfo("Torva full helm (damaged)", 26376,

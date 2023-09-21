@@ -78,20 +78,22 @@ public abstract class AbstractDrop implements DropLuck {
     }
 
     protected int getNumTrials(CollectionLog collectionLog, CollectionLogConfig config) {
-        int numTrials = rollInfos.stream()
-                .map(rollInfos -> new Pair<>(
-                        collectionLog.searchForKillCount(rollInfos.getDropSource().getName()),
-                        rollInfos.getRollsPerKc()))
+        double numTrials = rollInfos.stream()
+                .map(rollInfo -> new Pair<>(
+                        collectionLog.searchForKillCount(rollInfo.getDropSource().getName()),
+                        getRollsPerKc(rollInfo, config)))
                 // filter out nulls just in case
                 .filter(pair -> pair.getKey() != null && pair.getValue() != null)
-                .mapToInt(pair -> pair.getKey().getAmount() * pair.getValue())
+                // Round to the nearest whole number of trials, if rolls per KC is not a whole number
+                .mapToDouble(pair -> pair.getKey().getAmount() * pair.getValue())
                 .sum();
 
+        // This assumes the only drop source is Barrows.
         if (configOptions.contains(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY)) {
-            numTrials -= config.numInvalidBarrowsKc() * rollInfos.get(0).getRollsPerKc();
+            numTrials -= config.numInvalidBarrowsKc() * getRollsPerKc(rollInfos.get(0), config);
         }
 
-        return numTrials;
+        return (int) Math.round(numTrials);
     }
 
     protected int getNumSuccesses(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
@@ -110,6 +112,17 @@ public abstract class AbstractDrop implements DropLuck {
     // In the vast majority of cases, this is equal to getNumSuccesses.
     protected int getMaxEquivalentNumSuccesses(CollectionLogItem item, CollectionLog collectionLog, CollectionLogConfig config) {
         return getNumSuccesses(item, collectionLog, config);
+    }
+
+    protected double getRollsPerKc(RollInfo rollInfo, CollectionLogConfig config) {
+        double rollsPerKc = rollInfo.getRollsPerKc();
+
+        if (rollInfo.getDropSource().equals(LogItemSourceInfo.WINTERTODT_KILLS)
+                && configOptions.contains(CollectionLogConfig.NUM_ROLLS_PER_WINTERTODT_CRATE_KEY)) {
+            rollsPerKc *= config.numRollsPerWintertodtCrate();
+        }
+
+        return rollsPerKc;
     }
 
     protected double getDropChance(RollInfo rollInfo, CollectionLogConfig config) {
