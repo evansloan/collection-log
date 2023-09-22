@@ -186,12 +186,16 @@ public interface CollectionLogConfig extends Config
 		return true;
 	}
 
+	// ############### Luck section ###############
+
 	@ConfigSection(
 			name = "Luck calculation",
 			description = "Config options for calculation collection log luck",
 			position = 5
 	)
 	String luckSection = "Luck calculation";
+
+	// ############### Luck calculation settings ###############
 
 	// Other players' luck will always show, for example though the !log command, but the player may want to hide
 	// their own luck because it could be unpleasant to see.
@@ -207,53 +211,13 @@ public interface CollectionLogConfig extends Config
 		return false;
 	}
 
-	// Purchasing Abyssal Lanterns prevents calculating how many the player has received through the Rewards Guardian.
-	// The calculation can be corrected if the player inputs the number purchased from the shop.
-	@ConfigItem(
-			keyName = NUM_ABYSSAL_LANTERNS_PURCHASED_KEY,
-			name = "# Abyssal Lanterns bought",
-			description = "The number of Abyssal Lanterns you bought from the Guardians of the Rift shop.",
-			position = 2,
-			section = luckSection
-	)
-	default int numAbyssalLanternsPurchased()
-	{
-		return 0;
-	}
-
-	// Completing Barrows without killing all 6 brothers, for example if rapidly resetting to finish Barrows combat
-	// achievements, drastically reduces the chance of receiving unique loot. The player can configure an approximate
-	// number of Barrows KC they have wasted, including summing fractional less-than-6-brother-kills, to make the luck
-	// calculation more accurate. This is completely optional, and being exact is not really necessary.
-	@ConfigItem(
-			keyName = NUM_INVALID_BARROWS_KC_KEY,
-			name = "# Barrows KC wasted",
-			description = "The effective number of Barrows KC wasted by killing < 6 brothers. 4-5 brothers killed ~= 0.5 KC wasted.",
-			position = 3,
-			section = luckSection
-	)
-	default int numInvalidBarrowsKc()
-	{
-		return 0;
-	}
-
-	@ConfigItem(
-			keyName = BARROWS_BOLT_RACKS_ENABLED_KEY,
-			name = "Bolt racks enabled",
-			description = "Whether or not you try to get enough points at Barrows to receive bolt racks.",
-			position = 4,
-			section = luckSection
-	)
-	default boolean barrowsBoltRacksEnabled()
-	{
-		return false;
-	}
+	// ############### Raids, in order, are at the top since it's likely most interesting to people. ###############
 
 	@ConfigItem(
 			keyName = AVG_PERSONAL_COX_POINTS_KEY,
 			name = "CoX points per raid",
 			description = "The average # of points you personally receive per Chambers of Xeric raid.",
-			position = 5,
+			position = 2,
 			section = luckSection
 	)
 	default int avgPersonalCoxPoints()
@@ -265,7 +229,7 @@ public interface CollectionLogConfig extends Config
 			keyName = AVG_PERSONAL_COX_CM_POINTS_KEY,
 			name = "CoX CM points per raid",
 			description = "The average # of points you personally receive per Chambers of Xeric Challenge Mode raid.",
-			position = 6,
+			position = 3,
 			section = luckSection
 	)
 	default int avgPersonalCoxCmPoints()
@@ -277,7 +241,7 @@ public interface CollectionLogConfig extends Config
 			keyName = AVG_PERSONAL_TOB_POINTS_KEY,
 			name = "ToB point fraction",
 			description = "The average fraction of max team points you receive per Theatre of Blood raid, including MVP points.",
-			position = 7,
+			position = 4,
 			section = luckSection
 	)
 	default double avgPersonalTobPointFraction()
@@ -289,7 +253,7 @@ public interface CollectionLogConfig extends Config
 			keyName = AVG_PERSONAL_TOB_HM_POINTS_KEY,
 			name = "ToB HM point fraction",
 			description = "The average fraction of max team points you receive per Theatre of Blood Hard Mode raid, including MVP points.",
-			position = 8,
+			position = 5,
 			section = luckSection
 	)
 	default double avgPersonalTobHmPointFraction()
@@ -302,7 +266,7 @@ public interface CollectionLogConfig extends Config
 			keyName = ENTRY_TOA_UNIQUE_CHANCE_KEY,
 			name = "Entry ToA Unique Chance",
 			description = "Use a plugin/calc to estimate your chance of a unique for your typical raid setup. Defaults to 50 invocation level.",
-			position = 9,
+			position = 6,
 			section = luckSection
 	)
 	default double entryToaUniqueChance()
@@ -314,7 +278,7 @@ public interface CollectionLogConfig extends Config
 			keyName = REGULAR_TOA_UNIQUE_CHANCE_KEY,
 			name = "Regular ToA Unique Chance",
 			description = "Use a plugin/calc to estimate your chance of a unique for your typical raid setup. Defaults to 150 invocation level.",
-			position = 10,
+			position = 7,
 			section = luckSection
 	)
 	default double regularToaUniqueChance()
@@ -326,7 +290,7 @@ public interface CollectionLogConfig extends Config
 			keyName = EXPERT_TOA_UNIQUE_CHANCE_KEY,
 			name = "Expert ToA Unique Chance",
 			description = "Use a plugin/calc to estimate your chance of a unique for your typical raid setup. Defaults to 300 invocation level.",
-			position = 11,
+			position = 8,
 			section = luckSection
 	)
 	default double expertToaUniqueChance()
@@ -334,11 +298,13 @@ public interface CollectionLogConfig extends Config
 		return 0.0440;
 	}
 
+	// ############### Team based bosses with contribution (% damage dealt and/or MVP mechanic) ###############
+
 	@ConfigItem(
 			keyName = AVG_NIGHTMARE_TEAM_SIZE_KEY,
-			name = "Avg Nightmare team size",
+			name = "Nightmare team size",
 			description = "Average team size when killing The Nightmare of Ashihama. Decimals can be used.",
-			position = 12,
+			position = 9,
 			section = luckSection
 	)
 	default double avgNightmareTeamSize() {
@@ -347,10 +313,10 @@ public interface CollectionLogConfig extends Config
 
 	@ConfigItem(
 			keyName = AVG_NIGHTMARE_REWARDS_FRACTION_KEY,
-			name = "Avg Nightmare rewards fraction",
-			description = "Your average fraction of the contribution to killing The Nightmare of Ashihama." +
+			name = "Nightmare rewards fraction",
+			description = "Avg. fraction of contribution to killing The Nightmare of Ashihama." +
 					" This should include MVP bonuses, so multiply by 1.05 if always MVP, or less accordingly.",
-			position = 13,
+			position = 10,
 			section = luckSection
 	)
 	default double avgNightmareRewardsFraction() {
@@ -360,16 +326,78 @@ public interface CollectionLogConfig extends Config
 
 	@ConfigItem(
 			keyName = AVG_NEX_REWARDS_FRACTION_KEY,
-			name = "Avg Nex rewards fraction",
-			description = "Your average fraction of the contribution to killing Nex." +
+			name = "Nex rewards fraction",
+			description = "Avg. fraction of contribution to killing Nex." +
 					" This should include MVP bonuses, so multiply by 1.1 if always MVP, or less accordingly.",
-			position = 14,
+			position = 11,
 			section = luckSection
 	)
 	default double avgNexRewardsFraction() {
 		// average MVP rate of 20% with an average contribution on a 5-man team
 		return 0.204;
 	}
+
+	@ConfigItem(
+			keyName = AVG_CALLISTO_REWARDS_FRACTION_KEY,
+			name = "Callisto rewards fraction",
+			description = "Avg. fraction of contribution to killing Callisto." +
+					" Set to 0.1 if team size >= 10, or 1 if soloing.",
+			position = 12,
+			section = luckSection
+	)
+	default double avgCallistoRewardsFraction() {
+		return 0.2;
+	}
+
+	@ConfigItem(
+			keyName = AVG_VENENATIS_REWARDS_FRACTION_KEY,
+			name = "Venenatis rewards fraction",
+			description = "Avg. fraction of contribution to killing Venenatis." +
+					" Set to 0.1 if team size >= 10, or 1 if soloing.",
+			position = 13,
+			section = luckSection
+	)
+	default double avgVenenatisRewardsFraction() {
+		return 0.5;
+	}
+
+	@ConfigItem(
+			keyName = AVG_VETION_REWARDS_FRACTION_KEY,
+			name = "Vet'ion rewards fraction",
+			description = "Avg. fraction of contribution to killing Vet'ion." +
+					" Set to 0.1 if team size >= 10, or 1 if soloing.",
+			position = 14,
+			section = luckSection
+	)
+	default double avgVetionRewardsFraction() {
+		return 0.5;
+	}
+
+	@ConfigItem(
+			keyName = AVG_ZALCANO_REWARDS_FRACTION_KEY,
+			name = "Zalcano rewards fraction",
+			description = "Avg. fraction of contribution to killing Zalcano, taking into account team size.",
+			position = 16,
+			section = luckSection
+	)
+	default double avgZalcanoRewardsFraction() {
+		// 4 man is most efficient
+		return 0.25;
+	}
+
+	@ConfigItem(
+			keyName = AVG_ZALCANO_POINTS_KEY,
+			name = "Zalcano points",
+			description = "Your average number of points per Zalcano kill. See wiki for more info.",
+			position = 17,
+			section = luckSection
+	)
+	default int avgZalcanoPoints() {
+		// According to Zalcano community, 210 to 350 points is normal in efficient 4-man
+		return 300;
+	}
+
+	// ############### Misc minigames and minor bosses. ###############
 
 	@ConfigItem(
 			keyName = NUM_ROLLS_PER_WINTERTODT_CRATE_KEY,
@@ -383,35 +411,41 @@ public interface CollectionLogConfig extends Config
 		return 2.5;
 	}
 
+	// Completing Barrows without killing all 6 brothers, for example if rapidly resetting to finish Barrows combat
+	// achievements, drastically reduces the chance of receiving unique loot. The player can configure an approximate
+	// number of Barrows KC they have wasted, including summing fractional less-than-6-brother-kills, to make the luck
+	// calculation more accurate. This is completely optional, and being exact is not really necessary.
 	@ConfigItem(
-			keyName = AVG_ZALCANO_REWARDS_FRACTION_KEY,
-			name = "Avg Zalcano rewards fraction",
-			description = "Your average fraction of the contribution to killing Zalcano, taking into account team size.",
-			position = 16,
+			keyName = NUM_INVALID_BARROWS_KC_KEY,
+			name = "# Barrows KC wasted",
+			description = "The effective number of Barrows KC wasted by killing < 6 brothers. 4-5 brothers killed ~= 0.5 KC wasted.",
+			position = 18,
 			section = luckSection
 	)
-	default double avgZalcanoRewardsFraction() {
-		// 4 man is most efficient
-		return 0.25;
+	default int numInvalidBarrowsKc()
+	{
+		return 0;
 	}
 
 	@ConfigItem(
-			keyName = AVG_ZALCANO_POINTS_KEY,
-			name = "Avg Zalcano points",
-			description = "Your average number of points per Zalcano kill. See wiki for more info.",
-			position = 17,
+			keyName = BARROWS_BOLT_RACKS_ENABLED_KEY,
+			name = "Bolt racks enabled",
+			description = "Whether or not you try to get enough points at Barrows to receive bolt racks.",
+			position = 19,
 			section = luckSection
 	)
-	default int avgZalcanoPoints() {
-		// According to Zalcano community, 210 to 350 points is normal in efficient 4-man
-		return 300;
+	default boolean barrowsBoltRacksEnabled()
+	{
+		return false;
 	}
+
+	// ############### Manually purchased or sacrificed items. Requires regular updates by the user. ###############
 
 	@ConfigItem(
 			keyName = NUM_FIRE_CAPES_SACRIFICED_KEY,
 			name = "# Fire capes sacrificed",
 			description = "The number of fire capes sacrificed for a chance at TzRek-Jad.",
-			position = 18,
+			position = 20,
 			section = luckSection
 	)
 	default int numFireCapesSacrificed() {
@@ -422,57 +456,24 @@ public interface CollectionLogConfig extends Config
 			keyName = NUM_INFERNAL_CAPES_SACRIFICED_KEY,
 			name = "# Infernal capes sacrificed",
 			description = "The number of infernal capes sacrificed for a chance at Jal-nib-rek.",
-			position = 19,
+			position = 21,
 			section = luckSection
 	)
 	default int numInfernalCapesSacrificed() {
 		return 0;
 	}
 
+	// Purchasing Abyssal Lanterns prevents calculating how many the player has received through the Rewards Guardian.
+	// The calculation can be corrected if the player inputs the number purchased from the shop.
 	@ConfigItem(
-			keyName = AVG_CALLISTO_REWARDS_FRACTION_KEY,
-			name = "Avg Callisto rewards fraction",
-			description = "Your average fraction of the contribution to killing Callisto." +
-					" Set to 0.1 if team size >= 10, or 1 if soloing.",
-			position = 20,
-			section = luckSection
-	)
-	default double avgCallistoRewardsFraction() {
-		return 0.2;
-	}
-
-	@ConfigItem(
-			keyName = AVG_VENENATIS_REWARDS_FRACTION_KEY,
-			name = "Avg Venenatis rewards fraction",
-			description = "Your average fraction of the contribution to killing Venenatis." +
-					" Set to 0.1 if team size >= 10, or 1 if soloing.",
-			position = 21,
-			section = luckSection
-	)
-	default double avgVenenatisRewardsFraction() {
-		return 0.2;
-	}
-
-	@ConfigItem(
-			keyName = AVG_VETION_REWARDS_FRACTION_KEY,
-			name = "Avg Vet'ion rewards fraction",
-			description = "Your average fraction of the contribution to killing Vet'ion." +
-					" Set to 0.1 if team size >= 10, or 1 if soloing.",
+			keyName = NUM_ABYSSAL_LANTERNS_PURCHASED_KEY,
+			name = "# Abyssal Lanterns bought",
+			description = "The number of Abyssal Lanterns you bought from the Guardians of the Rift shop.",
 			position = 22,
 			section = luckSection
 	)
-	default double avgVetionRewardsFraction() {
-		return 0.5;
-	}
-
-	@ConfigItem(
-			keyName = SKOTIZO_KC_PRE_BUFF_KEY,
-			name = "Skotizo KC pre-buff",
-			description = "# of Skotizo kills before the Jar of darkness drop rate buff",
-			position = 23,
-			section = luckSection
-	)
-	default int skotizoKcPreBuff() {
+	default int numAbyssalLanternsPurchased()
+	{
 		return 0;
 	}
 
@@ -482,11 +483,24 @@ public interface CollectionLogConfig extends Config
 			keyName = NUM_CRYSTAL_WEAPON_SEEDS_PURCHASED_KEY,
 			name = "# Crystal weapon seeds bought",
 			description = "The number of crystal weapon seeds you bought from the Last Man Standing shop.",
-			position = 24,
+			position = 23,
 			section = luckSection
 	)
 	default int numCrystalWeaponSeedsPurchased()
 	{
+		return 0;
+	}
+
+	// ############### Settings based on historical drop rate changes ###############
+
+	@ConfigItem(
+			keyName = SKOTIZO_KC_PRE_BUFF_KEY,
+			name = "Skotizo KC pre-buff",
+			description = "# of Skotizo kills before the Jar of darkness drop rate buff",
+			position = 24,
+			section = luckSection
+	)
+	default int skotizoKcPreBuff() {
 		return 0;
 	}
 
