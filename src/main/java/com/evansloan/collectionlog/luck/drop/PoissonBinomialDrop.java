@@ -130,6 +130,18 @@ public class PoissonBinomialDrop extends AbstractDrop {
                 // The player cannot have sacrificed more capes than they have KC
                 return Math.max(0, Math.min(numRolls, config.numInfernalCapesSacrificed()));
             }
+        } else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.SKOTIZO_KILLS)
+                        && configOptions.contains(CollectionLogConfig.SKOTIZO_KC_PRE_BUFF_KEY)) {
+            // jar of darkness pre-buff
+            if (rollInfoIndex == 0) {
+                // The player cannot have more pre-buff KC than they have KC
+                return Math.max(0, Math.min(numRolls, config.skotizoKcPreBuff()));
+            }
+            // jar of darkness post-buff
+            else if (rollInfoIndex == 1) {
+                return numRolls - Math.max(0, Math.min(numRolls, config.skotizoKcPreBuff()));
+            }
         }
 
         return numRolls;

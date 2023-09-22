@@ -28,6 +28,7 @@ public interface CollectionLogConfig extends Config
 	String AVG_CALLISTO_REWARDS_FRACTION_KEY = "avg_callisto_rewards_fraction";
 	String AVG_VENENATIS_REWARDS_FRACTION_KEY = "avg_venenatis_rewards_fraction";
 	String AVG_VETION_REWARDS_FRACTION_KEY = "avg_vetion_rewards_fraction";
+	String SKOTIZO_KC_PRE_BUFF_KEY = "skotizo_kc_pre_buff";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -461,6 +462,17 @@ public interface CollectionLogConfig extends Config
 	)
 	default double avgVetionRewardsFraction() {
 		return 0.5;
+	}
+
+	@ConfigItem(
+			keyName = SKOTIZO_KC_PRE_BUFF_KEY,
+			name = "Skotizo KC pre-buff",
+			description = "# of Skotizo kills before the Jar of darkness drop rate buff",
+			position = 23,
+			section = luckSection
+	)
+	default int skotizoKcPreBuff() {
+		return 0;
 	}
 
 }

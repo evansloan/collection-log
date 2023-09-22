@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Optional;
 
 // All 1477 collection log items as of 9/21/2023 and a mapping to their item IDs and drop mechanics / probabilities.
-// TODO: Consider storing this mapping on GitHub so new items in future updates can be added without a plugin update.
 public class LogItemInfo {
 
     /*
@@ -2090,9 +2089,14 @@ public class LogItemInfo {
                     .withConfigOption(CollectionLogConfig.NUM_INFERNAL_CAPES_SACRIFICED_KEY));
     public static LogItemInfo JAR_OF_CHEMICALS_23064 = new LogItemInfo("Jar of chemicals", 23064,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.ALCHEMICAL_HYDRA_KILLS, 1.0 / 2000)));
-    // TODO: The drop rate was changed in the past, so this may need to be configurable.
     public static LogItemInfo JAR_OF_DARKNESS_19701 = new LogItemInfo("Jar of darkness", 19701,
-            new BinomialDrop(new RollInfo(LogItemSourceInfo.SKOTIZO_KILLS, 1.0 / 200)));
+            new PoissonBinomialDrop(ImmutableList.of(
+                    // pre-buff drop rate
+                    new RollInfo(LogItemSourceInfo.SKOTIZO_KILLS, 1.0 / 2500),
+                    // post-buff drop rate
+                    new RollInfo(LogItemSourceInfo.SKOTIZO_KILLS, 1.0 / 200)
+            ))
+                    .withConfigOption(CollectionLogConfig.SKOTIZO_KC_PRE_BUFF_KEY));
     public static LogItemInfo JAR_OF_DECAY_22106 = new LogItemInfo("Jar of decay", 22106,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.VORKATH_KILLS, 1.0 / 3000)));
     public static LogItemInfo JAR_OF_DIRT_12007 = new LogItemInfo("Jar of dirt", 12007,
@@ -2281,7 +2285,6 @@ public class LogItemInfo {
             new DeterministicDrop());
     public static LogItemInfo LONG_BONE_10976 = new LogItemInfo("Long bone", 10976,
             new MissingKillCountDrop());
-    // TODO: Is the distribution of a "chance at a chance" the same as the distribution of multiplying the chances together?
     public static LogItemInfo LOST_BAG_26912 = new LogItemInfo("Lost bag", 26912,
             // Assumes the player opens their intricate pouches
             new BinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0 / 25.0 / 60)));
@@ -3279,8 +3282,7 @@ public class LogItemInfo {
             new BinomialDrop(new RollInfo(LogItemSourceInfo.ZULRAH_KILLS, 1.0 / 13106, 2)));
     public static LogItemInfo TAN_CAVALIER_2639 = new LogItemInfo("Tan cavalier", 2639,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.HARD_CLUES_COMPLETED, 1.0 / 1625, 5)));
-    // TODO: Is the distribution of a "chance at a chance" the same as the distribution of multiplying the chances together?
-    public static LogItemInfo TARNISHED_LOCKET_26910 = new LogItemInfo("Tarnished locket", 26910,
+   public static LogItemInfo TARNISHED_LOCKET_26910 = new LogItemInfo("Tarnished locket", 26910,
             // Assumes the player opens their intricate pouches
             new BinomialDrop(new RollInfo(LogItemSourceInfo.RIFTS_SEARCHES, 1.0 / 25.0 / 40)));
     public static LogItemInfo TEACHER_WAND_6912 = new LogItemInfo("Teacher wand", 6912,

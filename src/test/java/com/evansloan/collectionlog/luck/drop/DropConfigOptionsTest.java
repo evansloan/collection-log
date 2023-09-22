@@ -1229,4 +1229,49 @@ public class DropConfigOptionsTest {
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
+    @Test
+    public void calculateLuck_jarOfDarkness() {
+        // equivalent to 1
+        int preBuffKc = 2500;
+        // equivalent to 2
+        int postBuffKc = 200 * 2;
+        int totalKc = preBuffKc + postBuffKc;
+
+        // on drop rate
+        int numObtained = 1 + 2;
+
+        // calculated as a binomial with 0.001 chance, 3k trials (expected value = 3)
+        double expectedLuck = 0.423;
+        double expectedDryness = 0.353;
+        double tolerance = 0.005;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int skotizoKcPreBuff() {
+                return preBuffKc;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                // pre-buff drop rate
+                new RollInfo(LogItemSourceInfo.SKOTIZO_KILLS, 1.0 / 2500),
+                // post-buff drop rate
+                new RollInfo(LogItemSourceInfo.SKOTIZO_KILLS, 1.0 / 200)
+        ))
+                .withConfigOption(CollectionLogConfig.SKOTIZO_KC_PRE_BUFF_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.SKOTIZO_KILLS.getName(), totalKc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
 }
