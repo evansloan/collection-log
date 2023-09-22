@@ -4,6 +4,7 @@ import com.evansloan.collectionlog.CollectionLog;
 import com.evansloan.collectionlog.CollectionLogConfig;
 import com.evansloan.collectionlog.CollectionLogItem;
 import com.evansloan.collectionlog.CollectionLogKillCount;
+import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 import com.evansloan.collectionlog.luck.RollInfo;
 import com.evansloan.collectionlog.luck.probability.PoissonBinomialDistribution;
 import com.evansloan.collectionlog.luck.probability.PoissonBinomialRefinedNormalApproxDistribution;
@@ -31,12 +32,17 @@ public class PoissonBinomialDrop extends AbstractDrop {
     private List<Double> convertKcToProbabilities(CollectionLog collectionLog, CollectionLogConfig config) {
         List<Double> probabilities = new ArrayList<>();
 
-        for (RollInfo rollInfo : rollInfos) {
+        for (int i = 0; i < rollInfos.size(); i++) {
+            RollInfo rollInfo = rollInfos.get(i);
+
             CollectionLogKillCount kc = collectionLog.searchForKillCount(rollInfo.getDropSource().getName());
             if (kc != null) {
-                probabilities.addAll(Collections.nCopies(
-                        (int) Math.round(kc.getAmount() * getRollsPerKc(rollInfo, config)),
-                        getDropChance(rollInfo, config)));
+                int numRolls = (int) Math.round(kc.getAmount() * getRollsPerKc(rollInfo, config));
+                double dropChance = getDropChance(rollInfo, config);
+
+                numRolls = getNumRollsForCustomDrops(rollInfo, i, numRolls, config);
+
+                probabilities.addAll(Collections.nCopies(numRolls, dropChance));
             }
         }
 
@@ -86,6 +92,47 @@ public class PoissonBinomialDrop extends AbstractDrop {
         int maxEquivalentNumSuccesses = getMaxEquivalentNumSuccesses(item, collectionLog, config);
 
         return 1 - getExactOrApproxCumulativeProbability(maxEquivalentNumSuccesses, numTrials, collectionLog, config);
+    }
+
+    private int getNumRollsForCustomDrops(RollInfo rollInfo, int rollInfoIndex, int numRolls, CollectionLogConfig config) {
+        if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.TZTOK_JAD_KILLS)
+                        && configOptions.contains(CollectionLogConfig.NUM_FIRE_CAPES_SACRIFICED_KEY)
+        ) {
+            // Only the first KC should be at non-slayer task drop chance
+            if (rollInfoIndex == 0) {
+                return Math.min(1, numRolls);
+            }
+            // All other kc should be at slayer task probability
+            else if (rollInfoIndex == 1) {
+                return numRolls - Math.min(1, numRolls);
+            }
+            // add probabilities for cape sacrifices
+            else if (rollInfoIndex == 2) {
+                // The player cannot have sacrificed more capes than they have KC
+                return Math.max(0, Math.min(numRolls, config.numFireCapesSacrificed()));
+            }
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.TZKAL_ZUK_KILLS)
+                        && configOptions.contains(CollectionLogConfig.NUM_INFERNAL_CAPES_SACRIFICED_KEY)
+        ) {
+            // Only the first KC should be at non-slayer task drop chance
+            if (rollInfoIndex == 0) {
+                return Math.min(1, numRolls);
+            }
+            // All other kc should be at slayer task probability
+            else if (rollInfoIndex == 1) {
+                return numRolls - Math.min(1, numRolls);
+            }
+            // add probabilities for cape sacrifices
+            else if (rollInfoIndex == 2) {
+                // The player cannot have sacrificed more capes than they have KC
+                return Math.max(0, Math.min(numRolls, config.numInfernalCapesSacrificed()));
+            }
+        }
+
+        return numRolls;
     }
 
 }

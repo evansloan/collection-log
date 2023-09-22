@@ -873,5 +873,266 @@ public class DropConfigOptionsTest {
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
+    @Test
+    public void calculateLuck_JadPet_0kc() {
+        int kc = 0;
+        int capesSacrificed = 0;
+
+        // on drop rate.
+        int numObtained = 0;
+
+        double expectedLuck = 0;
+        double expectedDryness = 0;
+        double tolerance = 0;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int numFireCapesSacrificed() {
+                return capesSacrificed;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                // First kill drop rate (no slayer task)
+                new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 200),
+                // Slayer task drop rate (all subsequent KC)
+                new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 100),
+                // Cape sacrifice drop rate
+                new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 200)
+        ))
+                .withConfigOption(CollectionLogConfig.NUM_FIRE_CAPES_SACRIFICED_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.TZTOK_JAD_KILLS.getName(), kc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_JadPet_1kcspoon() {
+        int kc = 1;
+        int capesSacrificed = 0;
+
+        int numObtained = 1;
+
+        double expectedLuck = 0.995;
+        double expectedDryness = 0;
+        double tolerance = 0.000001;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int numFireCapesSacrificed() {
+                return capesSacrificed;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                // First kill drop rate (no slayer task)
+                new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 200),
+                // Slayer task drop rate (all subsequent KC)
+                new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 100),
+                // Cape sacrifice drop rate
+                new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 200)
+        ))
+                .withConfigOption(CollectionLogConfig.NUM_FIRE_CAPES_SACRIFICED_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.TZTOK_JAD_KILLS.getName(), kc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_JadPet_manySacrifices() {
+        // expected value: 1/200 + 99/100 = 0.995
+        int kc = 100;
+
+        // expected value: 53/200 = 0.265
+        int capesSacrificed = 53;
+
+        int numObtained = 1;
+
+        // calculated as a binomial with 1 + 99 * 200/100 + 53 = 252 chances, at 1/200 success chance
+        double expectedLuck = 0.283;
+        double expectedDryness = 0.359;
+        double tolerance = 0.001;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int numFireCapesSacrificed() {
+                return capesSacrificed;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                // First kill drop rate (no slayer task)
+                new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 200),
+                // Slayer task drop rate (all subsequent KC)
+                new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 100),
+                // Cape sacrifice drop rate
+                new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 200)
+        ))
+                .withConfigOption(CollectionLogConfig.NUM_FIRE_CAPES_SACRIFICED_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.TZTOK_JAD_KILLS.getName(), kc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_ZukPet_0kc() {
+        int kc = 0;
+        int capesSacrificed = 0;
+
+        // on drop rate.
+        int numObtained = 0;
+
+        double expectedLuck = 0;
+        double expectedDryness = 0;
+        double tolerance = 0;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int numInfernalCapesSacrificed() {
+                return capesSacrificed;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                // First kill drop rate (no slayer task)
+                new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 100),
+                // Slayer task drop rate (all subsequent KC)
+                new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 75),
+                // Cape sacrifice drop rate
+                new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 100)
+        ))
+                .withConfigOption(CollectionLogConfig.NUM_INFERNAL_CAPES_SACRIFICED_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.TZKAL_ZUK_KILLS.getName(), kc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_ZukPet_1kcspoon() {
+        int kc = 1;
+        int capesSacrificed = 0;
+
+        int numObtained = 1;
+
+        double expectedLuck = 0.99;
+        double expectedDryness = 0;
+        double tolerance = 0.000001;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int numInfernalCapesSacrificed() {
+                return capesSacrificed;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                // First kill drop rate (no slayer task)
+                new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 100),
+                // Slayer task drop rate (all subsequent KC)
+                new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 75),
+                // Cape sacrifice drop rate
+                new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 100)
+        ))
+                .withConfigOption(CollectionLogConfig.NUM_INFERNAL_CAPES_SACRIFICED_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.TZKAL_ZUK_KILLS.getName(), kc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_ZukPet_manySacrifices() {
+        // expected value: 1/100 + 99/75 = 1.33
+        int kc = 100;
+
+        // expected value: 53/100 = 0.53
+        int capesSacrificed = 53;
+
+        int numObtained = 1;
+
+        // calculated as a binomial with 1 + 99 * 100/75 + 53 = 186 chances, at 1/100 success chance
+        double expectedLuck = 0.154;
+        double expectedDryness = 0.556;
+        double tolerance = 0.001;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int numInfernalCapesSacrificed() {
+                return capesSacrificed;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                // First kill drop rate (no slayer task)
+                new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 100),
+                // Slayer task drop rate (all subsequent KC)
+                new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 75),
+                // Cape sacrifice drop rate
+                new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 100)
+        ))
+                .withConfigOption(CollectionLogConfig.NUM_INFERNAL_CAPES_SACRIFICED_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.TZKAL_ZUK_KILLS.getName(), kc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
 
 }

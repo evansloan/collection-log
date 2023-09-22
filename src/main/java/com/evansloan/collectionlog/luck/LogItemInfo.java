@@ -41,13 +41,9 @@ public class LogItemInfo {
             Maybe users would have to open this every so often to be able to track luck.
 
         Remaining items to support:
-            Not enough info:
-                Jad/Inferno pets
-
             Misc:
                 Bludgeon
                 Dry-only drops (single drop tablets, etc.)
-                // TODO: test if separate rolls are better than combining rolls together (e.g. godwars items)
     */
 
     public static LogItemInfo ABYSSAL_BLUE_DYE_26809 = new LogItemInfo("Abyssal blue dye", 26809,
@@ -2072,7 +2068,15 @@ public class LogItemInfo {
     public static LogItemInfo IRON_PLATESKIRT_T_12229 = new LogItemInfo("Iron plateskirt (t)", 12229,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.EASY_CLUES_COMPLETED, 1.0 / 1404, 3)));
     public static LogItemInfo JAL_NIB_REK_21291 = new LogItemInfo("Jal-nib-rek", 21291,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    // First kill drop rate (no slayer task)
+                    new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 100),
+                    // Slayer task drop rate (all subsequent KC)
+                    new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 75),
+                    // Cape sacrifice drop rate
+                    new RollInfo(LogItemSourceInfo.TZKAL_ZUK_KILLS, 1.0 / 100)
+            ))
+                    .withConfigOption(CollectionLogConfig.NUM_INFERNAL_CAPES_SACRIFICED_KEY));
     public static LogItemInfo JAR_OF_CHEMICALS_23064 = new LogItemInfo("Jar of chemicals", 23064,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.ALCHEMICAL_HYDRA_KILLS, 1.0 / 2000)));
     // TODO: The drop rate was changed in the past, so this may need to be configurable.
@@ -3398,7 +3402,15 @@ public class LogItemInfo {
     public static LogItemInfo TZHAAR_KET_OM_ORNAMENT_KIT_23232 = new LogItemInfo("Tzhaar-ket-om ornament kit", 23232,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.HARD_CLUES_COMPLETED, 1.0 / 1625, 5)));
     public static LogItemInfo TZREK_JAD_13225 = new LogItemInfo("Tzrek-jad", 13225,
-            new UnimplementedDrop());
+            new PoissonBinomialDrop(ImmutableList.of(
+                    // First kill drop rate (no slayer task)
+                    new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 200),
+                    // Slayer task drop rate (all subsequent KC)
+                    new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 100),
+                    // Cape sacrifice drop rate
+                    new RollInfo(LogItemSourceInfo.TZTOK_JAD_KILLS, 1.0 / 200)
+            ))
+                    .withConfigOption(CollectionLogConfig.NUM_FIRE_CAPES_SACRIFICED_KEY));
     public static LogItemInfo ULTOR_VESTIGE_28285 = new LogItemInfo("Ultor vestige", 28285,
             new HiddenShardDrop(new RollInfo(LogItemSourceInfo.VARDORVIS_KILLS, 1.0 / 136.0 * 3.0 / 8.0), 3));
     public static LogItemInfo UNCHARGED_TRIDENT_11908 = new LogItemInfo("Uncharged trident", 11908,

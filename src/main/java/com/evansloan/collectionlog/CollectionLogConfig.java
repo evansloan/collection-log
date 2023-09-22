@@ -23,6 +23,8 @@ public interface CollectionLogConfig extends Config
 	String NUM_ROLLS_PER_WINTERTODT_CRATE_KEY = "num_rolls_per_wintertodt_crate";
 	String AVG_ZALCANO_REWARDS_FRACTION_KEY = "avg_zalcano_rewards_fraction";
 	String AVG_ZALCANO_POINTS_KEY = "avg_zalcano_points";
+	String NUM_FIRE_CAPES_SACRIFICED_KEY = "num_fire_capes_sacrificed";
+	String NUM_INFERNAL_CAPES_SACRIFICED_KEY = "num_infernal_capes_sacrificed";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -398,6 +400,28 @@ public interface CollectionLogConfig extends Config
 	default int avgZalcanoPoints() {
 		// According to Zalcano community, 210 to 350 points is normal in efficient 4-man
 		return 300;
+	}
+
+	@ConfigItem(
+			keyName = NUM_FIRE_CAPES_SACRIFICED_KEY,
+			name = "# Fire capes sacrificed",
+			description = "The number of fire capes sacrificed for a chance at TzRek-Jad.",
+			position = 18,
+			section = luckSection
+	)
+	default int numFireCapesSacrificed() {
+		return 0;
+	}
+
+	@ConfigItem(
+			keyName = NUM_INFERNAL_CAPES_SACRIFICED_KEY,
+			name = "# Infernal capes sacrificed",
+			description = "The number of infernal capes sacrificed for a chance at Jal-nib-rek.",
+			position = 19,
+			section = luckSection
+	)
+	default int numInfernalCapesSacrificed() {
+		return 0;
 	}
 
 }
