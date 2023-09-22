@@ -140,11 +140,11 @@ public abstract class AbstractDrop implements DropLuck {
         }
         else if (rollInfo.getDropSource().equals(LogItemSourceInfo.THEATRE_OF_BLOOD_COMPLETIONS)
             && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_TOB_POINTS_KEY)) {
-            dropChance *= getToBPointFraction(config.avgPersonalTobPointFraction());
+            dropChance *= clampContribution(config.avgPersonalTobPointFraction());
         }
         else if (rollInfo.getDropSource().equals(LogItemSourceInfo.THEATRE_OF_BLOOD_HARD_COMPLETIONS)
                 && configOptions.contains(CollectionLogConfig.AVG_PERSONAL_TOB_HM_POINTS_KEY)) {
-            dropChance *= getToBPointFraction(config.avgPersonalTobHmPointFraction());
+            dropChance *= clampContribution(config.avgPersonalTobHmPointFraction());
         }
         else if (
             rollInfo.getDropSource().equals(LogItemSourceInfo.TOMBS_OF_AMASCUT_ENTRY_COMPLETIONS)
@@ -199,19 +199,40 @@ public abstract class AbstractDrop implements DropLuck {
                 rollInfo.getDropSource().equals(LogItemSourceInfo.NEX_KILLS)
                         && configOptions.contains(CollectionLogConfig.AVG_NEX_REWARDS_FRACTION_KEY)
         ) {
-            dropChance *= getNexUniqueShare(config.avgNexRewardsFraction());
+            // It isn't very clear whether MVP chance is 10% more additively or multiplicatively. This assumes multiplicatively
+            // and the user is instructed to increase the rewardsFraction by 10% if they always MVP, so no additional
+            // calculation based on team size etc. is necessary.
+            dropChance *= clampContribution(config.avgNexRewardsFraction());
         }
         else if (
                 rollInfo.getDropSource().equals(LogItemSourceInfo.ZALCANO_KILLS)
                         && configOptions.contains(CollectionLogConfig.AVG_ZALCANO_REWARDS_FRACTION_KEY)
         ) {
-            dropChance *= getZalcanoUniqueShare(config.avgZalcanoRewardsFraction());
+            dropChance *= clampContribution(config.avgZalcanoRewardsFraction());
         }
         else if (
                 rollInfo.getDropSource().equals(LogItemSourceInfo.ZALCANO_KILLS)
                         && configOptions.contains(CollectionLogConfig.AVG_ZALCANO_POINTS_KEY)
         ) {
             dropChance *= getZalcanoShardContributionBoost(config.avgZalcanoPoints());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.CALLISTO_KILLS)
+                        && configOptions.contains(CollectionLogConfig.AVG_CALLISTO_REWARDS_FRACTION_KEY)
+        ) {
+            dropChance *= clampContribution(config.avgCallistoRewardsFraction());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.VENENATIS_KILLS)
+                        && configOptions.contains(CollectionLogConfig.AVG_VENENATIS_REWARDS_FRACTION_KEY)
+        ) {
+            dropChance *= clampContribution(config.avgVenenatisRewardsFraction());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.VETION_KILLS)
+                        && configOptions.contains(CollectionLogConfig.AVG_VETION_REWARDS_FRACTION_KEY)
+        ) {
+            dropChance *= clampContribution(config.avgVetionRewardsFraction());
         }
 
         return dropChance;
@@ -223,8 +244,8 @@ public abstract class AbstractDrop implements DropLuck {
         return effectivePoints / 867_600.0;
     }
 
-    private double getToBPointFraction(double pointFraction) {
-        return Math.max(0, Math.min(1, pointFraction));
+    private double clampContribution(double fraction) {
+        return Math.max(0, Math.min(1, fraction));
     }
 
     private double getToAUniqueChance(double uniqueChance) {
@@ -276,21 +297,6 @@ public abstract class AbstractDrop implements DropLuck {
         double clampedPartySize = Math.max(1, Math.min(5, partySize));
 
         return 1.0 / clampedPartySize;
-    }
-
-    // It isn't very clear whether MVP chance is 10% more additively or multiplicatively. This assumes multiplicatively
-    // and the user is instructed to increase the rewardsFraction by 10% if they always MVP, so no additional
-    // calculation based on team size etc. is necessary.
-    private double getNexUniqueShare(double rawRewardsFraction) {
-        double rewardsFraction = Math.max(0, Math.min(1, rawRewardsFraction));
-
-        return rewardsFraction;
-    }
-
-    private double getZalcanoUniqueShare(double rawRewardsFraction) {
-        double rewardsFraction = Math.max(0, Math.min(1, rawRewardsFraction));
-
-        return rewardsFraction;
     }
 
     // We don't actually know the formula, so I'll guess that it's the min drop rate at the min point threshold

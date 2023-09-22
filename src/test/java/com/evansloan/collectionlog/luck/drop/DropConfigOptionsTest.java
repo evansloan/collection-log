@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableMap;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -1124,6 +1125,99 @@ public class DropConfigOptionsTest {
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
         CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.TZKAL_ZUK_KILLS.getName(), kc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_wildyBossConfigs_dragonPickaxe() {
+        // This is a good test of combining config options with multiple drop sources where only some of the drop sources
+        // are relevant to that config option
+
+        double callistoContributionRate = 0.1;
+        double venenatisContributionRate = 0.2;
+        double vetionContributionRate = 0.5;
+
+        // equivalent to 1 drop
+        int chaosElementalKc = 256;
+        // equivalent to 2 drops
+        int callistoKc = (int) (256 / callistoContributionRate * 2);
+        // equivalent to 3 drops
+        int venenatisKc = (int) (256 / venenatisContributionRate * 3);
+        // equivalent to 4 drops
+        int vetionKc = (int) (256 / vetionContributionRate * 4);
+        // equivalent to 5 drops
+        int artioKc = 358 * 5;
+        // equivalent to 6 drops
+        int calvarionKc = 358 * 6;
+        // equivalent to 7 drops
+        int spindelKc = 358 * 7;
+        // equivalent to 8 drops
+        int kalphiteQueenKc = 400 * 8;
+        // equivalent to 9 drops
+        int kingBlackDragonKc = 1000 * 9;
+
+        // on drop rate. 45 total.
+        int numObtained = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;
+
+        // Approximating based on a binomial with success probability 1/1000, n = 45000 (expected value = 45)
+        double expectedLuck = 0.481;
+        double expectedDryness = 0.460;
+        double tolerance = 0.001;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public double avgCallistoRewardsFraction() {
+                return callistoContributionRate;
+            }
+
+            @Override
+            public double avgVenenatisRewardsFraction() {
+                return venenatisContributionRate;
+            }
+
+            @Override
+            public double avgVetionRewardsFraction() {
+                return vetionContributionRate;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.CHAOS_ELEMENTAL_KILLS, 1.0 / 256),
+                new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, 1.0 / 256),
+                new RollInfo(LogItemSourceInfo.VENENATIS_KILLS, 1.0 / 256),
+                new RollInfo(LogItemSourceInfo.VETION_KILLS, 1.0 / 256),
+                new RollInfo(LogItemSourceInfo.ARTIO_KILLS, 1.0 / 358),
+                new RollInfo(LogItemSourceInfo.CALVARION_KILLS, 1.0 / 358),
+                new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, 1.0 / 358),
+                new RollInfo(LogItemSourceInfo.KALPHITE_QUEEN_KILLS, 1.0 / 400),
+                new RollInfo(LogItemSourceInfo.KING_BLACK_DRAGON_KILLS, 1.0 / 1000)
+        ))
+                .withConfigOption(CollectionLogConfig.AVG_CALLISTO_REWARDS_FRACTION_KEY)
+                .withConfigOption(CollectionLogConfig.AVG_VENENATIS_REWARDS_FRACTION_KEY)
+                .withConfigOption(CollectionLogConfig.AVG_VETION_REWARDS_FRACTION_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        Map<String, Integer> kcs = new HashMap<>();
+        kcs.put(LogItemSourceInfo.CHAOS_ELEMENTAL_KILLS.getName(), chaosElementalKc);
+        kcs.put(LogItemSourceInfo.CALLISTO_KILLS.getName(), callistoKc);
+        kcs.put(LogItemSourceInfo.VENENATIS_KILLS.getName(), venenatisKc);
+        kcs.put(LogItemSourceInfo.VETION_KILLS.getName(), vetionKc);
+        kcs.put(LogItemSourceInfo.ARTIO_KILLS.getName(), artioKc);
+        kcs.put(LogItemSourceInfo.CALVARION_KILLS.getName(), calvarionKc);
+        kcs.put(LogItemSourceInfo.SPINDEL_KILLS.getName(), spindelKc);
+        kcs.put(LogItemSourceInfo.KALPHITE_QUEEN_KILLS.getName(), kalphiteQueenKc);
+        kcs.put(LogItemSourceInfo.KING_BLACK_DRAGON_KILLS.getName(), kingBlackDragonKc);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
 
         String incalculableReason = drop.getIncalculableReason(mockItem, config);
         assertNull(incalculableReason);

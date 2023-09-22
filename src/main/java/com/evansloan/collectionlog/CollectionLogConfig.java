@@ -25,6 +25,9 @@ public interface CollectionLogConfig extends Config
 	String AVG_ZALCANO_POINTS_KEY = "avg_zalcano_points";
 	String NUM_FIRE_CAPES_SACRIFICED_KEY = "num_fire_capes_sacrificed";
 	String NUM_INFERNAL_CAPES_SACRIFICED_KEY = "num_infernal_capes_sacrificed";
+	String AVG_CALLISTO_REWARDS_FRACTION_KEY = "avg_callisto_rewards_fraction";
+	String AVG_VENENATIS_REWARDS_FRACTION_KEY = "avg_venenatis_rewards_fraction";
+	String AVG_VETION_REWARDS_FRACTION_KEY = "avg_vetion_rewards_fraction";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -422,6 +425,42 @@ public interface CollectionLogConfig extends Config
 	)
 	default int numInfernalCapesSacrificed() {
 		return 0;
+	}
+
+	@ConfigItem(
+			keyName = AVG_CALLISTO_REWARDS_FRACTION_KEY,
+			name = "Avg Callisto rewards fraction",
+			description = "Your average fraction of the contribution to killing Callisto." +
+					" Set to 0.1 if team size >= 10, or 1 if soloing.",
+			position = 20,
+			section = luckSection
+	)
+	default double avgCallistoRewardsFraction() {
+		return 0.2;
+	}
+
+	@ConfigItem(
+			keyName = AVG_VENENATIS_REWARDS_FRACTION_KEY,
+			name = "Avg Venenatis rewards fraction",
+			description = "Your average fraction of the contribution to killing Venenatis." +
+					" Set to 0.1 if team size >= 10, or 1 if soloing.",
+			position = 21,
+			section = luckSection
+	)
+	default double avgVenenatisRewardsFraction() {
+		return 0.2;
+	}
+
+	@ConfigItem(
+			keyName = AVG_VETION_REWARDS_FRACTION_KEY,
+			name = "Avg Vet'ion rewards fraction",
+			description = "Your average fraction of the contribution to killing Vet'ion." +
+					" Set to 0.1 if team size >= 10, or 1 if soloing.",
+			position = 22,
+			section = luckSection
+	)
+	default double avgVetionRewardsFraction() {
+		return 0.5;
 	}
 
 }

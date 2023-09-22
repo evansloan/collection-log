@@ -936,7 +936,8 @@ public class LogItemInfo {
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, 1.0 / 2000),
                     new RollInfo(LogItemSourceInfo.ARTIO_KILLS, 1.0 / 2800)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_CALLISTO_REWARDS_FRACTION_KEY));
     public static LogItemInfo CAMO_BOTTOMS_6655 = new LogItemInfo("Camo bottoms", 6655,
             new MissingKillCountDrop());
     public static LogItemInfo CAMO_HELMET_6656 = new LogItemInfo("Camo helmet", 6656,
@@ -1024,7 +1025,8 @@ public class LogItemInfo {
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, 1.0 / 196),
                     new RollInfo(LogItemSourceInfo.ARTIO_KILLS, 1.0 / 618)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_CALLISTO_REWARDS_FRACTION_KEY));
     public static LogItemInfo CLIMBING_BOOTS_G_23413 = new LogItemInfo("Climbing boots (g)", 23413,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.MEDIUM_CLUES_COMPLETED, 1.0 / 1133, 4)));
     public static LogItemInfo CLOTHES_POUCH_BLUEPRINT_28166 = new LogItemInfo("Clothes pouch blueprint", 28166,
@@ -1236,7 +1238,11 @@ public class LogItemInfo {
                     new RollInfo(LogItemSourceInfo.ARTIO_KILLS, 1.0 / 358),
                     new RollInfo(LogItemSourceInfo.CALVARION_KILLS, 1.0 / 358),
                     new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, 1.0 / 358)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_CALLISTO_REWARDS_FRACTION_KEY)
+                    .withConfigOption(CollectionLogConfig.AVG_VENENATIS_REWARDS_FRACTION_KEY)
+                    .withConfigOption(CollectionLogConfig.AVG_VETION_REWARDS_FRACTION_KEY)
+    );
     public static LogItemInfo DRAGON_AXE_6739 = new LogItemInfo("Dragon axe", 6739,
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.DAGANNOTH_PRIME_KILLS, 1.0 / 128),
@@ -1302,7 +1308,11 @@ public class LogItemInfo {
                     new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, 1.0 / 358),
                     new RollInfo(LogItemSourceInfo.KALPHITE_QUEEN_KILLS, 1.0 / 400),
                     new RollInfo(LogItemSourceInfo.KING_BLACK_DRAGON_KILLS, 1.0 / 1000)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_CALLISTO_REWARDS_FRACTION_KEY)
+                    .withConfigOption(CollectionLogConfig.AVG_VENENATIS_REWARDS_FRACTION_KEY)
+                    .withConfigOption(CollectionLogConfig.AVG_VETION_REWARDS_FRACTION_KEY)
+    );
     // TODO: Does repairing this unlock the regular pickaxe?
     public static LogItemInfo DRAGON_PICKAXE_BROKEN_27695 = new LogItemInfo("Dragon pickaxe (broken)", 27695,
             new MissingKillCountDrop());
@@ -1420,7 +1430,8 @@ public class LogItemInfo {
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.VENENATIS_KILLS, 1.0 / 196),
                     new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, 1.0 / 618)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_VENENATIS_REWARDS_FRACTION_KEY));
     public static LogItemInfo FARMERS_BOOTS_13644 = new LogItemInfo("Farmer's boots", 13644,
             new DeterministicDrop());
     public static LogItemInfo FARMERS_BORO_TROUSERS_13640 = new LogItemInfo("Farmer's boro trousers", 13640,
@@ -2805,7 +2816,8 @@ public class LogItemInfo {
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.VETION_KILLS, 1.0 / 512),
                     new RollInfo(LogItemSourceInfo.CALVARION_KILLS, 1.0 / 716)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_VETION_REWARDS_FRACTION_KEY));
     public static LogItemInfo ROBE_BOTTOMS_OF_THE_EYE_26854 = new LogItemInfo("Robe bottoms of the eye", 26854,
             new DeterministicDrop());
     public static LogItemInfo ROBE_BOTTOM_OF_DARKNESS_20137 = new LogItemInfo("Robe bottom of darkness", 20137,
@@ -3145,7 +3157,8 @@ public class LogItemInfo {
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.VETION_KILLS, 1.0 / 196),
                     new RollInfo(LogItemSourceInfo.CALVARION_KILLS, 1.0 / 618)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_VETION_REWARDS_FRACTION_KEY));
     public static LogItemInfo SLEEPING_CAP_10398 = new LogItemInfo("Sleeping cap", 10398,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.EASY_CLUES_COMPLETED, 1.0 / 1404, 3)));
     public static LogItemInfo SLEPEY_TABLET_25837 = new LogItemInfo("Slepey tablet", 25837,
@@ -3347,7 +3360,8 @@ public class LogItemInfo {
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.VENENATIS_KILLS, 1.0 / 512),
                     new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, 1.0 / 716)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_VENENATIS_REWARDS_FRACTION_KEY));
     public static LogItemInfo TREASURE_FLAG_8970 = new LogItemInfo("Treasure flag", 8970,
             new DeterministicDrop());
     public static LogItemInfo TREE_WIZARDS_JOURNAL_25474 = new LogItemInfo("Tree wizards' journal", 25474,
@@ -3396,7 +3410,8 @@ public class LogItemInfo {
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, 1.0 / 512),
                     new RollInfo(LogItemSourceInfo.ARTIO_KILLS, 1.0 / 716)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_CALLISTO_REWARDS_FRACTION_KEY));
     public static LogItemInfo TZHAAR_KET_OM_6528 = new LogItemInfo("Tzhaar-ket-om", 6528,
             new MissingKillCountDrop());
     public static LogItemInfo TZHAAR_KET_OM_ORNAMENT_KIT_23232 = new LogItemInfo("Tzhaar-ket-om ornament kit", 23232,
@@ -3437,7 +3452,8 @@ public class LogItemInfo {
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.VENENATIS_KILLS, 1.0 / 2000),
                     new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, 1.0 / 2800)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_VENENATIS_REWARDS_FRACTION_KEY));
     public static LogItemInfo VERACS_BRASSARD_4757 = new LogItemInfo("Verac's brassard", 4757,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.BARROWS_CHESTS_OPENED, 1.0 / 2448, 7))
                     .withConfigOption(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY));
@@ -3491,17 +3507,20 @@ public class LogItemInfo {
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.VETION_KILLS, 1.0 / 360),
                     new RollInfo(LogItemSourceInfo.CALVARION_KILLS, 1.0 / 912)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_VETION_REWARDS_FRACTION_KEY));
     public static LogItemInfo VOIDWAKER_GEM_27687 = new LogItemInfo("Voidwaker gem", 27687,
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.VENENATIS_KILLS, 1.0 / 360),
                     new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, 1.0 / 912)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_VENENATIS_REWARDS_FRACTION_KEY));
     public static LogItemInfo VOIDWAKER_HILT_27681 = new LogItemInfo("Voidwaker hilt", 27681,
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, 1.0 / 360),
                     new RollInfo(LogItemSourceInfo.ARTIO_KILLS, 1.0 / 912)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_CALLISTO_REWARDS_FRACTION_KEY));
     public static LogItemInfo VOID_KNIGHT_GLOVES_8842 = new LogItemInfo("Void knight gloves", 8842,
             new DeterministicDrop());
     public static LogItemInfo VOID_KNIGHT_MACE_8841 = new LogItemInfo("Void knight mace", 8841,
@@ -3874,7 +3893,8 @@ public class LogItemInfo {
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.VETION_KILLS, 1.0 / 2000),
                     new RollInfo(LogItemSourceInfo.CALVARION_KILLS, 1.0 / 2800)
-            )));
+            ))
+                    .withConfigOption(CollectionLogConfig.AVG_VETION_REWARDS_FRACTION_KEY));
     public static LogItemInfo WARPED_SCEPTRE_UNCHARGED_28583 = new LogItemInfo("Warped sceptre (uncharged)", 28583,
             new MissingKillCountDrop());
 
