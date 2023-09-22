@@ -29,6 +29,7 @@ public interface CollectionLogConfig extends Config
 	String AVG_VENENATIS_REWARDS_FRACTION_KEY = "avg_venenatis_rewards_fraction";
 	String AVG_VETION_REWARDS_FRACTION_KEY = "avg_vetion_rewards_fraction";
 	String SKOTIZO_KC_PRE_BUFF_KEY = "skotizo_kc_pre_buff";
+	String NUM_CRYSTAL_WEAPON_SEEDS_PURCHASED_KEY = "NUM_CRYSTAL_WEAPON_SEEDS_PURCHASED_KEY";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -472,6 +473,20 @@ public interface CollectionLogConfig extends Config
 			section = luckSection
 	)
 	default int skotizoKcPreBuff() {
+		return 0;
+	}
+
+	// Purchasing crystal weapon seeds prevents calculating how many the player has received through the Gauntlet.
+	// The calculation can be corrected if the player inputs the number purchased from the shop.
+	@ConfigItem(
+			keyName = NUM_CRYSTAL_WEAPON_SEEDS_PURCHASED_KEY,
+			name = "# Crystal weapon seeds bought",
+			description = "The number of crystal weapon seeds you bought from the Last Man Standing shop.",
+			position = 24,
+			section = luckSection
+	)
+	default int numCrystalWeaponSeedsPurchased()
+	{
 		return 0;
 	}
 

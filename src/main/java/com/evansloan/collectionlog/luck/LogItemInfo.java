@@ -1058,12 +1058,11 @@ public class LogItemInfo {
                     .withConfigOption(CollectionLogConfig.AVG_ZALCANO_REWARDS_FRACTION_KEY)
     );
     // Note: this can be bought from the LMS shop, and it appears to count towards the collection log.
-    // TODO: Configure this in settings.
     public static LogItemInfo CRYSTAL_WEAPON_SEED_4207 = new LogItemInfo("Crystal weapon seed", 4207,
             new PoissonBinomialDrop(ImmutableList.of(
                     new RollInfo(LogItemSourceInfo.GAUNTLET_COMPLETION_COUNT, 1.0 / 120),
                     new RollInfo(LogItemSourceInfo.CORRUPTED_GAUNTLET_COMPLETION_COUNT, 1.0 / 50)
-            )));
+            )).withConfigOption(CollectionLogConfig.NUM_CRYSTAL_WEAPON_SEEDS_PURCHASED_KEY));
     public static LogItemInfo CURSED_PHALANX_27248 = new LogItemInfo("Cursed phalanx", 27248,
             new DeterministicDrop());
     public static LogItemInfo CURVED_BONE_10977 = new LogItemInfo("Curved bone", 10977,

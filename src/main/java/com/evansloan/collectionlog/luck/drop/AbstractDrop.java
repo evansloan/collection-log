@@ -102,7 +102,12 @@ public abstract class AbstractDrop implements DropLuck {
         // Note: The Abyssal Lantern is now purchasable from the shop, and it triggers the collection log unlock, but
         // purchased lanterns shouldn't count towards the luck of lanterns received from the Rewards Guardian
         if (configOptions.contains(CollectionLogConfig.NUM_ABYSSAL_LANTERNS_PURCHASED_KEY)) {
-            numSuccesses -= config.numAbyssalLanternsPurchased();
+            numSuccesses -= Math.max(0, Math.min(numSuccesses, config.numAbyssalLanternsPurchased()));
+        }
+        // Note: Crystal weapon seeds can be purchased from the LMS shop, and it appears to trigger collection log unlock,
+        // but purchased seeds shouldn't count towards the luck of seeds received from the Gauntlet
+        if (configOptions.contains(CollectionLogConfig.NUM_CRYSTAL_WEAPON_SEEDS_PURCHASED_KEY)) {
+            numSuccesses -= Math.max(0, Math.min(numSuccesses, config.numCrystalWeaponSeedsPurchased()));
         }
 
         return numSuccesses;

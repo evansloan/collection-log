@@ -1274,4 +1274,44 @@ public class DropConfigOptionsTest {
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
+    @Test
+    public void calculateLuck_crystalWeaponSeed_boughtFromShop() {
+        // equivalent to 1 drop
+        int gauntletKc = 120;
+        // equivalent to 2 drop
+        int corruptedGauntletKc = 50;
+
+        // Estimated as binomial distribution with p = 0.01, n = 200, 2 successes.
+        // 1 of the obtained seeds was purchased, so it doesn't count towards luck
+        int numObtained = 3;
+        double expectedLuck = 0.405;
+        double expectedDryness = 0.323;
+        double tolerance = 0.001;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int numCrystalWeaponSeedsPurchased() {
+                return 1;
+            }
+        };
+
+        AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                new RollInfo(LogItemSourceInfo.GAUNTLET_COMPLETION_COUNT, 1.0 / 120),
+                new RollInfo(LogItemSourceInfo.CORRUPTED_GAUNTLET_COMPLETION_COUNT, 1.0 / 50)
+        )).withConfigOption(CollectionLogConfig.NUM_CRYSTAL_WEAPON_SEEDS_PURCHASED_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        Map<String, Integer> kcs = ImmutableMap.of(
+                LogItemSourceInfo.GAUNTLET_COMPLETION_COUNT.getName(), gauntletKc,
+                LogItemSourceInfo.CORRUPTED_GAUNTLET_COMPLETION_COUNT.getName(), corruptedGauntletKc);
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKcs(kcs);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
 }
