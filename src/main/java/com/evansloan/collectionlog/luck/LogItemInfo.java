@@ -9,7 +9,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Optional;
 
-// All 1476 collection log items as of 8/20/2023 and a mapping to their item IDs and drop mechanics / probabilities.
+// All 1477 collection log items as of 9/21/2023 and a mapping to their item IDs and drop mechanics / probabilities.
 // TODO: Consider storing this mapping on GitHub so new items in future updates can be added without a plugin update.
 public class LogItemInfo {
 
@@ -3875,6 +3875,8 @@ public class LogItemInfo {
                     new RollInfo(LogItemSourceInfo.VETION_KILLS, 1.0 / 2000),
                     new RollInfo(LogItemSourceInfo.CALVARION_KILLS, 1.0 / 2800)
             )));
+    public static LogItemInfo WARPED_SCEPTRE_UNCHARGED_28583 = new LogItemInfo("Warped sceptre (uncharged)", 28583,
+            new MissingKillCountDrop());
 
     private final String itemName;
     private final int itemId;
