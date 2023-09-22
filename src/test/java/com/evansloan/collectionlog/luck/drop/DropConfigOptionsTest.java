@@ -795,4 +795,83 @@ public class DropConfigOptionsTest {
         assertEquals(expectedDryness, actualDryness, tolerance);
     }
 
+    @Test
+    public void calculateLuck_Zalcano_crystalToolSeed() {
+        // Drop rate is 1/200 / 3 in 3-man team
+
+        // equivalent to 1 drop
+        int kc = 600;
+
+        // on drop rate.
+        int numObtained = 1;
+
+        // Calculated using online binomial calculator
+        double expectedLuck = 0.368;
+        double expectedDryness = 0.264;
+        double tolerance = 0.001;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public double avgZalcanoRewardsFraction() {
+                return 0.33333333;
+            }
+        };
+
+        AbstractDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.ZALCANO_KILLS, 1.0 / 200))
+                .withConfigOption(CollectionLogConfig.AVG_ZALCANO_REWARDS_FRACTION_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ZALCANO_KILLS.getName(), kc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+    @Test
+    public void calculateLuck_Zalcano_zalcanoShard() {
+        // Drop rate is 1/1500 * (1 + (350-150)/(1000-150))
+
+        // equivalent to 1 drop
+        int kc = 1214;
+
+        // on drop rate.
+        int numObtained = 1;
+
+        // Calculated using online binomial calculator
+        double expectedLuck = 0.368;
+        double expectedDryness = 0.264;
+        double tolerance = 0.001;
+
+        CollectionLogConfig config = new CollectionLogConfig() {
+            @Override
+            public int avgZalcanoPoints() {
+                return 350;
+            }
+        };
+
+        AbstractDrop drop = new BinomialDrop(new RollInfo(LogItemSourceInfo.ZALCANO_KILLS, 1.0 / 1500))
+                .withConfigOption(CollectionLogConfig.AVG_ZALCANO_POINTS_KEY);
+
+        CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
+
+        CollectionLog mockCollectionLog = CollectionLogLuckTestUtils.getMockCollectionLogWithKc(LogItemSourceInfo.ZALCANO_KILLS.getName(), kc);
+
+        String incalculableReason = drop.getIncalculableReason(mockItem, config);
+        assertNull(incalculableReason);
+
+        double actualLuck = drop.calculateLuck(mockItem, mockCollectionLog, config);
+        assertEquals(expectedLuck, actualLuck, tolerance);
+
+        double actualDryness = drop.calculateDryness(mockItem, mockCollectionLog, config);
+        assertEquals(expectedDryness, actualDryness, tolerance);
+    }
+
+
 }

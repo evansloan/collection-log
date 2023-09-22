@@ -21,6 +21,8 @@ public interface CollectionLogConfig extends Config
 	String AVG_NIGHTMARE_REWARDS_FRACTION_KEY = "avg_nightmare_rewards_fraction";
 	String AVG_NEX_REWARDS_FRACTION_KEY = "avg_nex_rewards_fraction";
 	String NUM_ROLLS_PER_WINTERTODT_CRATE_KEY = "num_rolls_per_wintertodt_crate";
+	String AVG_ZALCANO_REWARDS_FRACTION_KEY = "avg_zalcano_rewards_fraction";
+	String AVG_ZALCANO_POINTS_KEY = "avg_zalcano_points";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -373,4 +375,29 @@ public interface CollectionLogConfig extends Config
 	{
 		return 2.5;
 	}
+
+	@ConfigItem(
+			keyName = AVG_ZALCANO_REWARDS_FRACTION_KEY,
+			name = "Avg Zalcano rewards fraction",
+			description = "Your average fraction of the contribution to killing Zalcano, taking into account team size.",
+			position = 16,
+			section = luckSection
+	)
+	default double avgZalcanoRewardsFraction() {
+		// 4 man is most efficient
+		return 0.25;
+	}
+
+	@ConfigItem(
+			keyName = AVG_ZALCANO_POINTS_KEY,
+			name = "Avg Zalcano points",
+			description = "Your average number of points per Zalcano kill. See wiki for more info.",
+			position = 17,
+			section = luckSection
+	)
+	default int avgZalcanoPoints() {
+		// According to Zalcano community, 210 to 350 points is normal in efficient 4-man
+		return 300;
+	}
+
 }

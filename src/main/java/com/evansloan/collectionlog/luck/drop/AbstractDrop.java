@@ -201,6 +201,18 @@ public abstract class AbstractDrop implements DropLuck {
         ) {
             dropChance *= getNexUniqueShare(config.avgNexRewardsFraction());
         }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.ZALCANO_KILLS)
+                        && configOptions.contains(CollectionLogConfig.AVG_ZALCANO_REWARDS_FRACTION_KEY)
+        ) {
+            dropChance *= getZalcanoUniqueShare(config.avgZalcanoRewardsFraction());
+        }
+        else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.ZALCANO_KILLS)
+                        && configOptions.contains(CollectionLogConfig.AVG_ZALCANO_POINTS_KEY)
+        ) {
+            dropChance *= getZalcanoShardContributionBoost(config.avgZalcanoPoints());
+        }
 
         return dropChance;
     }
@@ -273,6 +285,21 @@ public abstract class AbstractDrop implements DropLuck {
         double rewardsFraction = Math.max(0, Math.min(1, rawRewardsFraction));
 
         return rewardsFraction;
+    }
+
+    private double getZalcanoUniqueShare(double rawRewardsFraction) {
+        double rewardsFraction = Math.max(0, Math.min(1, rawRewardsFraction));
+
+        return rewardsFraction;
+    }
+
+    // We don't actually know the formula, so I'll guess that it's the min drop rate at the min point threshold
+    // and max drop rate at the max point threshold
+    private double getZalcanoShardContributionBoost(int numPoints) {
+        double pointFraction = (numPoints - 150.0) / (1000 - 150);
+        double boost = 1 + Math.max(0, Math.min(1, pointFraction));
+
+        return boost;
     }
 
 }

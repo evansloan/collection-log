@@ -42,13 +42,11 @@ public class LogItemInfo {
 
         Remaining items to support:
             Not enough info:
-                Zalcano
                 Jad/Inferno pets
 
             Misc:
                 Bludgeon
                 Dry-only drops (single drop tablets, etc.)
-                Godsword shards
                 // TODO: test if separate rolls are better than combining rolls together (e.g. godwars items)
     */
 
@@ -1059,7 +1057,9 @@ public class LogItemInfo {
     public static LogItemInfo CRYSTAL_GRAIL_24000 = new LogItemInfo("Crystal grail", 24000,
             new DeterministicDrop());
     public static LogItemInfo CRYSTAL_TOOL_SEED_23953 = new LogItemInfo("Crystal tool seed", 23953,
-            new UnimplementedDrop());
+            new BinomialDrop(new RollInfo(LogItemSourceInfo.ZALCANO_KILLS, 1.0 / 200))
+                    .withConfigOption(CollectionLogConfig.AVG_ZALCANO_REWARDS_FRACTION_KEY)
+    );
     // Note: this can be bought from the LMS shop, and it appears to count towards the collection log.
     // TODO: Configure this in settings.
     public static LogItemInfo CRYSTAL_WEAPON_SEED_4207 = new LogItemInfo("Crystal weapon seed", 4207,
@@ -1325,7 +1325,7 @@ public class LogItemInfo {
     public static LogItemInfo DRAGON_THROWNAXE_20849 = new LogItemInfo("Dragon thrownaxe", 20849,
             new MissingKillCountDrop());
     public static LogItemInfo DRAGON_WARHAMMER_13576 = new LogItemInfo("Dragon warhammer", 13576,
-            new UnimplementedDrop());
+            new MissingKillCountDrop());
     public static LogItemInfo DRAKES_CLAW_22957 = new LogItemInfo("Drake's claw", 22957,
             new MissingKillCountDrop());
     public static LogItemInfo DRAKES_TOOTH_22960 = new LogItemInfo("Drake's tooth", 22960,
@@ -1633,11 +1633,35 @@ public class LogItemInfo {
     public static LogItemInfo GOBLIN_MASK_12251 = new LogItemInfo("Goblin mask", 12251,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.EASY_CLUES_COMPLETED, 1.0 / 1404, 3)));
     public static LogItemInfo GODSWORD_SHARD_1_11818 = new LogItemInfo("Godsword shard 1", 11818,
-            new UnimplementedDrop());
+            new BinomialDrop(ImmutableList.of(
+                    // Assume that the player also kills all 3 minions each kill. Even in teams, as long as the player
+                    // kills the minions in the same proportion as they receive kill credit for the main GWD boss,
+                    // this should be a good approximation. The boss is worth 2 minion drop chances.
+                    new RollInfo(LogItemSourceInfo.COMMANDER_ZILYANA_KILLS, 1.0 / 1524, 5),
+                    new RollInfo(LogItemSourceInfo.GENERAL_GRAARDOR_KILLS, 1.0 / 1524, 5),
+                    new RollInfo(LogItemSourceInfo.KRIL_TSUTSAROTH_KILLS, 1.0 / 1524, 5),
+                    new RollInfo(LogItemSourceInfo.KREEARRA_KILLS, 1.0 / 1524, 5)
+            )));
     public static LogItemInfo GODSWORD_SHARD_2_11820 = new LogItemInfo("Godsword shard 2", 11820,
-            new UnimplementedDrop());
+            new BinomialDrop(ImmutableList.of(
+                    // Assume that the player also kills all 3 minions each kill. Even in teams, as long as the player
+                    // kills the minions in the same proportion as they receive kill credit for the main GWD boss,
+                    // this should be a good approximation. The boss is worth 2 minion drop chances.
+                    new RollInfo(LogItemSourceInfo.COMMANDER_ZILYANA_KILLS, 1.0 / 1524, 5),
+                    new RollInfo(LogItemSourceInfo.GENERAL_GRAARDOR_KILLS, 1.0 / 1524, 5),
+                    new RollInfo(LogItemSourceInfo.KRIL_TSUTSAROTH_KILLS, 1.0 / 1524, 5),
+                    new RollInfo(LogItemSourceInfo.KREEARRA_KILLS, 1.0 / 1524, 5)
+            )));
     public static LogItemInfo GODSWORD_SHARD_3_11822 = new LogItemInfo("Godsword shard 3", 11822,
-            new UnimplementedDrop());
+            new BinomialDrop(ImmutableList.of(
+                    // Assume that the player also kills all 3 minions each kill. Even in teams, as long as the player
+                    // kills the minions in the same proportion as they receive kill credit for the main GWD boss,
+                    // this should be a good approximation. The boss is worth 2 minion drop chances.
+                    new RollInfo(LogItemSourceInfo.COMMANDER_ZILYANA_KILLS, 1.0 / 1524, 5),
+                    new RollInfo(LogItemSourceInfo.GENERAL_GRAARDOR_KILLS, 1.0 / 1524, 5),
+                    new RollInfo(LogItemSourceInfo.KRIL_TSUTSAROTH_KILLS, 1.0 / 1524, 5),
+                    new RollInfo(LogItemSourceInfo.KREEARRA_KILLS, 1.0 / 1524, 5)
+            )));
     public static LogItemInfo GOLDEN_APRON_20208 = new LogItemInfo("Golden apron", 20208,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.EASY_CLUES_COMPLETED, 1.0 / 2808, 3)));
     public static LogItemInfo GOLDEN_ARMADYL_SPECIAL_ATTACK_24868 = new LogItemInfo("Golden armadyl special attack", 24868,
@@ -1708,7 +1732,7 @@ public class LogItemInfo {
     public static LogItemInfo GRANITE_HAMMER_21742 = new LogItemInfo("Granite hammer", 21742,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.GROTESQUE_GUARDIAN_KILLS, 1.0 / 750, 2)));
     public static LogItemInfo GRANITE_HELM_10589 = new LogItemInfo("Granite helm", 10589,
-            new UnimplementedDrop());
+            new MissingKillCountDrop());
     public static LogItemInfo GRANITE_LEGS_6809 = new LogItemInfo("Granite legs", 6809,
             new MissingKillCountDrop());
     public static LogItemInfo GRANITE_LONGSWORD_21646 = new LogItemInfo("Granite longsword", 21646,
@@ -2497,7 +2521,7 @@ public class LogItemInfo {
                     .withConfigOption(CollectionLogConfig.AVG_NEX_REWARDS_FRACTION_KEY)
     );
     public static LogItemInfo NIHIL_SHARD_26231 = new LogItemInfo("Nihil shard", 26231,
-            new UnimplementedDrop());
+            new PoissonBinomialStackDrop());
     public static LogItemInfo NOON_21748 = new LogItemInfo("Noon", 21748,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.GROTESQUE_GUARDIAN_KILLS, 1.0 / 3000)));
     public static LogItemInfo NUNCHAKU_19918 = new LogItemInfo("Nunchaku", 19918,
@@ -3136,6 +3160,7 @@ public class LogItemInfo {
             new BinomialDrop(new RollInfo(LogItemSourceInfo.THERMONUCLEAR_SMOKE_DEVIL_KILLS, 1.0 / 512)));
     public static LogItemInfo SMOKE_QUARTZ_28274 = new LogItemInfo("Smoke quartz", 28274,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.LEVIATHAN_KILLS, 95.0 / 96.0 * 52.0 / 53.0 * 24.0 / 25.0 / 200)));
+    // This drop is not affected by performance / contribution.
     public static LogItemInfo SMOLCANO_23760 = new LogItemInfo("Smolcano", 23760,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.ZALCANO_KILLS, 1.0 / 2250)));
     public static LogItemInfo SMOULDERING_STONE_13233 = new LogItemInfo("Smouldering stone", 13233,
@@ -3376,9 +3401,8 @@ public class LogItemInfo {
             new UnimplementedDrop());
     public static LogItemInfo ULTOR_VESTIGE_28285 = new LogItemInfo("Ultor vestige", 28285,
             new HiddenShardDrop(new RollInfo(LogItemSourceInfo.VARDORVIS_KILLS, 1.0 / 136.0 * 3.0 / 8.0), 3));
-    // TODO: Could have this as a setting... "how many tridents have you gotten from regular cave krakens?
     public static LogItemInfo UNCHARGED_TRIDENT_11908 = new LogItemInfo("Uncharged trident", 11908,
-            new UnimplementedDrop());
+            new MissingKillCountDrop());
     public static LogItemInfo UNCUT_ONYX_6571 = new LogItemInfo("Uncut onyx", 6571,
             new MissingKillCountDrop());
     public static LogItemInfo UNHOLY_BLESSING_20223 = new LogItemInfo("Unholy blessing", 20223,
@@ -3566,7 +3590,9 @@ public class LogItemInfo {
                     new RollInfo(LogItemSourceInfo.CORRUPTED_GAUNTLET_COMPLETION_COUNT, 1.0 / 800)
             )));
     public static LogItemInfo ZALCANO_SHARD_23908 = new LogItemInfo("Zalcano shard", 23908,
-            new UnimplementedDrop());
+            new BinomialDrop(new RollInfo(LogItemSourceInfo.ZALCANO_KILLS, 1.0 / 1500))
+                    .withConfigOption(CollectionLogConfig.AVG_ZALCANO_POINTS_KEY)
+    );
     // Note: Add 3 minion kills per kc.
     public static LogItemInfo ZAMORAKIAN_SPEAR_11824 = new LogItemInfo("Zamorakian spear", 11824,
             new BinomialDrop(new RollInfo(LogItemSourceInfo.KRIL_TSUTSAROTH_KILLS, 1.0 / 127 + 3.0 / 5376)));
