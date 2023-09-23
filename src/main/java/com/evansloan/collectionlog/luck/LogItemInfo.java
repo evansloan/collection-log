@@ -1297,6 +1297,10 @@ public class LogItemInfo {
             new MissingKillCountDrop());
     public static LogItemInfo DRAGON_PICKAXE_11920 = new LogItemInfo("Dragon pickaxe", 11920,
             new PoissonBinomialDrop(ImmutableList.of(
+                    // pre-buff
+                    new RollInfo(LogItemSourceInfo.KING_BLACK_DRAGON_KILLS, 1.0 / 1500),
+                    // post-buff
+                    new RollInfo(LogItemSourceInfo.KING_BLACK_DRAGON_KILLS, 1.0 / 1000),
                     new RollInfo(LogItemSourceInfo.CHAOS_ELEMENTAL_KILLS, 1.0 / 256),
                     new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, 1.0 / 256),
                     new RollInfo(LogItemSourceInfo.VENENATIS_KILLS, 1.0 / 256),
@@ -1304,12 +1308,13 @@ public class LogItemInfo {
                     new RollInfo(LogItemSourceInfo.ARTIO_KILLS, 1.0 / 358),
                     new RollInfo(LogItemSourceInfo.CALVARION_KILLS, 1.0 / 358),
                     new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, 1.0 / 358),
-                    new RollInfo(LogItemSourceInfo.KALPHITE_QUEEN_KILLS, 1.0 / 400),
-                    new RollInfo(LogItemSourceInfo.KING_BLACK_DRAGON_KILLS, 1.0 / 1000)
+                    new RollInfo(LogItemSourceInfo.KALPHITE_QUEEN_KILLS, 1.0 / 400)
             ))
                     .withConfigOption(CollectionLogConfig.AVG_CALLISTO_REWARDS_FRACTION_KEY)
                     .withConfigOption(CollectionLogConfig.AVG_VENENATIS_REWARDS_FRACTION_KEY)
                     .withConfigOption(CollectionLogConfig.AVG_VETION_REWARDS_FRACTION_KEY)
+                    .withConfigOption(CollectionLogConfig.KQ_KC_PRE_D_PICK_BUFF_KEY)
+                    .withConfigOption(CollectionLogConfig.KBD_KC_PRE_D_PICK_BUFF_KEY)
     );
     // TODO: Does repairing this unlock the regular pickaxe?
     public static LogItemInfo DRAGON_PICKAXE_BROKEN_27695 = new LogItemInfo("Dragon pickaxe (broken)", 27695,

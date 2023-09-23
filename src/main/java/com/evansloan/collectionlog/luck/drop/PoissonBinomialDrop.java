@@ -142,6 +142,22 @@ public class PoissonBinomialDrop extends AbstractDrop {
             else if (rollInfoIndex == 1) {
                 return numRolls - Math.max(0, Math.min(numRolls, config.skotizoKcPreBuff()));
             }
+        } else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.KALPHITE_QUEEN_KILLS)
+                        && configOptions.contains(CollectionLogConfig.KQ_KC_PRE_D_PICK_BUFF_KEY)) {
+            return numRolls - Math.max(0, Math.min(numRolls, config.kqKcPreDPickBuff()));
+        } else if (
+                rollInfo.getDropSource().equals(LogItemSourceInfo.KING_BLACK_DRAGON_KILLS)
+                        && configOptions.contains(CollectionLogConfig.KBD_KC_PRE_D_PICK_BUFF_KEY)) {
+            // d pick kc pre-buff
+            if (rollInfoIndex == 0) {
+                // The player cannot have more pre-buff KC than they have KC
+                return Math.max(0, Math.min(numRolls, config.kbdKcPreDPickBuff()));
+            }
+            // d pick kc post-buff
+            else if (rollInfoIndex == 1) {
+                return numRolls - Math.max(0, Math.min(numRolls, config.kbdKcPreDPickBuff()));
+            }
         }
 
         return numRolls;

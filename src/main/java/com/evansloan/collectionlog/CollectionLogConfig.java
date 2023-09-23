@@ -7,7 +7,7 @@ import java.awt.*;
 @ConfigGroup("collectionlog")
 public interface CollectionLogConfig extends Config
 {
-	String NUM_ABYSSAL_LANTERNS_PURCHASED_KEY = "num_abyssal_lanterns_purchased";
+
 	String NUM_INVALID_BARROWS_KC_KEY = "num_invalid_barrows_kc";
 	String BARROWS_BOLT_RACKS_ENABLED_KEY = "barrows_bolt_racks_enabled";
 	String AVG_PERSONAL_COX_POINTS_KEY = "avg_personal_cox_points";
@@ -28,8 +28,11 @@ public interface CollectionLogConfig extends Config
 	String AVG_CALLISTO_REWARDS_FRACTION_KEY = "avg_callisto_rewards_fraction";
 	String AVG_VENENATIS_REWARDS_FRACTION_KEY = "avg_venenatis_rewards_fraction";
 	String AVG_VETION_REWARDS_FRACTION_KEY = "avg_vetion_rewards_fraction";
+	String NUM_ABYSSAL_LANTERNS_PURCHASED_KEY = "num_abyssal_lanterns_purchased";
+	String NUM_CRYSTAL_WEAPON_SEEDS_PURCHASED_KEY = "num_crystal_weapon_seeds_purchased";
 	String SKOTIZO_KC_PRE_BUFF_KEY = "skotizo_kc_pre_buff";
-	String NUM_CRYSTAL_WEAPON_SEEDS_PURCHASED_KEY = "NUM_CRYSTAL_WEAPON_SEEDS_PURCHASED_KEY";
+	String KQ_KC_PRE_D_PICK_BUFF_KEY = "kq_kc_pre_d_pick_buff";
+	String KBD_KC_PRE_D_PICK_BUFF_KEY = "kbd_kc_pre_d_pick_buff";
 
 	String PLUGIN_VERSION = "3.1.0";
 
@@ -501,6 +504,28 @@ public interface CollectionLogConfig extends Config
 			section = luckSection
 	)
 	default int skotizoKcPreBuff() {
+		return 0;
+	}
+
+	@ConfigItem(
+			keyName = KQ_KC_PRE_D_PICK_BUFF_KEY,
+			name = "KQ KC pre- d pick buff",
+			description = "# of Kalphite Queen kills before the Dragon Pickaxe was added to the drop table.",
+			position = 25,
+			section = luckSection
+	)
+	default int kqKcPreDPickBuff() {
+		return 0;
+	}
+
+	@ConfigItem(
+			keyName = KBD_KC_PRE_D_PICK_BUFF_KEY,
+			name = "KBD KC pre- d pick buff",
+			description = "# of King Black Dragon kills before the Dragon Pickaxe drop rate buff.",
+			position = 26,
+			section = luckSection
+	)
+	default int kbdKcPreDPickBuff() {
 		return 0;
 	}
 

@@ -1137,7 +1137,7 @@ public class DropConfigOptionsTest {
     }
 
     @Test
-    public void calculateLuck_wildyBossConfigs_dragonPickaxe() {
+    public void calculateLuck_dragonPickaxe_wildyBossConfigsAndDropRateChanges_() {
         // This is a good test of combining config options with multiple drop sources where only some of the drop sources
         // are relevant to that config option
 
@@ -1159,10 +1159,15 @@ public class DropConfigOptionsTest {
         int calvarionKc = 358 * 6;
         // equivalent to 7 drops
         int spindelKc = 358 * 7;
+
         // equivalent to 8 drops
-        int kalphiteQueenKc = 400 * 8;
+        int kalphiteQueenKcPreBuff = 12345;
+        int kalphiteQueenKc = 400 * 8 + kalphiteQueenKcPreBuff;
+
         // equivalent to 9 drops
-        int kingBlackDragonKc = 1000 * 9;
+        int kingBlackDragonKcPreBuff = 2345;
+        // totalKc = 9 * 1000 + kingBlackDragonKcPreBuff * (1 - 1000.0 / 1500)
+        int kingBlackDragonKc = (int) Math.round(1000 * 9 + kingBlackDragonKcPreBuff * (1 - 1000.0 / 1500));
 
         // on drop rate. 45 total.
         int numObtained = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;
@@ -1187,9 +1192,23 @@ public class DropConfigOptionsTest {
             public double avgVetionRewardsFraction() {
                 return vetionContributionRate;
             }
+
+            @Override
+            public int kqKcPreDPickBuff() {
+                return kalphiteQueenKcPreBuff;
+            }
+
+            @Override
+            public int kbdKcPreDPickBuff() {
+                return kingBlackDragonKcPreBuff;
+            }
         };
 
         AbstractDrop drop = new PoissonBinomialDrop(ImmutableList.of(
+                // pre-buff
+                new RollInfo(LogItemSourceInfo.KING_BLACK_DRAGON_KILLS, 1.0 / 1500),
+                // post-buff
+                new RollInfo(LogItemSourceInfo.KING_BLACK_DRAGON_KILLS, 1.0 / 1000),
                 new RollInfo(LogItemSourceInfo.CHAOS_ELEMENTAL_KILLS, 1.0 / 256),
                 new RollInfo(LogItemSourceInfo.CALLISTO_KILLS, 1.0 / 256),
                 new RollInfo(LogItemSourceInfo.VENENATIS_KILLS, 1.0 / 256),
@@ -1197,12 +1216,13 @@ public class DropConfigOptionsTest {
                 new RollInfo(LogItemSourceInfo.ARTIO_KILLS, 1.0 / 358),
                 new RollInfo(LogItemSourceInfo.CALVARION_KILLS, 1.0 / 358),
                 new RollInfo(LogItemSourceInfo.SPINDEL_KILLS, 1.0 / 358),
-                new RollInfo(LogItemSourceInfo.KALPHITE_QUEEN_KILLS, 1.0 / 400),
-                new RollInfo(LogItemSourceInfo.KING_BLACK_DRAGON_KILLS, 1.0 / 1000)
+                new RollInfo(LogItemSourceInfo.KALPHITE_QUEEN_KILLS, 1.0 / 400)
         ))
                 .withConfigOption(CollectionLogConfig.AVG_CALLISTO_REWARDS_FRACTION_KEY)
                 .withConfigOption(CollectionLogConfig.AVG_VENENATIS_REWARDS_FRACTION_KEY)
-                .withConfigOption(CollectionLogConfig.AVG_VETION_REWARDS_FRACTION_KEY);
+                .withConfigOption(CollectionLogConfig.AVG_VETION_REWARDS_FRACTION_KEY)
+                .withConfigOption(CollectionLogConfig.KQ_KC_PRE_D_PICK_BUFF_KEY)
+                .withConfigOption(CollectionLogConfig.KBD_KC_PRE_D_PICK_BUFF_KEY);
 
         CollectionLogItem mockItem = new CollectionLogItem(1234, "some item name", numObtained, true, 0);
 
