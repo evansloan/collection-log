@@ -7,7 +7,6 @@ import com.evansloan.collectionlog.CollectionLogKillCount;
 import com.evansloan.collectionlog.luck.LogItemInfo;
 import com.evansloan.collectionlog.luck.LogItemSourceInfo;
 import com.evansloan.collectionlog.luck.RollInfo;
-import org.apache.commons.math3.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -68,7 +67,9 @@ public abstract class AbstractDrop implements DropLuck {
     @Override
     public String getKillCountDescription(CollectionLog collectionLog) {
         return rollInfos.stream()
-                .map(roll -> collectionLog.searchForKillCount(roll.getDropSource().getName()))
+                .map(roll -> roll.getDropSource().getName())
+                .distinct()
+                .map(collectionLog::searchForKillCount)
                 // filter out nulls just in case
                 .filter(Objects::nonNull)
                 // sort by kc, descending
@@ -78,19 +79,23 @@ public abstract class AbstractDrop implements DropLuck {
     }
 
     protected int getNumTrials(CollectionLog collectionLog, CollectionLogConfig config) {
-        double numTrials = rollInfos.stream()
-                .map(rollInfo -> new Pair<>(
-                        collectionLog.searchForKillCount(rollInfo.getDropSource().getName()),
-                        getRollsPerKc(rollInfo, config)))
-                // filter out nulls just in case
-                .filter(pair -> pair.getKey() != null && pair.getValue() != null)
-                // Round to the nearest whole number of trials, if rolls per KC is not a whole number
-                .mapToDouble(pair -> pair.getKey().getAmount() * pair.getValue())
-                .sum();
+        double numTrials = 0;
 
-        // This assumes the only drop source is Barrows.
-        if (configOptions.contains(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY)) {
-            numTrials -= config.numInvalidBarrowsKc() * getRollsPerKc(rollInfos.get(0), config);
+        for (RollInfo rollInfo : rollInfos) {
+            CollectionLogKillCount killCount = collectionLog.searchForKillCount(rollInfo.getDropSource().getName());
+            double rollsPerKc = getRollsPerKc(rollInfo, config);
+
+            // filter out nulls just in case
+            if (killCount == null) continue;
+
+            int kc = killCount.getAmount();
+
+            if (rollInfo.getDropSource().equals(LogItemSourceInfo.BARROWS_CHESTS_OPENED)
+                && configOptions.contains(CollectionLogConfig.NUM_INVALID_BARROWS_KC_KEY)) {
+                kc -= Math.max(0, Math.min(kc, config.numInvalidBarrowsKc()));
+            }
+
+            numTrials += kc * rollsPerKc;
         }
 
         return (int) Math.round(numTrials);
