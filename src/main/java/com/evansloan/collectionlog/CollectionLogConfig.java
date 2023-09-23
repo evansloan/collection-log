@@ -214,13 +214,25 @@ public interface CollectionLogConfig extends Config
 		return false;
 	}
 
+	@ConfigItem(
+			keyName = "show_detailed_luck",
+			name = "Show detailed luck",
+			description = "Instead of overall luck meter, show luck (% players unluckier than you) and dryness (% players luckier than you) separately.",
+			position = 2,
+			section = luckSection
+	)
+	default boolean showDetailedLuck()
+	{
+		return false;
+	}
+
 	// ############### Raids, in order, are at the top since it's likely most interesting to people. ###############
 
 	@ConfigItem(
 			keyName = AVG_PERSONAL_COX_POINTS_KEY,
 			name = "CoX points per raid",
 			description = "The average # of points you personally receive per Chambers of Xeric raid.",
-			position = 2,
+			position = 10,
 			section = luckSection
 	)
 	default int avgPersonalCoxPoints()
@@ -232,7 +244,7 @@ public interface CollectionLogConfig extends Config
 			keyName = AVG_PERSONAL_COX_CM_POINTS_KEY,
 			name = "CoX CM points per raid",
 			description = "The average # of points you personally receive per Chambers of Xeric Challenge Mode raid.",
-			position = 3,
+			position = 11,
 			section = luckSection
 	)
 	default int avgPersonalCoxCmPoints()
@@ -244,7 +256,7 @@ public interface CollectionLogConfig extends Config
 			keyName = AVG_PERSONAL_TOB_POINTS_KEY,
 			name = "ToB point fraction",
 			description = "The average fraction of max team points you receive per Theatre of Blood raid, including MVP points.",
-			position = 4,
+			position = 12,
 			section = luckSection
 	)
 	default double avgPersonalTobPointFraction()
@@ -256,7 +268,7 @@ public interface CollectionLogConfig extends Config
 			keyName = AVG_PERSONAL_TOB_HM_POINTS_KEY,
 			name = "ToB HM point fraction",
 			description = "The average fraction of max team points you receive per Theatre of Blood Hard Mode raid, including MVP points.",
-			position = 5,
+			position = 13,
 			section = luckSection
 	)
 	default double avgPersonalTobHmPointFraction()
@@ -269,7 +281,7 @@ public interface CollectionLogConfig extends Config
 			keyName = ENTRY_TOA_UNIQUE_CHANCE_KEY,
 			name = "Entry ToA Unique Chance",
 			description = "Use a plugin/calc to estimate your chance of a unique for your typical raid setup. Defaults to 50 invocation level.",
-			position = 6,
+			position = 14,
 			section = luckSection
 	)
 	default double entryToaUniqueChance()
@@ -281,7 +293,7 @@ public interface CollectionLogConfig extends Config
 			keyName = REGULAR_TOA_UNIQUE_CHANCE_KEY,
 			name = "Regular ToA Unique Chance",
 			description = "Use a plugin/calc to estimate your chance of a unique for your typical raid setup. Defaults to 150 invocation level.",
-			position = 7,
+			position = 15,
 			section = luckSection
 	)
 	default double regularToaUniqueChance()
@@ -293,7 +305,7 @@ public interface CollectionLogConfig extends Config
 			keyName = EXPERT_TOA_UNIQUE_CHANCE_KEY,
 			name = "Expert ToA Unique Chance",
 			description = "Use a plugin/calc to estimate your chance of a unique for your typical raid setup. Defaults to 300 invocation level.",
-			position = 8,
+			position = 16,
 			section = luckSection
 	)
 	default double expertToaUniqueChance()
@@ -307,7 +319,7 @@ public interface CollectionLogConfig extends Config
 			keyName = AVG_NIGHTMARE_TEAM_SIZE_KEY,
 			name = "Nightmare team size",
 			description = "Average team size when killing The Nightmare of Ashihama. Decimals can be used.",
-			position = 9,
+			position = 20,
 			section = luckSection
 	)
 	default double avgNightmareTeamSize() {
@@ -319,7 +331,7 @@ public interface CollectionLogConfig extends Config
 			name = "Nightmare rewards fraction",
 			description = "Avg. fraction of contribution to killing The Nightmare of Ashihama." +
 					" This should include MVP bonuses, so multiply by 1.05 if always MVP, or less accordingly.",
-			position = 10,
+			position = 21,
 			section = luckSection
 	)
 	default double avgNightmareRewardsFraction() {
@@ -332,7 +344,7 @@ public interface CollectionLogConfig extends Config
 			name = "Nex rewards fraction",
 			description = "Avg. fraction of contribution to killing Nex." +
 					" This should include MVP bonuses, so multiply by 1.1 if always MVP, or less accordingly.",
-			position = 11,
+			position = 22,
 			section = luckSection
 	)
 	default double avgNexRewardsFraction() {
@@ -345,7 +357,7 @@ public interface CollectionLogConfig extends Config
 			name = "Callisto rewards fraction",
 			description = "Avg. fraction of contribution to killing Callisto." +
 					" Set to 0.1 if team size >= 10, or 1 if soloing.",
-			position = 12,
+			position = 23,
 			section = luckSection
 	)
 	default double avgCallistoRewardsFraction() {
@@ -357,7 +369,7 @@ public interface CollectionLogConfig extends Config
 			name = "Venenatis rewards fraction",
 			description = "Avg. fraction of contribution to killing Venenatis." +
 					" Set to 0.1 if team size >= 10, or 1 if soloing.",
-			position = 13,
+			position = 24,
 			section = luckSection
 	)
 	default double avgVenenatisRewardsFraction() {
@@ -369,7 +381,7 @@ public interface CollectionLogConfig extends Config
 			name = "Vet'ion rewards fraction",
 			description = "Avg. fraction of contribution to killing Vet'ion." +
 					" Set to 0.1 if team size >= 10, or 1 if soloing.",
-			position = 14,
+			position = 25,
 			section = luckSection
 	)
 	default double avgVetionRewardsFraction() {
@@ -380,7 +392,7 @@ public interface CollectionLogConfig extends Config
 			keyName = AVG_ZALCANO_REWARDS_FRACTION_KEY,
 			name = "Zalcano rewards fraction",
 			description = "Avg. fraction of contribution to killing Zalcano, taking into account team size.",
-			position = 16,
+			position = 26,
 			section = luckSection
 	)
 	default double avgZalcanoRewardsFraction() {
@@ -392,7 +404,7 @@ public interface CollectionLogConfig extends Config
 			keyName = AVG_ZALCANO_POINTS_KEY,
 			name = "Zalcano points",
 			description = "Your average number of points per Zalcano kill. See wiki for more info.",
-			position = 17,
+			position = 27,
 			section = luckSection
 	)
 	default int avgZalcanoPoints() {
@@ -406,7 +418,7 @@ public interface CollectionLogConfig extends Config
 			keyName = NUM_ROLLS_PER_WINTERTODT_CRATE_KEY,
 			name = "# Wintertodt Rolls",
 			description = "The number of rolls per Wintertodt supply crate. 500 pts = 2 rolls. 1k pts = 3 rolls, and so on",
-			position = 15,
+			position = 30,
 			section = luckSection
 	)
 	default double numRollsPerWintertodtCrate()
@@ -422,7 +434,7 @@ public interface CollectionLogConfig extends Config
 			keyName = NUM_INVALID_BARROWS_KC_KEY,
 			name = "# Barrows KC wasted",
 			description = "The effective number of Barrows KC wasted by killing < 6 brothers. 4-5 brothers killed ~= 0.5 KC wasted.",
-			position = 18,
+			position = 31,
 			section = luckSection
 	)
 	default int numInvalidBarrowsKc()
@@ -434,7 +446,7 @@ public interface CollectionLogConfig extends Config
 			keyName = BARROWS_BOLT_RACKS_ENABLED_KEY,
 			name = "Bolt racks enabled",
 			description = "Whether or not you try to get enough points at Barrows to receive bolt racks.",
-			position = 19,
+			position = 32,
 			section = luckSection
 	)
 	default boolean barrowsBoltRacksEnabled()
@@ -448,7 +460,7 @@ public interface CollectionLogConfig extends Config
 			keyName = NUM_FIRE_CAPES_SACRIFICED_KEY,
 			name = "# Fire capes sacrificed",
 			description = "The number of fire capes sacrificed for a chance at TzRek-Jad.",
-			position = 20,
+			position = 40,
 			section = luckSection
 	)
 	default int numFireCapesSacrificed() {
@@ -459,7 +471,7 @@ public interface CollectionLogConfig extends Config
 			keyName = NUM_INFERNAL_CAPES_SACRIFICED_KEY,
 			name = "# Infernal capes sacrificed",
 			description = "The number of infernal capes sacrificed for a chance at Jal-nib-rek.",
-			position = 21,
+			position = 41,
 			section = luckSection
 	)
 	default int numInfernalCapesSacrificed() {
@@ -472,7 +484,7 @@ public interface CollectionLogConfig extends Config
 			keyName = NUM_ABYSSAL_LANTERNS_PURCHASED_KEY,
 			name = "# Abyssal Lanterns bought",
 			description = "The number of Abyssal Lanterns you bought from the Guardians of the Rift shop.",
-			position = 22,
+			position = 42,
 			section = luckSection
 	)
 	default int numAbyssalLanternsPurchased()
@@ -486,7 +498,7 @@ public interface CollectionLogConfig extends Config
 			keyName = NUM_CRYSTAL_WEAPON_SEEDS_PURCHASED_KEY,
 			name = "# Crystal weapon seeds bought",
 			description = "The number of crystal weapon seeds you bought from the Last Man Standing shop.",
-			position = 23,
+			position = 43,
 			section = luckSection
 	)
 	default int numCrystalWeaponSeedsPurchased()
@@ -500,7 +512,7 @@ public interface CollectionLogConfig extends Config
 			keyName = SKOTIZO_KC_PRE_BUFF_KEY,
 			name = "Skotizo KC pre-buff",
 			description = "# of Skotizo kills before the Jar of darkness drop rate buff",
-			position = 24,
+			position = 50,
 			section = luckSection
 	)
 	default int skotizoKcPreBuff() {
@@ -511,7 +523,7 @@ public interface CollectionLogConfig extends Config
 			keyName = KQ_KC_PRE_D_PICK_BUFF_KEY,
 			name = "KQ KC pre- d pick buff",
 			description = "# of Kalphite Queen kills before the Dragon Pickaxe was added to the drop table.",
-			position = 25,
+			position = 51,
 			section = luckSection
 	)
 	default int kqKcPreDPickBuff() {
@@ -522,7 +534,7 @@ public interface CollectionLogConfig extends Config
 			keyName = KBD_KC_PRE_D_PICK_BUFF_KEY,
 			name = "KBD KC pre- d pick buff",
 			description = "# of King Black Dragon kills before the Dragon Pickaxe drop rate buff.",
-			position = 26,
+			position = 52,
 			section = luckSection
 	)
 	default int kbdKcPreDPickBuff() {

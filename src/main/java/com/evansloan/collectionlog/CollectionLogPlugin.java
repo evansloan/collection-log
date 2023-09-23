@@ -1175,6 +1175,12 @@ public class CollectionLogPlugin extends Plugin
 
 		String luckString = CollectionLogLuckUtils.formatLuckSigDigits(luck);
 		String drynessString = CollectionLogLuckUtils.formatLuckSigDigits(dryness);
+		String overallLuckString = CollectionLogLuckUtils.formatLuckSigDigits(overallLuck);
+
+		String shownLuckText = overallLuckString + "% luck";
+		if (config.showDetailedLuck()) {
+			shownLuckText = luckString + "% lucky / " + drynessString + "% dry";
+		}
 
 		int numObtained = item.getQuantity();
 		String kcDescription = logItemInfo.getDropProbabilityDistribution().getKillCountDescription(collectionLog);
@@ -1196,7 +1202,7 @@ public class CollectionLogPlugin extends Plugin
 				.append(item.getName() + " ")
 				.img(loadedCollectionLogIcons.get(item.getId()))
 				.append("x" + numObtained + ": ")
-				.append(luckColor, luckString + "% lucky / " + drynessString + "% dry")
+				.append(luckColor, shownLuckText)
 				.append(" in ")
 				.append(kcDescription)
 				.append(warningText)
