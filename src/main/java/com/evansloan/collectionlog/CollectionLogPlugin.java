@@ -74,7 +74,7 @@ public class CollectionLogPlugin extends Plugin
 	private static final String COLLECTION_LOG_EXPORT = "Export";
 	private static final String COLLECTION_LOG_COMMAND_STRING = "!log";
 	private static final List<String> COLLECTION_LOG_COMMAND_FILTERS = ImmutableList.of("missing", "obtained", "dupes", "luck");
-	private static final Pattern COLLECTION_LOG_COMMAND_PATTERN = Pattern.compile("!log\\s*(" + String.join("|", COLLECTION_LOG_COMMAND_FILTERS) + ")?\\s*([\\w\\s]+)?", Pattern.CASE_INSENSITIVE);
+	private static final Pattern COLLECTION_LOG_COMMAND_PATTERN = Pattern.compile("!log\\s*(" + String.join("|", COLLECTION_LOG_COMMAND_FILTERS) + ")?\\s*(.+)\\s*?", Pattern.CASE_INSENSITIVE);
 
 	private static final int ADVENTURE_LOG_COLLECTION_LOG_SELECTED_VARBIT_ID = 12061;
 	private static final Pattern ADVENTURE_LOG_TITLE_PATTERN = Pattern.compile("The Exploits of (.+)");
@@ -1179,6 +1179,14 @@ public class CollectionLogPlugin extends Plugin
 		int numObtained = item.getQuantity();
 		String kcDescription = logItemInfo.getDropProbabilityDistribution().getKillCountDescription(collectionLog);
 
+		String warningText = "";
+		// rarer than 1 in 100M is likely an error. Note: 0 luck or 0 dryness is normal as a result of low KC and does
+		// not need a warning.
+		if (luck > 0.99999999 || dryness > 0.99999999) {
+			warningText = " - Warning: Check plugin configuration. Did you have many KC" +
+					" before the log existed, or have you reached the max # tracked for this item?";
+		}
+
 		// This reports detailed luck stats (luck + dryness) rather than a simplified average. We should do a user study
 		// to see if reporting both luck/dryness is too confusing. To me, there is a difference between receiving 0
 		// drops in 1 kc and being still at ~50% versus receiving 5 drops in 500 kc and being exactly on drop rate.
@@ -1191,6 +1199,7 @@ public class CollectionLogPlugin extends Plugin
 				.append(luckColor, luckString + "% lucky / " + drynessString + "% dry")
 				.append(" in ")
 				.append(kcDescription)
+				.append(warningText)
 				.build();
 	}
 
