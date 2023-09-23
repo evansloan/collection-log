@@ -7,7 +7,9 @@ import com.google.common.collect.ImmutableList;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 // All 1477 collection log items as of 9/21/2023 and a mapping to their item IDs and drop mechanics / probabilities.
 public class LogItemInfo {
@@ -3917,15 +3919,22 @@ public class LogItemInfo {
     // find the LogItemInfo corresponding to the given target
     public static LogItemInfo findByName(String targetItemName) {
         // Use some hacky reflective code since modeling this class as an enum runs into "code too large" error
+        return getAllLogItemInfos()
+                .stream()
+                // at this point we finally have a LogItemInfo object
+                .filter(field -> field.getItemName().equalsIgnoreCase(targetItemName))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static List<LogItemInfo> getAllLogItemInfos() {
+        // Use some hacky reflective code since modeling this class as an enum runs into "code too large" error
         return Arrays.stream(LogItemInfo.class.getDeclaredFields())
                 .filter(field -> Modifier.isStatic(field.getModifiers()))
                 .map(LogItemInfo::retrieveStaticField)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                // at this point we finally have a LogItemInfo object
-                .filter(field -> field.getItemName().equalsIgnoreCase(targetItemName))
-                .findFirst()
-                .orElse(null);
+                .collect(Collectors.toList());
     }
 
     // find the constant in this class corresponding to the Field
