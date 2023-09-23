@@ -3914,6 +3914,7 @@ public class LogItemInfo {
         this.itemName = itemName;
         this.itemId = itemId;
         this.dropLuck = dropLuck;
+        dropLuck.setItemName(itemName);
     }
 
     // find the LogItemInfo corresponding to the given target

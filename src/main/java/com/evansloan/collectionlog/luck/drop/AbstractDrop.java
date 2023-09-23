@@ -21,6 +21,8 @@ public abstract class AbstractDrop implements DropLuck {
 
     protected List<String> configOptions;
 
+    protected String itemName;
+
     public AbstractDrop(List<RollInfo> rollInfos) {
         this.rollInfos = rollInfos;
 
@@ -48,6 +50,11 @@ public abstract class AbstractDrop implements DropLuck {
     public AbstractDrop withConfigOption(String configOption) {
         this.configOptions.add(configOption);
         return this;
+    }
+
+    @Override
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
     }
 
     @Override

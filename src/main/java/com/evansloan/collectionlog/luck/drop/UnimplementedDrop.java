@@ -1,8 +1,12 @@
 package com.evansloan.collectionlog.luck.drop;
 
+import com.evansloan.collectionlog.CollectionLogConfig;
+import com.evansloan.collectionlog.CollectionLogItem;
+
 public class UnimplementedDrop extends AbstractUnsupportedDrop {
 
-    public UnimplementedDrop() {
-        super("This item is not currently supported but may be in the future.");
+   @Override
+    public String getIncalculableReason(CollectionLogItem item, CollectionLogConfig config) {
+        return itemName + " is not currently supported but may be in the future.";
     }
 }

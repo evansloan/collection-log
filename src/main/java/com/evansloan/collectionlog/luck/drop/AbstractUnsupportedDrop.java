@@ -6,16 +6,14 @@ import com.evansloan.collectionlog.CollectionLogItem;
 // Base class for all unsupported or unimplemented drops
 public abstract class AbstractUnsupportedDrop implements DropLuck {
 
-    private String reason;
-
-    public AbstractUnsupportedDrop(String reason) {
-        super();
-        this.reason = reason;
-    }
+    protected String itemName;
 
     @Override
-    public String getIncalculableReason(CollectionLogItem item, CollectionLogConfig config) {
-        return reason;
+    public abstract String getIncalculableReason(CollectionLogItem item, CollectionLogConfig config);
+
+    @Override
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
     }
 
 }

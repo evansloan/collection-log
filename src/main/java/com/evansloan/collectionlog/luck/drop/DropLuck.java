@@ -40,5 +40,7 @@ public interface DropLuck {
         return null;
     }
 
+    void setItemName(String itemName);
+
 
 }
