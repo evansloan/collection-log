@@ -10,6 +10,8 @@ A [Runelite](https://github.com/runelite/runelite) plugin that adds visual impro
 * Custom page highlight colors
 * Export collection log data to file
 * Display collection log data in chat with a command
+* Display how lucky or dry you are for most items in the collection log
+* Share item counts, collection log progress, luck, etc. with others using a chat command.
 
 ## Usage
 Open the collection log and click through all the pages to get your total progress. Pages that have not yet been clicked on will be marked with `*`
@@ -32,7 +34,7 @@ The command will try to alias common ways to refer to a piece of content to the 
 - `!log brim agility` -> Brimhaven Agility Arena
 - `!log shared clues` -> Shared Treasure Trail Rewards
 
-![](https://i.imgur.com/U2C2t1G.gif)
+<img src="https://i.imgur.com/U2C2t1G.gif" width="500" />
 
 The command output can be filtered by providing specific keywords to the command:
 - `obtained`: Show all obtained items for a given page (This filter is used by default when one is not provided)
@@ -45,6 +47,40 @@ Examples:
 !log missing nightmare
 !log dupes zulrah
 ```
+
+### Luck Commands
+Type `!log luck` followed by an item name. Alternatively, click "Check" on any item icon in the collection log pane to 
+show your luck stats for that item.
+
+<img src="https://i.imgur.com/5pPIw0C.png" width="500" />
+
+The command will try to infer the intended item name if you abbreviate or misspell it.
+
+<img src="https://i.imgur.com/AHNv1V0.gif" width="500" />
+
+Examples:
+```
+!log luck tumeken's shadow
+!log luck enhanced weapon seed
+!log luck zulrah pet
+```
+
+In the future, luck for an entire page or your entire account can be shared rather than single items.
+
+### Luck Configuration
+
+Luck display can be disabled in the plugin configuration.
+
+If you enable detailed luck stats in the plugin configuration, you will see luck and dryness separately. Luck is the
+percent of players that you are luckier than. Dryness is the percent of player that you are drier than. By default,
+these are combined into a single "overall" luck meter. An overall luck near 50% or luck/dryness near 0 might just mean
+you have low KC and luck calculation is unreliable at that point.
+
+The collection log does not have enough information to calculate luck for every item in the game, for example if KC is
+not tracked for some minigames or monsters. In some cases, providing additional information can allow a 
+fairly accurate calculation. Double check the luck calculation settings for best results:
+
+<img src="https://i.imgur.com/E2z85Ub.png" width="180" />
 
 ### Exporting
 
