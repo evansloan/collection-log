@@ -1144,8 +1144,8 @@ public class CollectionLogPlugin extends Plugin
 		}
 
 		// !log luck <item-name>
-		String itemName = CollectionLogItemAliases.aliasItemName(commandTarget);
-		itemName = itemDisplayNameToItemName(itemName);
+		String itemName = itemDisplayNameToItemName(commandTarget);
+		itemName = CollectionLogItemAliases.aliasItemName(itemName);
 
 		CollectionLogItem item = collectionLog.searchForItem(itemName);
 		if (item == null) {

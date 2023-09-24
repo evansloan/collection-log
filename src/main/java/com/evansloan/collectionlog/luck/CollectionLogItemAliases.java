@@ -14,6 +14,18 @@ public final class CollectionLogItemAliases
             case "enh crystal weapon seed":
                 return LogItemInfo.ENHANCED_CRYSTAL_WEAPON_SEED_25859.getItemName();
 
+            case "d pick":
+                return LogItemInfo.DRAGON_PICKAXE_11920.getItemName();
+
+            case "d axe":
+                return LogItemInfo.DRAGON_AXE_6739.getItemName();
+
+            case "d chain":
+                return LogItemInfo.DRAGON_CHAINBODY_3140.getItemName();
+
+            case "d full helm":
+                return LogItemInfo.DRAGON_FULL_HELM_11335.getItemName();
+
             case "enh teleport seed":
             case "enh tele seed":
             case "enhanced teleport seed":
