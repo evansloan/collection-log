@@ -923,7 +923,6 @@ public class CollectionLogPlugin extends Plugin
 
 		if (!config.allowApiConnections())
 		{
-			log.debug("username:{} localPlayerName:{}", username, localPlayerName);
 			// When logged-in user triggers the command and doesn't allow API connections then give them an error
 			if (username.equals(localPlayerName))
 			{
