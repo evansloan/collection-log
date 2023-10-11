@@ -918,24 +918,30 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private void collectionLogLookup(ChatMessage chatMessage, String message)
 	{
-		String username = chatMessage.getName();
-
-		// Because outgoing private messages display the recipient's name use the logged-in user instead
-		if (chatMessage.getType().equals(ChatMessageType.PRIVATECHATOUT))
-		{
-			username = client.getLocalPlayer().getName();
-		}
+		String localPlayerName = client.getLocalPlayer().getName();
+		String username = Text.sanitize(chatMessage.getName());
 
 		if (!config.allowApiConnections())
 		{
-			clientThread.invoke(() -> updateChatMessage(chatMessage, "Please allow collectionlog.net connections to use the command."));
+			log.debug("username:{} localPlayerName:{}", username, localPlayerName);
+			// When logged-in user triggers the command and doesn't allow API connections then give them an error
+			if (username.equals(localPlayerName))
+			{
+				clientThread.invoke(() -> updateChatMessage(chatMessage, "Please allow collectionlog.net connections to use the command."));
+			}
 			return;
 		}
 		clientThread.invoke(() -> updateChatMessage(chatMessage, "Loading..."));
 
+		// Because outgoing private messages display the recipient's name use the logged-in user instead
+		if (chatMessage.getType().equals(ChatMessageType.PRIVATECHATOUT))
+		{
+			username = localPlayerName;
+		}
+
 		try
 		{
-			apiClient.getCollectionLog(Text.sanitize(username), new Callback()
+			apiClient.getCollectionLog(username, new Callback()
 			{
 				@Override
 				public void onFailure(@NonNull Call call, @NonNull IOException e)
