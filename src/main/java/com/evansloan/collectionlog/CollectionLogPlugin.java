@@ -918,12 +918,20 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private void collectionLogLookup(ChatMessage chatMessage, String message)
 	{
-		Player localPlayer = client.getLocalPlayer();
 		String username = chatMessage.getName();
+
+		// Because outgoing private messages display the recipient's name use the logged-in user instead
 		if (chatMessage.getType().equals(ChatMessageType.PRIVATECHATOUT))
 		{
-			username = localPlayer.getName();
+			username = client.getLocalPlayer().getName();
 		}
+
+		if (!config.allowApiConnections())
+		{
+			clientThread.invoke(() -> updateChatMessage(chatMessage, "Please allow collectionlog.net connections to use the command."));
+			return;
+		}
+		clientThread.invoke(() -> updateChatMessage(chatMessage, "Loading..."));
 
 		try
 		{
@@ -933,7 +941,7 @@ public class CollectionLogPlugin extends Plugin
 				public void onFailure(@NonNull Call call, @NonNull IOException e)
 				{
 					log.error("Unable to resolve !log command: " + e.getMessage());
-					clientThread.invoke(() -> replaceCommandMessage(chatMessage, message, null));
+					clientThread.invoke(() -> updateChatMessage(chatMessage, "Failed to retrieve collection log data."));
 				}
 
 				@Override
@@ -944,7 +952,7 @@ public class CollectionLogPlugin extends Plugin
 
 					if (collectionLogJson == null)
 					{
-						clientThread.invoke(() -> replaceCommandMessage(chatMessage, message, null));
+						clientThread.invoke(() -> updateChatMessage(chatMessage, "No Collection Log data found for user."));
 						return;
 					}
 
@@ -963,52 +971,65 @@ public class CollectionLogPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * Tries to parse the arguments from the message that triggered the command. Then uses the data from
+	 * the passed collection log and the parsed arguments to build command's output message.
+	 * Finally, updates the chat message with the output.
+	 *
+	 * @param chatMessage The ChatMessage event
+	 * @param message Text of the message that triggered the command
+	 * @param collectionLog Collection log data of the user triggering the command
+	 */
 	private void replaceCommandMessage(ChatMessage chatMessage, String message, CollectionLog collectionLog)
 	{
-		String replacementMessage;
-
 		Matcher commandMatcher = COLLECTION_LOG_COMMAND_PATTERN.matcher(message);
 		if (!commandMatcher.matches())
 		{
 			return;
 		}
-
 		String commandFilter = commandMatcher.group(1);
 		String commandPage = commandMatcher.group(2);
 
-		if (collectionLog == null)
+		// Display the total unique items obtained when no page is specified
+		if (commandPage == null)
 		{
-			replacementMessage = "No Collection Log data found for user.";
-		}
-		else if (commandPage == null)
-		{
-			replacementMessage = "Collection Log: " + collectionLog.getUniqueObtained() + "/" + collectionLog.getUniqueItems();
-		}
-		else
-		{
-			String pageArgument = CollectionLogPage.aliasPageName(commandPage);
-			CollectionLogPage collectionLogPage;
-			if (pageArgument.equals("any"))
-			{
-				collectionLogPage = collectionLog.randomPage();
-			}
-			else
-			{
-				collectionLogPage = collectionLog.searchForPage(pageArgument);
-			}
-
-			if (collectionLogPage == null)
-			{
-				replacementMessage = "No Collection Log page found.";
-			}
-			else
-			{
-				loadPageIcons(collectionLogPage.getItems());
-				replacementMessage = buildMessageReplacement(collectionLogPage, commandFilter);
-			}
+			String output = "Collection Log: " + collectionLog.getUniqueObtained() + "/" + collectionLog.getUniqueItems();
+			updateChatMessage(chatMessage, output);
+			return;
 		}
 
-		chatMessage.getMessageNode().setValue(replacementMessage);
+		// Display a random collection log page for the keyword 'any'
+		if (commandPage.equals("any"))
+		{
+			String output = buildCommandOutput(collectionLog.randomPage(), commandFilter);
+			updateChatMessage(chatMessage, output);
+			return;
+		}
+
+		String pageArgument = CollectionLogPage.aliasPageName(commandPage);
+		CollectionLogPage collectionLogPage = collectionLog.searchForPage(pageArgument);
+
+		// Display an error when no matching page could be found
+		if (collectionLogPage == null)
+		{
+			updateChatMessage(chatMessage, "No Collection Log page found.");
+			return;
+		}
+
+		// Display the found collection log page
+		String output = buildCommandOutput(collectionLogPage, commandFilter);
+		updateChatMessage(chatMessage, output);
+	}
+
+	/**
+	 * Updates the passed chat message with the new text then rebuilds the chatbox.
+	 *
+	 * @param chatMessage Chat message to update
+	 * @param text New text of the chat message
+	 */
+	private void updateChatMessage(ChatMessage chatMessage, String text)
+	{
+		chatMessage.getMessageNode().setValue(text);
 		client.runScript(ScriptID.BUILD_CHATBOX);
 	}
 
@@ -1045,13 +1066,15 @@ public class CollectionLogPlugin extends Plugin
 	}
 
 	/**
-	 * Builds the replacement messages for the !log command with a page argument
+	 * Builds the output message for the !log command when a page is specified
 	 *
 	 * @param collectionLogPage Page to format into a chat message
-	 * @return Replacement message
+	 * @return Command's output message
 	 */
-	private String buildMessageReplacement(CollectionLogPage collectionLogPage, String commandFilter)
+	private String buildCommandOutput(CollectionLogPage collectionLogPage, String commandFilter)
 	{
+		// Ensure all the page's item icons are loaded into the client
+		loadPageIcons(collectionLogPage.getItems());
 
 		if (commandFilter == null)
 		{
