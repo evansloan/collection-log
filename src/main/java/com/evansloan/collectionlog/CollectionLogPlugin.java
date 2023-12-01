@@ -164,9 +164,10 @@ public class CollectionLogPlugin extends Plugin
 			unsetOldConfigs();
 		}
 
+		initPanel();
 		if (config.showCollectionLogSidePanel())
 		{
-			initPanel();
+			clientToolbar.addNavigation(navigationButton);
 		}
 
 		// Load all save files up front on executor thread to mitigate lag on log open
@@ -199,8 +200,6 @@ public class CollectionLogPlugin extends Plugin
 				.priority(10)
 				.build();
 		}
-
-		clientToolbar.addNavigation(navigationButton);
 	}
 
 	private void destroyPanel()
@@ -219,20 +218,14 @@ public class CollectionLogPlugin extends Plugin
 
 		if (configChanged.getKey().equals(CONFIG_SHOW_PANEL))
 		{
+			clientToolbar.removeNavigation(navigationButton);
 			if (config.showCollectionLogSidePanel())
 			{
-				initPanel();
-			}
-			else
-			{
-				destroyPanel();
+				clientToolbar.addNavigation(navigationButton);
 			}
 		}
 
-		if (collectionLogPanel != null)
-		{
-			collectionLogPanel.onConfigChanged(configChanged);
-		}
+		collectionLogPanel.onConfigChanged(configChanged);
 	}
 
 	@Subscribe
@@ -246,11 +239,7 @@ public class CollectionLogPlugin extends Plugin
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
 			isUserLoggedIn = true;
-
-			if (collectionLogPanel != null)
-			{
-				collectionLogPanel.setStatus("", false, true);
-			}
+			collectionLogPanel.setStatus("", false, true);
 
 			unsetOldConfigs();
 		}
@@ -262,11 +251,7 @@ public class CollectionLogPlugin extends Plugin
 			collectionLogManager.reset();
 			resetFlags();
 		}
-
-		if (collectionLogPanel != null)
-		{
-			collectionLogPanel.onGameStateChanged(gameStateChanged);
-		}
+		collectionLogPanel.onGameStateChanged(gameStateChanged);
 	}
 
 	@Subscribe
