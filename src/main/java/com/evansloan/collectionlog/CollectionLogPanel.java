@@ -28,6 +28,7 @@ import javax.swing.plaf.basic.BasicButtonUI;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.Varbits;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.events.ConfigChanged;
@@ -35,7 +36,7 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
-import net.runelite.client.ui.components.ComboBoxListRenderer;
+import net.runelite.client.ui.components.TitleCaseListCellRenderer;
 import net.runelite.client.ui.components.materialtabs.MaterialTab;
 import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
 import net.runelite.client.util.AsyncBufferedImage;
@@ -576,7 +577,7 @@ public class CollectionLogPanel extends PluginPanel
 	private <T extends Enum<T>> JComboBox<T> createComboBox(T[] items, ItemListener itemListener)
 	{
 		JComboBox<T> comboBox = new JComboBox<>(items);
-		comboBox.setRenderer(new ComboBoxListRenderer<>());
+		comboBox.setRenderer(new TitleCaseListCellRenderer());
 		comboBox.setForeground(Color.WHITE);
 		comboBox.setFocusable(false);
 		comboBox.addItemListener(itemListener);
@@ -657,7 +658,7 @@ public class CollectionLogPanel extends PluginPanel
 		{
 			clientThread.invokeLater(() -> {
 				Client client = collectionLogPlugin.getClient();
-				EnumSet<DisplayRankType> displayRankTypes = DisplayRankType.getRankTypesFromAccountType(client.getAccountType());
+				EnumSet<DisplayRankType> displayRankTypes = DisplayRankType.getRankTypesFromAccountType(client.getVarbitValue(Varbits.ACCOUNT_TYPE));
 
 				displayRankComboBox.removeAllItems();
 
