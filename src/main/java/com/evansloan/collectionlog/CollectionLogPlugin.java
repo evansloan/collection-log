@@ -46,6 +46,8 @@ import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.widgets.ComponentID;
+import net.runelite.api.widgets.InterfaceID;
 import net.runelite.api.widgets.ItemQuantityMode;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
@@ -344,9 +346,9 @@ public class CollectionLogPlugin extends Plugin
 	@Subscribe
 	public void onWidgetLoaded(WidgetLoaded widgetLoaded)
 	{
-		if (widgetLoaded.getGroupId() == WidgetID.ADVENTURE_LOG_ID)
+		if (widgetLoaded.getGroupId() == InterfaceID.ADVENTURE_LOG)
 		{
-			Widget adventureLog = client.getWidget(WidgetInfo.ADVENTURE_LOG);
+			Widget adventureLog = client.getWidget(ComponentID.ADVENTURE_LOG_CONTAINER);
 			if (adventureLog == null)
 			{
 				return;
@@ -561,7 +563,7 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private void updatePage(Widget pageHead, CollectionLogPage pageToUpdate)
 	{
-		Widget itemsContainer = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_ITEMS);
+		Widget itemsContainer = client.getWidget(ComponentID.COLLECTION_LOG_ENTRY_ITEMS);
 		if (itemsContainer == null)
 		{
 			return;
@@ -643,7 +645,7 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		Widget pageHead = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_HEADER);
+		Widget pageHead = client.getWidget(ComponentID.COLLECTION_LOG_ENTRY_HEADER);
 		if (pageHead == null)
 		{
 			return;
@@ -727,7 +729,7 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private Widget getActiveTab()
 	{
-		Widget tabsWidget = client.getWidget(WidgetInfo.COLLECTION_LOG_TABS);
+		Widget tabsWidget = client.getWidget(ComponentID.COLLECTION_LOG_TABS);
 		if (tabsWidget == null)
 		{
 			return null;
@@ -752,7 +754,7 @@ public class CollectionLogPlugin extends Plugin
 
 		String tabName = Text.removeTags(tab.getName());
 		int listIndex = CollectionLogList.valueOf(tabName.toUpperCase()).getListIndex();
-		return client.getWidget(WidgetID.COLLECTION_LOG_ID, listIndex);
+		return client.getWidget(InterfaceID.COLLECTION_LOG, listIndex);
 	}
 
 	/**
@@ -1097,7 +1099,7 @@ public class CollectionLogPlugin extends Plugin
 	 */
 	private Widget getCollectionLogTitle()
 	{
-		Widget collLogContainer = client.getWidget(WidgetID.COLLECTION_LOG_ID, COLLECTION_LOG_CONTAINER);
+		Widget collLogContainer = client.getWidget(ComponentID.COLLECTION_LOG_CONTAINER);
 
 		if (collLogContainer == null)
 		{
