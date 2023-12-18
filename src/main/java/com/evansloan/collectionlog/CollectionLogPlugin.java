@@ -38,6 +38,7 @@ import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.Player;
 import net.runelite.api.ScriptID;
+import net.runelite.api.Varbits;
 import net.runelite.api.WorldType;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
@@ -545,7 +546,7 @@ public class CollectionLogPlugin extends Plugin
 		Player localPlayer = client.getLocalPlayer();
 		String username = localPlayer.getName();
 		String accountHash = String.valueOf(client.getAccountHash());
-		String accountType = client.getAccountType().toString();
+		String accountType = AccountType.valueOf(client.getVarbitValue(Varbits.ACCOUNT_TYPE)).toString();
 
 		// Used to display proper farming outfit on site
 		boolean isFemale = localPlayer.getPlayerComposition().getGender() == 1;

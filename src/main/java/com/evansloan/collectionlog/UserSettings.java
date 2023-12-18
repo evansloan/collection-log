@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserSettings
 {
-	private DisplayRankType displayRank = DisplayRankType.ALL;
+	private AccountType displayRank = AccountType.ALL;
 	private boolean showQuantity = true;
 }

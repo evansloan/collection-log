@@ -81,7 +81,7 @@ public class CollectionLogPanel extends PluginPanel
 	private JButton deleteCollectionLogBtn;
 	private JTextArea statusTextArea;
 	private JPanel accountSettingsPanel;
-	private JComboBox<DisplayRankType> displayRankComboBox;
+	private JComboBox<AccountType> displayRankComboBox;
 	private JCheckBox showQuantityCheck;
 
 	private JButton randomCollectionLogBtn;
@@ -308,8 +308,8 @@ public class CollectionLogPanel extends PluginPanel
 		displayRankLabel.setToolTipText("Rank type to display on collectionlog.net profile");
 		displayRankPanel.add(displayRankLabel, BorderLayout.CENTER);
 
-		displayRankComboBox = createComboBox(DisplayRankType.values(), event -> {
-			collectionLogManager.getUserSettings().setDisplayRank((DisplayRankType) event.getItem());
+		displayRankComboBox = createComboBox(AccountType.values(), event -> {
+			collectionLogManager.getUserSettings().setDisplayRank((AccountType) event.getItem());
 		});
 		displayRankPanel.add(displayRankComboBox, BorderLayout.EAST);
 
@@ -658,13 +658,13 @@ public class CollectionLogPanel extends PluginPanel
 		{
 			clientThread.invokeLater(() -> {
 				Client client = collectionLogPlugin.getClient();
-				EnumSet<DisplayRankType> displayRankTypes = DisplayRankType.getRankTypesFromAccountType(client.getVarbitValue(Varbits.ACCOUNT_TYPE));
+				EnumSet<AccountType> accountTypes = AccountType.getRankTypesFromAccountType(client.getVarbitValue(Varbits.ACCOUNT_TYPE));
 
 				displayRankComboBox.removeAllItems();
 
-				for (DisplayRankType displayRankType : displayRankTypes)
+				for (AccountType accountType : accountTypes)
 				{
-					displayRankComboBox.addItem(displayRankType);
+					displayRankComboBox.addItem(accountType);
 				}
 			});
 		}
