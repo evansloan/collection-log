@@ -347,6 +347,11 @@ public class CollectionLogPlugin extends Plugin
 	@Subscribe
 	public void onWidgetLoaded(WidgetLoaded widgetLoaded)
 	{
+		if (!isValidWorldType())
+		{
+			return;
+		}
+
 		if (widgetLoaded.getGroupId() == InterfaceID.ADVENTURE_LOG)
 		{
 			Widget adventureLog = client.getWidget(ComponentID.ADVENTURE_LOG_CONTAINER);
@@ -365,7 +370,7 @@ public class CollectionLogPlugin extends Plugin
 			});
 		}
 
-		if (widgetLoaded.getGroupId() == WidgetID.COLLECTION_LOG_ID)
+		if (widgetLoaded.getGroupId() == InterfaceID.COLLECTION_LOG)
 		{
 			if (!collectionLogManager.isInitialized())
 			{
