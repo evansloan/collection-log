@@ -27,7 +27,13 @@ public enum AccountType
 			.orElse(null);
 	}
 
-	public static EnumSet<AccountType> getRankTypesFromAccountType(int accountType)
+	/**
+	 * Returns an EnumSet of AccountType values based on the specified accountType varbit value.
+	 *
+	 * @param accountType The account type to match
+	 * @return An EnumSet of AccountType values that match the specified accountType varbit value
+	 */
+	public static EnumSet<AccountType> getAllAccountTypes(int accountType)
 	{
 		EnumSet<AccountType> accountTypes = EnumSet.of(
 			ALL,

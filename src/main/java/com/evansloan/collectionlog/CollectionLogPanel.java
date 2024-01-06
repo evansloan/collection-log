@@ -658,7 +658,7 @@ public class CollectionLogPanel extends PluginPanel
 		{
 			clientThread.invokeLater(() -> {
 				Client client = collectionLogPlugin.getClient();
-				EnumSet<AccountType> accountTypes = AccountType.getRankTypesFromAccountType(client.getVarbitValue(Varbits.ACCOUNT_TYPE));
+				EnumSet<AccountType> accountTypes = AccountType.getAllAccountTypes(client.getVarbitValue(Varbits.ACCOUNT_TYPE));
 
 				displayRankComboBox.removeAllItems();
 
