@@ -19,12 +19,12 @@ public enum AccountType
 
 	private final int accountTypeVar;
 
-	public static AccountType valueOf(int accountType)
+	public static AccountType valueOf(int accountTypeVar)
 	{
 		return Arrays.stream(values())
-			.filter(displayRankType -> accountType == displayRankType.accountTypeVar)
+			.filter(accountType -> accountTypeVar == accountType.accountTypeVar)
 			.findFirst()
-			.get();
+			.orElse(null);
 	}
 
 	public static EnumSet<AccountType> getRankTypesFromAccountType(int accountType)
@@ -34,18 +34,21 @@ public enum AccountType
 			valueOf(accountType)
 		);
 
-		if (accountType >= IRONMAN.accountTypeVar &&
-			accountType <= HARDCORE_GROUP_IRONMAN.accountTypeVar)
+		if (isInRange(accountType, IRONMAN, HARDCORE_IRONMAN))
 		{
 			accountTypes.add(IRONMAN);
 		}
 
-		if (accountType >= GROUP_IRONMAN.accountTypeVar &&
-			accountType <= HARDCORE_GROUP_IRONMAN.accountTypeVar)
+		if (isInRange(accountType, GROUP_IRONMAN, HARDCORE_GROUP_IRONMAN))
 		{
 			accountTypes.add(GROUP_IRONMAN);
 		}
 
 		return accountTypes;
+	}
+
+	private static boolean isInRange(int accountType, AccountType min, AccountType max)
+	{
+		return accountType >= min.accountTypeVar && accountType <= max.accountTypeVar;
 	}
 }
