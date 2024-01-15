@@ -650,8 +650,8 @@ public class CollectionLogPanel extends PluginPanel
 		{
 			return;
 		}
-		currentGameState = gameState;
 
+		currentGameState = gameState;
 		GameStatePanel.updatePanels(gameState);
 
 		if (gameState == GameState.LOGGED_IN)
