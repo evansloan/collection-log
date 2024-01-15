@@ -9,6 +9,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum AccountType
 {
+	NORMAL(0),
 	IRONMAN(1),
 	ULTIMATE_IRONMAN(2),
 	HARDCORE_IRONMAN(3),
