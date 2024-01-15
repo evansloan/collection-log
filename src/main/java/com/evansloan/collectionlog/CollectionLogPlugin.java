@@ -238,7 +238,9 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
+		GameState gameState = gameStateChanged.getGameState();
+
+		if (gameState == GameState.LOGGED_IN)
 		{
 			isUserLoggedIn = true;
 			collectionLogPanel.setStatus("", false, true);
@@ -246,8 +248,8 @@ public class CollectionLogPlugin extends Plugin
 			unsetOldConfigs();
 		}
 
-		if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN ||
-			gameStateChanged.getGameState() == GameState.HOPPING)
+		if (gameState == GameState.LOGIN_SCREEN ||
+			gameState == GameState.HOPPING)
 		{
 			saveCollectionLogData();
 			collectionLogManager.reset();
@@ -304,7 +306,7 @@ public class CollectionLogPlugin extends Plugin
 		MenuEntry entry = event.getMenuEntries()[1];
 
 		String entryTarget = entry.getTarget();
-		if (entryTarget.equals(""))
+		if (entryTarget.isEmpty())
 		{
 			entryTarget = entry.getOption();
 		}
@@ -488,7 +490,7 @@ public class CollectionLogPlugin extends Plugin
 		{
 			// Opening clue casket triggers onItemContainerChanged event before clue items
 			// appear in inventory. Fall through to onLootReceived to find obtained item(s)
-			if (client.getWidget(WidgetInfo.CLUE_SCROLL_REWARD_ITEM_CONTAINER) != null)
+			if (client.getWidget(ComponentID.CLUESCROLL_REWARD_ITEM_CONTAINER) != null)
 			{
 				return;
 			}
