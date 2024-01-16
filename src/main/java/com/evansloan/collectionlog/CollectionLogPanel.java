@@ -1,6 +1,5 @@
 package com.evansloan.collectionlog;
 
-import com.evansloan.collectionlog.ui.ExpandablePanel;
 import com.evansloan.collectionlog.ui.GameStatePanel;
 import com.evansloan.collectionlog.ui.Icon;
 import java.awt.BorderLayout;
@@ -50,7 +49,6 @@ public class CollectionLogPanel extends PluginPanel
 	private static final ImageIcon ACCOUNT_ICON;
 	private static final ImageIcon DISCORD_ICON;
 	private static final ImageIcon GITHUB_ICON;
-	private static final ImageIcon HELP_ICON;
 	private static final ImageIcon RANDOM_ICON;
 	private static final ImageIcon INFO_ICON;
 	private static final ImageIcon WEBSITE_ICON;
@@ -61,7 +59,6 @@ public class CollectionLogPanel extends PluginPanel
 		ACCOUNT_ICON = Icon.ACCOUNT.getIcon(img -> ImageUtil.resizeImage(img, 16, 16));
 		DISCORD_ICON = Icon.DISCORD.getIcon(img -> ImageUtil.resizeImage(img, 16, 16));
 		GITHUB_ICON = Icon.GITHUB.getIcon(img -> ImageUtil.resizeImage(img, 16, 16));
-		HELP_ICON = Icon.HELP.getIcon(img -> ImageUtil.resizeImage(img, 20, 20));
 		RANDOM_ICON = Icon.RANDOM.getIcon(img -> ImageUtil.resizeImage(img, 20, 20));
 		INFO_ICON = Icon.INFO.getIcon(img -> ImageUtil.resizeImage(img, 20, 20));
 		WEBSITE_ICON = Icon.COLLECTION_LOG.getIcon(img -> ImageUtil.resizeImage(img, 16, 16));
@@ -177,7 +174,7 @@ public class CollectionLogPanel extends PluginPanel
 		JPanel activeTabPanel = new JPanel();
 		activeTabPanel.setLayout(new BoxLayout(activeTabPanel, BoxLayout.Y_AXIS));
 		MaterialTabGroup tabGroup = new MaterialTabGroup(activeTabPanel);
-		tabGroup.setLayout(new GridLayout(1, 4, 10, 10));
+		tabGroup.setLayout(new GridLayout(1, 3, 10, 10));
 		tabGroup.setBorder(new EmptyBorder(0, 0, 10, 0));
 		tabPanel.add(tabGroup);
 		tabPanel.add(activeTabPanel);
@@ -191,9 +188,6 @@ public class CollectionLogPanel extends PluginPanel
 
 		JPanel randomPanel = createRandomPanel();
 		createTab(RANDOM_ICON, "Random", tabGroup, randomPanel);
-
-		JPanel helpPanel = createHelpPanel();
-		createTab(HELP_ICON, "Help", tabGroup, helpPanel);
 
 		return tabPanel;
 	}
@@ -216,29 +210,28 @@ public class CollectionLogPanel extends PluginPanel
 		pluginInfoPanel.add(versionLabel);
 		pluginInfoPanel.add(clnEnabledLabel);
 
-		JPanel changeLogContent = createTabContentPanel();
-		String changeLogText = "v" + CollectionLogConfig.PLUGIN_VERSION + "\n\n" +
-			"* Added random collection log item button in sidebar\n" +
-			"* Fixed inconsistent page name highlighting";
-		JTextArea changeLogTextArea = createTextArea(changeLogText);
-		changeLogContent.add(changeLogTextArea);
-		ExpandablePanel changeLogPanel = new ExpandablePanel("What's new", changeLogContent);
-		infoPanel.add(changeLogPanel);
 
-		JPanel quickStartContent = createTabContentPanel();
-		String quickStartText = "The collection log plugin allows you to sync your in-game collection log data " +
-			"with collectionlog.net.\n\n" +
-			"To get started, first enable the collectionlog.net connections plugin config.\n\n" +
-			"After enabling the config, open your collection log and click through each page in the log in order " +
-			"for the plugin to grab your collection log data. Pages that haven't been loaded into the plugin will " +
-			"be marked with * in your collection log.\n\n" +
-			"Once all the collection log pages have been clicked through, your data can be uploaded by clicking " +
-			"on the upload button in the account tab in the plugin side panel. Your data will also be uploaded " +
-			"automatically upon log out.";
-		JTextArea quickStartTextArea = createTextArea(quickStartText);
-		quickStartContent.add(quickStartTextArea);
-		ExpandablePanel quickStartPanel = new ExpandablePanel("Quick start", quickStartContent, true);
-		infoPanel.add(quickStartPanel);
+		JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 0, 5));
+		buttonPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+		infoPanel.add(buttonPanel);
+
+		JButton changeLogButton = createButton(
+			"Change log",
+			(event) -> LinkBrowser.browse("https://collectionlog.net/change-log")
+		);
+		buttonPanel.add(changeLogButton);
+
+		JButton quickStartButton = createButton(
+			"Quick start",
+			(event) -> LinkBrowser.browse("https://collectionlog.net/quick-start")
+		);
+		buttonPanel.add(quickStartButton);
+
+		JButton faqButton = createButton(
+			"FAQ",
+			(event) -> LinkBrowser.browse("https://collectionlog.net/faq")
+		);
+		buttonPanel.add(faqButton);
 
 		return infoPanel;
 	}
@@ -371,50 +364,6 @@ public class CollectionLogPanel extends PluginPanel
 		buttonPanel.add(deleteCollectionLogBtn);
 
 		return buttonPanel;
-	}
-
-	private JPanel createHelpPanel()
-	{
-		JPanel helpPanel = new JPanel();
-		helpPanel.setLayout(new BoxLayout(helpPanel, BoxLayout.Y_AXIS));
-
-		JPanel notUploadingContent = createTabContentPanel();
-		String notUploadingText = "If your collection log is not appearing on collectionlog.net, follow these steps:\n\n" +
-			"1. Make sure the \"Allow collectionlog.net connections\" config is enabled.\n\n" +
-			"2. Click through every page in the collection log to gather your obtained item data.\n\n" +
-			"3. Click the \"Upload collection log\" button in the account tab or log out to upload your collection log.\n\n" +
-			"4. If the above steps do not solve your problem, click the \"Reset collection log\" button in the accounts tab " +
-			"and try the above steps again.";
-		JTextArea notUploadingTextArea = createTextArea(notUploadingText);
-		notUploadingContent.add(notUploadingTextArea);
-		ExpandablePanel notUploadingPanel = new ExpandablePanel("Collection log not uploading?", notUploadingContent);
-		helpPanel.add(notUploadingPanel);
-
-		JPanel missingItemsContent = createTabContentPanel();
-		String missingItemsText = "1. Click through any page in the collection log you may have received a new item in.\n\n" +
-			"2. Click the \"Upload collection log\" button in the account tab or log out to upload your collection log.";
-		JTextArea missingItemsTextArea = createTextArea(missingItemsText);
-		missingItemsContent.add(missingItemsTextArea);
-		ExpandablePanel missingItemsPanel = new ExpandablePanel("Missing obtained items?", missingItemsContent);
-		helpPanel.add(missingItemsPanel);
-
-		JPanel duplicateItemsContent = createTabContentPanel();
-		String duplicateItemsText = "If your collectionlog.net collection log page is showing dupliate items/kill counts, join the " +
-			"Log Hunters Discord server by clicking on the Discord icon above and reporting a bug in the bugs-and-support forum with the \"Plug-in\" tag";
-		JTextArea duplicateItemsTextArea = createTextArea(duplicateItemsText);
-		duplicateItemsContent.add(duplicateItemsTextArea);
-		ExpandablePanel duplicateItemsPanel = new ExpandablePanel("Duplicate items?", duplicateItemsContent);
-		helpPanel.add(duplicateItemsPanel);
-
-		JPanel suggestionContent = createTabContentPanel();
-		String suggestionText = "If you have a suggestion for the collection log plugin or collectionlog.net, feel free to post " +
-			"it in the Log Hunters Discord server in the suggestions forum";
-		JTextArea suggestionTextArea = createTextArea(suggestionText);
-		suggestionContent.add(suggestionTextArea);
-		ExpandablePanel suggestionPanel = new ExpandablePanel("Have a suggestion?", suggestionContent);
-		helpPanel.add(suggestionPanel);
-
-		return helpPanel;
 	}
 
 	private JPanel createRandomPanel()

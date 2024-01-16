@@ -41,7 +41,6 @@ public enum Icon
 	COLLECTION_LOG_TOOLBAR("/collection_log_toolbar.png"),
 	DISCORD("/discord.png"),
 	GITHUB("/github.png"),
-	HELP("/help.png"),
 	RANDOM("/random.png"),
 	INFO("/info.png"),
 	;
