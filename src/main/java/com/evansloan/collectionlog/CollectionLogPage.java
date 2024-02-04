@@ -143,6 +143,10 @@ public class CollectionLogPage
 				return "Sarachnis";
 			case "scorpa":
 				return "Scorpia";
+			case "scur":
+			case "scurius":
+			case "rat":
+				return "Scurrius";
 			case "skotizos":
 			case "totems":
 			case "totem":

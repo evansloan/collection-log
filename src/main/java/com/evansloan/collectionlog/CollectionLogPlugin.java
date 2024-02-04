@@ -51,7 +51,6 @@ import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.InterfaceID;
 import net.runelite.api.widgets.ItemQuantityMode;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatCommandManager;
@@ -1113,7 +1112,8 @@ public class CollectionLogPlugin extends Plugin
 			return null;
 		}
 
-		return collLogContainer.getDynamicChildren()[1];
+		Widget containerChild = collLogContainer.getStaticChildren()[0];
+		return containerChild.getDynamicChildren()[1];
 	}
 
 	/**
