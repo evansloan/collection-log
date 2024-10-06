@@ -1,5 +1,5 @@
 
-# Collection Log Plugin ![Plugin Installs](https://img.shields.io/endpoint?url=https://i.pluginhub.info/shields/installs/plugin/collection-log) ![Plugin Rank](https://img.shields.io/endpoint?url=https://i.pluginhub.info/shields/rank/plugin/collection-log)
+# Collection Log Plugin ![Plugin Installs](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/installs/plugin/collection-log) ![Plugin Rank](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/rank/plugin/collection-log)
 
 A [Runelite](https://github.com/runelite/runelite) plugin that adds visual improvements to the collection log and integrates with [collectionlog.net](https://collectionlog.net).
 
