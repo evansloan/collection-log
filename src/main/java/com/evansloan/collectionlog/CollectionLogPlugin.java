@@ -69,6 +69,7 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
+import static net.runelite.client.util.Text.removeTags;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -91,7 +92,8 @@ public class CollectionLogPlugin extends Plugin
 
 	private static final String COLLECTION_LOG_TITLE = "Collection Log";
 	private static final Pattern COLLECTION_LOG_ITEM_REGEX = Pattern.compile("New item added to your collection log: (.*)");
-	private static final String COLLECTION_LOG_TARGET = "Collection log";
+	private static final String COLLECTION_LOG_TARGET = "collection log";
+	private static final int COLLECTION_LOG_TARGET_INDEX = 2;
 	private static final String COLLECTION_LOG_EXPORT = "Export";
 	private static final String COLLECTION_LOG_COMMAND_STRING = "!log";
 	private static final List<String> COLLECTION_LOG_COMMAND_FILTERS = ImmutableList.of("missing", "obtained", "dupes");
@@ -302,7 +304,7 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		MenuEntry entry = event.getMenuEntries()[1];
+		MenuEntry entry = event.getMenuEntries()[COLLECTION_LOG_TARGET_INDEX];
 
 		String entryTarget = entry.getTarget();
 		if (entryTarget.isEmpty())
@@ -310,12 +312,12 @@ public class CollectionLogPlugin extends Plugin
 			entryTarget = entry.getOption();
 		}
 
-		if (!entryTarget.toLowerCase().endsWith(COLLECTION_LOG_TARGET.toLowerCase()))
+		if (!removeTags(entryTarget).toLowerCase().endsWith(COLLECTION_LOG_TARGET))
 		{
 			return;
 		}
 
-		client.createMenuEntry(1)
+		client.getMenu().createMenuEntry(1)
 			.setOption(COLLECTION_LOG_EXPORT)
 			.setTarget(entryTarget)
 			.setType(MenuAction.RUNELITE)
@@ -424,7 +426,7 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		obtainedItemName = Text.removeTags(m.group(1));
+		obtainedItemName = removeTags(m.group(1));
 
 		ItemContainer inventory = client.getItemContainer(InventoryID.INVENTORY);
 		if (inventory == null)
@@ -477,8 +479,7 @@ public class CollectionLogPlugin extends Plugin
 			{
 				obtainedItemStack = new ItemStack(
 					item.getElement(),
-					item.getCount(),
-					client.getLocalPlayer().getLocalLocation()
+					item.getCount()
 				);
 
 				break;
@@ -644,7 +645,7 @@ public class CollectionLogPlugin extends Plugin
 			return;
 		}
 
-		String activeTabName = Text.removeTags(activeTab.getName());
+		String activeTabName = removeTags(activeTab.getName());
 		CollectionLogTab collectionLogTab = collectionLogManager.getTabByName(activeTabName);
 		if (collectionLogTab == null)
 		{
@@ -758,7 +759,7 @@ public class CollectionLogPlugin extends Plugin
 			return null;
 		}
 
-		String tabName = Text.removeTags(tab.getName());
+		String tabName = removeTags(tab.getName());
 		int listIndex = CollectionLogList.valueOf(tabName.toUpperCase()).getListIndex();
 		return client.getWidget(InterfaceID.COLLECTION_LOG, listIndex);
 	}
@@ -842,7 +843,7 @@ public class CollectionLogPlugin extends Plugin
 			titleSections.add(totalTitle);
 		}
 
-		if (titleSections.size() > 0)
+		if (!titleSections.isEmpty())
 		{
 			titleBuilder.append(" - ");
 		}
