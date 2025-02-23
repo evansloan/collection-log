@@ -9,9 +9,9 @@ enum CollectionLogList
 {
 	BOSSES(12),
 	RAIDS(16),
-	CLUES(32),
-	MINIGAMES(35),
-	OTHER(34);
+	CLUES(33),
+	MINIGAMES(36),
+	OTHER(35);
 
 	private final int listIndex;
 }

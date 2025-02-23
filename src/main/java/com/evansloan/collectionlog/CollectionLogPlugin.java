@@ -1113,7 +1113,7 @@ public class CollectionLogPlugin extends Plugin
 			return null;
 		}
 
-		Widget containerChild = collLogContainer.getStaticChildren()[0];
+		Widget containerChild = collLogContainer.getStaticChildren()[0].getStaticChildren()[0];
 		return containerChild.getDynamicChildren()[1];
 	}
 
