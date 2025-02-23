@@ -5,7 +5,6 @@ import com.evansloan.collectionlog.util.CollectionLogSerializer;
 import com.evansloan.collectionlog.util.JsonUtils;
 import com.evansloan.collectionlog.util.UserSettingsDeserializer;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -60,26 +59,13 @@ public class CollectionLogManager
 	private static final Pattern COLLECTION_LOG_FILE_PATTERN = Pattern.compile("collectionlog-([\\w\\s-]+).json");
 
 	/*
-	 * Map of item IDs that differ in page items struct vs ID on item widget in the collection log
+	 * Enum containing a map of item IDs that differ in page items struct vs ID on item widget in the collection log
 	 * Both IDs are valid, but causes duplicates on site
 	 *
 	 * Key: Page struct item ID
 	 * Value: Item widget item ID
 	 */
-	private static final Map<Integer, Integer> ITEM_ID_MAP = new ImmutableMap.Builder<Integer, Integer>()
-		.put(10859, 25617) // Tea flask
-		.put(10877, 25618) // Red satchel
-		.put(10878, 25619) // Green satchel
-		.put(10879, 25620) // Red satchel
-		.put(10880, 25621) // Black satchel
-		.put(10881, 25622) // Gold satchel
-		.put(10882, 25623) // Rune satchel
-		.put(13273, 25624) // Unsired
-		.put(12019, 25627) // Coal bag
-		.put(12020, 25628) // Gem bag
-		.put(24882, 25629) // Plank sack
-		.put(12854, 25630) // Flamtaer bag
-		.build();
+	private static final int COLLECTION_LOG_ITEM_ID_MAP_ENUM = 3721;
 
 	private final Map<String, CollectionLog> loadedCollectionLogs = new HashMap<>();
 
@@ -123,6 +109,7 @@ public class CollectionLogManager
 		int totalObtained = 0;
 		int totalItems = 0;
 		Map<String, CollectionLogTab> collectionLogTabs = new HashMap<>();
+		EnumComposition itemIdMapEnum = client.getEnum(COLLECTION_LOG_ITEM_ID_MAP_ENUM);
 
 		for (Integer structId : COLLECTION_LOG_TAB_STRUCT_IDS)
 		{
@@ -153,9 +140,10 @@ public class CollectionLogManager
 					ItemComposition itemComposition = itemManager.getItemComposition(pageItemId);
 					CollectionLogItem item = CollectionLogItem.fromItemComposition(itemComposition, pageItems.size());
 
-					if (ITEM_ID_MAP.containsKey(item.getId()))
+					int mappedId = itemIdMapEnum.getIntValue(item.getId());
+					if (mappedId != -1)
 					{
-						item.setId(ITEM_ID_MAP.get(item.getId()));
+						item.setId(mappedId);
 					}
 
 					if (saveDataExists && saveFilePage != null)
