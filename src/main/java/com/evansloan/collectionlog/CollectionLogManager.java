@@ -43,7 +43,6 @@ public class CollectionLogManager
 		474, // Minigames
 		475  // Other
 	);
-	private static final List<Integer> COLLECTION_LOG_TAB_ENUM_IDS = ImmutableList.of(2103, 2104, 2105, 2106, 2107);
 	private static final int COLLECTION_LOG_TAB_NAME_PARAM_ID = 682;
 	private static final int COLLECTION_LOG_TAB_ENUM_PARAM_ID = 683;
 	private static final int COLLECTION_LOG_PAGE_NAME_PARAM_ID = 689;
